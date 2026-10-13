@@ -1,0 +1,3 @@
+sdk_path: /opt/android-sdk
+# gradlew-fdroid packagé (2.4.5) ne connaît pas Gradle 9.8.1 ; Gradle système = même version.
+gradle: /usr/bin/gradle

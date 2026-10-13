@@ -1,0 +1,6 @@
+Réécriture complète (Kotlin, Jetpack Compose) :
+• Configurations chiffrées avec Android Keystore, Tink et SQLCipher
+• Verrouillage optionnel de l'application (biométrie ou code de l'appareil)
+• Sauvegarde et restauration chiffrées
+• Import/export par QR code
+• Knock déclenché par un tag NFC
