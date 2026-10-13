@@ -1,0 +1,6 @@
+Complete rewrite (Kotlin, Jetpack Compose):
+• Configurations encrypted with Android Keystore, Tink and SQLCipher
+• Optional app lock (biometrics or device credential)
+• Encrypted backup and restore
+• Import/export through QR codes
+• NFC tag triggered knocks

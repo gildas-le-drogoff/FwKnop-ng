@@ -1,0 +1,168 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "ff80d07d1126aac7980f57bb047c5d65",
+    "entities": [
+      {
+        "tableName": "configs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `NICK_NAME` TEXT NOT NULL, `ACCESS_IP` TEXT NOT NULL, `PORTS` TEXT NOT NULL, `SERVER_IP` TEXT NOT NULL, `SERVER_PORT` TEXT NOT NULL, `SERVER_TIMEOUT` TEXT NOT NULL, `KEY` TEXT NOT NULL, `KEY_BASE64` INTEGER NOT NULL, `HMAC` TEXT NOT NULL, `NAT_IP` TEXT NOT NULL, `NAT_PORT` TEXT NOT NULL, `SERVER_CMD` TEXT NOT NULL, `HMAC_BASE64` INTEGER NOT NULL, `SSH_CMD` TEXT NOT NULL, `LEGACY` INTEGER NOT NULL, `PROTOCOL` TEXT NOT NULL, `DIGEST_TYPE` TEXT NOT NULL, `HMAC_TYPE` TEXT NOT NULL, `KEEP_OPEN` INTEGER NOT NULL, `GPG_SIG` INTEGER NOT NULL, `GPG_KEY` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nickName",
+            "columnName": "NICK_NAME",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "accessIp",
+            "columnName": "ACCESS_IP",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ports",
+            "columnName": "PORTS",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serverIp",
+            "columnName": "SERVER_IP",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serverPort",
+            "columnName": "SERVER_PORT",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serverTimeout",
+            "columnName": "SERVER_TIMEOUT",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "key",
+            "columnName": "KEY",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "keyBase64",
+            "columnName": "KEY_BASE64",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hmac",
+            "columnName": "HMAC",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "natIp",
+            "columnName": "NAT_IP",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "natPort",
+            "columnName": "NAT_PORT",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serverCmd",
+            "columnName": "SERVER_CMD",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hmacBase64",
+            "columnName": "HMAC_BASE64",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sshCmd",
+            "columnName": "SSH_CMD",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "legacy",
+            "columnName": "LEGACY",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protocol",
+            "columnName": "PROTOCOL",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "digestType",
+            "columnName": "DIGEST_TYPE",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hmacType",
+            "columnName": "HMAC_TYPE",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "keepOpen",
+            "columnName": "KEEP_OPEN",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gpgSig",
+            "columnName": "GPG_SIG",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gpgKey",
+            "columnName": "GPG_KEY",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_configs_NICK_NAME",
+            "unique": true,
+            "columnNames": [
+              "NICK_NAME"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_configs_NICK_NAME` ON `${TABLE_NAME}` (`NICK_NAME`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ff80d07d1126aac7980f57bb047c5d65')"
+    ]
+  }
+}

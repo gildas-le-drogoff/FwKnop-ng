@@ -1,0 +1,14 @@
+FwKnop-ng is an Android client for <a href="https://www.cipherdyne.org/fwknop/">fwknop</a> (Single Packet Authorization). It sends an encrypted, authenticated SPA packet that makes a fwknopd server open a firewall port for your IP address.
+
+<b>Features</b>
+
+<ul>
+<li>Rijndael (AES) and GPG (via OpenKeychain) encryption, HMAC authentication</li>
+<li>Configurations stored encrypted (Android Keystore, Tink, SQLCipher)</li>
+<li>Optional app lock (biometrics or device credential)</li>
+<li>Encrypted backup and restore of all configurations</li>
+<li>Import/export of configurations through QR codes</li>
+<li>NFC tag triggered knocks</li>
+</ul>
+
+<b>Note:</b> configurations are bound to the device's Android Keystore. Removing the screen lock or a factory reset makes them unrecoverable: keep your fwknop keys elsewhere, or use the encrypted backup.

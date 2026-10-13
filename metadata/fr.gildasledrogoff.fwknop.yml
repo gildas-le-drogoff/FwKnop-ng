@@ -1,0 +1,43 @@
+Categories:
+  - Connectivity
+  - Security
+License: GPL-2.0-or-later
+AuthorName: Gildas Le Drogoff
+SourceCode: https://github.com/gildas-le-drogoff/FwKnop-ng
+IssueTracker: https://github.com/gildas-le-drogoff/FwKnop-ng/issues
+Changelog: https://github.com/gildas-le-drogoff/FwKnop-ng/tree/HEAD/fastlane/metadata/android/en-US/changelogs
+AuthorWebSite: https://github.com/gildas-le-drogoff/FwKnop-ng/
+10:WebSite: https://github.com/gildas-le-drogoff/FwKnop-ng/
+
+AutoName: FwKnop-ng
+
+RepoType: git
+Repo: https://github.com/gildas-le-drogoff/FwKnop-ng.git
+
+Builds:
+  - versionName: 2.0.0
+    versionCode: 37
+    commit: 6cb1731c2993411c8d3b4bff9c6ecac72f9c5c97
+    subdir: app
+    gradle:
+      - yes
+    rm:
+      - keystore.properties
+
+MaintainerNotes: |-
+  Summary, description, title, icon, screenshots and changelogs (en-US, fr-FR)
+  are maintained upstream in fastlane/metadata/android.
+
+  keystore.properties is removed: it only holds the upstream release signing
+  configuration, the build falls back to an unsigned release otherwise.
+
+  The project uses Gradle 9.x, which the packaged gradlew-fdroid may not know yet.
+
+  Network: besides the SPA packet sent to the user-chosen fwknopd server, the
+  public IP may be resolved through STUN (stun.cloudflare.com, stun.l.google.com) and an HTTPS lookup URL (default https://ifconfig.me/ip,
+  user configurable).
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 2.0.0
+CurrentVersionCode: 37

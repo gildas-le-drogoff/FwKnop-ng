@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- PNG copies of exported QR configs, shared through the chooser. -->
+    <cache-path
+        name="qr"
+        path="qr/" />
+</paths>

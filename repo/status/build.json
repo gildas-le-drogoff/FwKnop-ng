@@ -1,0 +1,1 @@
+{"commandLine":["/usr/bin/fdroid build","-v","-l","fr.gildasledrogoff.fwknop"],"endTimestamp":1791934376862,"failedBuilds":[["fr.gildasledrogoff.fwknop",37]],"fdroiddata":{"commitId":"c60975f3b5a550e3c3624519673f09a3b3e214cb","isDirty":false,"modifiedFiles":[],"untrackedFiles":[]},"startTimestamp":1791930776000,"subcommand":"build","successfulBuildIds":[]}

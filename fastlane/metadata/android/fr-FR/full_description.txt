@@ -1,0 +1,14 @@
+FwKnop-ng est un client Android pour <a href="https://www.cipherdyne.org/fwknop/">fwknop</a> (Single Packet Authorization). Il envoie un paquet SPA chiffré et authentifié qui fait ouvrir à un serveur fwknopd un port du pare-feu pour votre adresse IP.
+
+<b>Fonctionnalités</b>
+
+<ul>
+<li>Chiffrement Rijndael (AES) et GPG (via OpenKeychain), authentification HMAC</li>
+<li>Configurations stockées chiffrées (Android Keystore, Tink, SQLCipher)</li>
+<li>Verrouillage optionnel de l'application (biométrie ou code de l'appareil)</li>
+<li>Sauvegarde et restauration chiffrées de toutes les configurations</li>
+<li>Import/export des configurations par QR code</li>
+<li>Knock déclenché par un tag NFC</li>
+</ul>
+
+<b>Attention :</b> les configurations sont liées au Keystore Android de l'appareil. La suppression du verrouillage d'écran ou une réinitialisation d'usine les rend irrécupérables : conservez vos clés fwknop ailleurs, ou utilisez la sauvegarde chiffrée.

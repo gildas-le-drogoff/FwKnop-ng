@@ -1,0 +1,4 @@
+<resources>
+    <!-- Window-level theme only: everything inside is drawn by Compose Material 3. -->
+    <style name="Theme.Fwknop" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
