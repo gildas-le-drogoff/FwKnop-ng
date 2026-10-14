@@ -8,6 +8,7 @@ import fr.gildasledrogoff.fwknop.data.mapper.toEntity
 import fr.gildasledrogoff.fwknop.domain.model.AppSettings
 import fr.gildasledrogoff.fwknop.domain.model.AutoLockDelay
 import fr.gildasledrogoff.fwknop.domain.model.Backup
+import fr.gildasledrogoff.fwknop.domain.model.KnockMethod
 import fr.gildasledrogoff.fwknop.domain.model.NfcTagKey
 import fr.gildasledrogoff.fwknop.domain.model.ServerPort
 import kotlinx.serialization.Serializable
@@ -58,6 +59,9 @@ internal data class BackupConfig(
     val gpgKey: Long = 0,
     
     val useGpg: Boolean? = null,
+    val knockSequence: String = "",
+    val knockDelay: Int = KnockMethod.PortSequence.DEFAULT_DELAY_MS,
+    val wakeOnLan: String = "",
 )
 
 internal fun Backup.toPayload() = BackupPayload(
@@ -120,6 +124,9 @@ private fun ConfigEntity.toBackupConfig() = BackupConfig(
     gpgSig = gpgSig,
     gpgKey = gpgKey,
     useGpg = useGpg,
+    knockSequence = knockSequence,
+    knockDelay = knockDelay,
+    wakeOnLan = wakeOnLan,
 )
 
 private fun BackupConfig.toEntity() = ConfigEntity(
@@ -145,4 +152,7 @@ private fun BackupConfig.toEntity() = ConfigEntity(
     gpgSig = gpgSig,
     gpgKey = gpgKey,
     useGpg = useGpg ?: (gpgKey != 0L),
+    knockSequence = knockSequence,
+    knockDelay = knockDelay,
+    wakeOnLan = wakeOnLan,
 )

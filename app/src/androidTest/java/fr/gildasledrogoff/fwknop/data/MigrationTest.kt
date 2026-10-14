@@ -8,6 +8,8 @@ import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.data.local.database.FwknopDatabase
 import fr.gildasledrogoff.fwknop.data.local.database.MIGRATION_1_2
 import fr.gildasledrogoff.fwknop.data.local.database.MIGRATION_2_3
+import fr.gildasledrogoff.fwknop.data.local.database.MIGRATION_3_4
+import fr.gildasledrogoff.fwknop.data.local.database.MIGRATION_4_5
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,6 +41,29 @@ class MigrationTest {
         helper.runMigrationsAndValidate(DB, 3, true, MIGRATION_2_3).use { db ->
             db.query("SELECT COUNT(*) FROM configs").use { assertThat(it.moveToFirst() && it.getInt(0) == 1).isTrue() }
             db.query("SELECT COUNT(*) FROM knock_log").use { assertThat(it.moveToFirst() && it.getInt(0) == 0).isTrue() }
+        }
+    }
+
+    @Test
+    fun v3ConfigsStayInSpaMode() {
+        helper.createDatabase(DB, 3).use { db -> insertV1(db, "plain", gpgKey = 0) }
+        helper.runMigrationsAndValidate(DB, 4, true, MIGRATION_3_4).use { db ->
+            db.query("SELECT KNOCK_SEQUENCE, KNOCK_DELAY FROM configs").use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getString(0)).isEmpty()
+                assertThat(cursor.getInt(1)).isEqualTo(500)
+            }
+        }
+    }
+
+    @Test
+    fun v4ConfigsHaveNoWakeOnLan() {
+        helper.createDatabase(DB, 4).use { db -> insertV1(db, "plain", gpgKey = 0) }
+        helper.runMigrationsAndValidate(DB, 5, true, MIGRATION_4_5).use { db ->
+            db.query("SELECT WAKE_ON_LAN FROM configs").use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getString(0)).isEmpty()
+            }
         }
     }
 

@@ -6,6 +6,7 @@ import fr.gildasledrogoff.fwknop.domain.model.AccessRule
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult.Failure
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult.Success
+import fr.gildasledrogoff.fwknop.domain.model.KnockMethod
 import fr.gildasledrogoff.fwknop.domain.model.MessageType
 import fr.gildasledrogoff.fwknop.domain.model.PortAccess
 import fr.gildasledrogoff.fwknop.domain.model.ServerDraft
@@ -18,6 +19,7 @@ import fr.gildasledrogoff.fwknop.domain.model.flatMap
 import fr.gildasledrogoff.fwknop.domain.model.isIpAddress
 import fr.gildasledrogoff.fwknop.domain.model.isPort
 import fr.gildasledrogoff.fwknop.domain.model.map
+import fr.gildasledrogoff.fwknop.domain.model.parseKnockSequence
 
 private val PORTS_PATTERN = Regex("^(tcp|udp)/\\d.*")
 internal fun ServerDraft.toEndpoint(): DomainResult<ServerEndpoint, ConfigError> {
@@ -31,6 +33,19 @@ private fun ServerDraft.toServerPort(): ServerPort {
     val value = port.trim().takeIf { it.isPort() }?.toInt() ?: ServerPort.DEFAULT
     return ServerPort.Fixed(value)
 }
+
+internal fun ServerDraft.toKnockMethod(): DomainResult<KnockMethod, ConfigError> {
+    if (!portKnocking) return Success(KnockMethod.Spa)
+    val ports = parseKnockSequence(knockSequence) ?: return Failure(ConfigError.KnockSequenceInvalid)
+    val delay = knockDelayMs.trim().toIntOrNull()
+        ?.takeIf { it in 0..KnockMethod.PortSequence.MAX_DELAY_MS }
+        ?: return Failure(ConfigError.KnockDelayInvalid)
+    return Success(KnockMethod.PortSequence(ports, delay))
+}
+
+/** A port knock only opens ports: no NAT nor command, and the ports (used to verify access) are optional. */
+internal fun AccessDraft.toKnockAccessRule(): DomainResult<AccessRule, ConfigError> =
+    toPortAccess(portsRequired = false).map { AccessRule.OpenPort(it) }
 
 internal fun AccessDraft.toAccessRule(): DomainResult<AccessRule, ConfigError> = when (type) {
     MessageType.SERVER_COMMAND -> toServerCommand()
@@ -48,9 +63,10 @@ private fun AccessDraft.toServerCommand(): DomainResult<AccessRule, ConfigError>
         )
     )
 
-private fun AccessDraft.toPortAccess(): DomainResult<PortAccess, ConfigError> {
+private fun AccessDraft.toPortAccess(portsRequired: Boolean = true): DomainResult<PortAccess, ConfigError> {
     val trimmedPorts = ports.trim()
-    if (!PORTS_PATTERN.matches(trimmedPorts)) return Failure(ConfigError.PortsFormat)
+    val portsOmitted = !portsRequired && trimmedPorts.isEmpty()
+    if (!portsOmitted && !PORTS_PATTERN.matches(trimmedPorts)) return Failure(ConfigError.PortsFormat)
     val rawTimeout = timeout.trim()
     val seconds = if (rawTimeout.isEmpty()) {
         null

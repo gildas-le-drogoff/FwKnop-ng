@@ -33,6 +33,9 @@ interface SpaTransportRepository {
     
     suspend fun resolveHostFamilies(host: String): DomainResult<List<String>, KnockError>
     suspend fun sendPacket(packet: String, target: KnockTarget): DomainResult<Unit, KnockError>
+
+    /** One port of a classic knock sequence: a TCP SYN or an empty UDP datagram, whatever the answer. */
+    suspend fun knockPort(target: KnockTarget): DomainResult<Unit, KnockError>
 }
 
 interface PortProbeRepository {

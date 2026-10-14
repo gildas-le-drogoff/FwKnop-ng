@@ -62,6 +62,7 @@ import fr.gildasledrogoff.fwknop.presentation.state.AuthResult
 import fr.gildasledrogoff.fwknop.presentation.state.QrExportState
 import fr.gildasledrogoff.fwknop.presentation.state.text
 import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
+import fr.gildasledrogoff.fwknop.presentation.ui.components.ButtonRow
 import fr.gildasledrogoff.fwknop.presentation.ui.components.CollectEffects
 import fr.gildasledrogoff.fwknop.presentation.ui.components.EmptyState
 import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
@@ -229,18 +230,9 @@ private fun QrExportBody(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(dimens.contentWidthFraction),
         )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(dimens.itemSpacing),
-            modifier = Modifier.fillMaxWidth(dimens.contentWidthFraction),
-        ) {
-            OutlinedButton(
-                actions.onSavePng,
-                Modifier.weight(1f)
-            ) { Text(stringResource(R.string.action_save_png)) }
-            Button(
-                actions.onShare,
-                Modifier.weight(1f)
-            ) { Text(stringResource(R.string.action_share_png)) }
+        ButtonRow(Modifier.fillMaxWidth(dimens.contentWidthFraction)) {
+            OutlinedButton(actions.onSavePng) { Text(stringResource(R.string.action_save_png)) }
+            Button(actions.onShare) { Text(stringResource(R.string.action_share_png)) }
         }
         if (state.encrypted) {
             TextButton(actions.onChangePassphrase) {

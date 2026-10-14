@@ -6,6 +6,8 @@ data class QrConfig(
     val serverPort: Int? = null,
     val randomPort: Boolean? = null,
     val protocol: Protocol? = null,
+    val knockSequence: String? = null,
+    val knockDelayMs: Int? = null,
     val messageType: MessageType? = null,
     val ports: String? = null,
     val timeoutSeconds: Int? = null,
@@ -42,6 +44,10 @@ private fun SpaConfig.generalStanzas(): List<Pair<String, String>> = buildList {
         ServerPort.Random -> add("PORT_RANDOM" to "1")
     }
     if (server.protocol != Protocol.UDP) add("PROTO" to server.protocol.name)
+    (method as? KnockMethod.PortSequence)?.let {
+        add("KNOCK_SEQ" to it.ports.toSequenceText())
+        add("KNOCK_DELAY" to "${it.delayMs}")
+    }
 }
 
 private fun SpaConfig.accessStanzas(): List<Pair<String, String>> = buildList {

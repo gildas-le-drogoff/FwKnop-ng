@@ -27,12 +27,17 @@ fun ConfigEditContent(state: ConfigEditState, onEvent: (ConfigEditEvent) -> Unit
         item {
             AccessSection(
                 draft.access,
-                draft.crypto.useGpg
+                draft.crypto.useGpg && !draft.server.portKnocking,
+                draft.server.portKnocking,
             ) { onEvent(ConfigEditEvent.AccessChanged(it)) }
         }
-        item { SourceIpSection(draft.sourceIp) { onEvent(ConfigEditEvent.SourceIpChanged(it)) } }
-        item { CryptoSection(draft.crypto, onEvent) }
+        // Ignored by a port knock: kept as is, but hidden.
+        if (!draft.server.portKnocking) {
+            item { SourceIpSection(draft.sourceIp) { onEvent(ConfigEditEvent.SourceIpChanged(it)) } }
+            item { CryptoSection(draft.crypto, onEvent) }
+        }
         item { ExternalAppSection(draft.externalApp, onEvent) }
+        item { WakeOnLanSection(draft.wakeOnLan, onEvent) }
     }
 }
 

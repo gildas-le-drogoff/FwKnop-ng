@@ -2,7 +2,6 @@ package fr.gildasledrogoff.fwknop.presentation.ui
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
 import com.google.common.truth.Truth.assertWithMessage
 import fr.gildasledrogoff.fwknop.presentation.ui.components.scaledMaxLines
@@ -48,17 +47,10 @@ class ThemeContrastTest {
     }
 
     @Test
-    fun `config accents stand out on the cards, in both themes`() {
-        listOf(false to LightColors, true to DarkColors).forEach { (dark, c) ->
-            NICKNAMES.forEach { nickname ->
-                val accent = configAccent(nickname, dark)
-                // ElevatedCard container, without and with the accent wash at its strongest.
-                val card = c.surfaceContainerLow
-                val washed = accent.copy(alpha = WASH_ALPHA).compositeOver(card)
-                assertContrast("accent $nickname dark=$dark", accent, card, GRAPHICS)
-                assertContrast("nickname over wash $nickname dark=$dark", c.onSurface, washed, TEXT)
-                assertContrast("endpoint over wash $nickname dark=$dark", c.onSurfaceVariant, washed, TEXT)
-            }
+    fun `config icons are readable on their tonal badge`() = schemes.forEach { (name, c) ->
+        NICKNAMES.forEach { nickname ->
+            val accent = configAccent(nickname, c)
+            assertContrast("$name accent $nickname", accent.content, accent.container, GRAPHICS)
         }
     }
 
@@ -85,8 +77,6 @@ class ThemeContrastTest {
         const val TEXT = 4.5f
         const val GRAPHICS = 3f
 
-        // Matches ConfigCard.accentEdge.
-        const val WASH_ALPHA = 0.12f
         val NICKNAMES = (0 until 360).map { "config-$it" } + listOf("home", "office-nat", "router", "", "é")
     }
 }

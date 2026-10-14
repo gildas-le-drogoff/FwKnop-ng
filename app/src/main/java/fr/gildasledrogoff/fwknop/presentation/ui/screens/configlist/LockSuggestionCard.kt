@@ -1,7 +1,7 @@
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.configlist
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +27,7 @@ fun LockSuggestionCard(onEnable: () -> Unit, onDismiss: () -> Unit, modifier: Mo
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Row(
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing, Alignment.End),
             modifier = Modifier.fillMaxWidth(),
         ) {

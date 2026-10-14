@@ -129,6 +129,8 @@ class DiagnosticViewModel @Inject constructor(
                 DiagnosticPhase.ADDRESS_FAMILY to DiagnosticDetail.Family(step.family, step.route.serverIp)
             is KnockStep.PacketBuilt -> DiagnosticPhase.PACKET to DiagnosticDetail.Packet(step.sizeBytes)
             is KnockStep.Sending -> {
+                // A port knock builds no packet.
+                updateStep(DiagnosticPhase.PACKET) { if (it.isOpen()) it.copy(status = StepStatus.Skipped) else it }
                 // Known before the send completes: stays running until the use case returns.
                 updateStep(DiagnosticPhase.TRANSPORT) {
                     it.copy(status = StepStatus.Running, detail = DiagnosticDetail.Transport(step.target))

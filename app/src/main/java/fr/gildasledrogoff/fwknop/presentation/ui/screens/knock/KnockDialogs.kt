@@ -4,7 +4,6 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -139,10 +138,9 @@ private fun SourceIpPromptContent(ip: String, onChange: (String) -> Unit, @Strin
 
 @Composable
 private fun SourceIpPromptButtons(actions: SourceIpPromptActions) {
-    Row {
-        TextButton(onClick = actions.onScan) { Text(stringResource(R.string.action_scan_qr)) }
-        TextButton(onClick = actions.onCancel) { Text(stringResource(R.string.cancel)) }
-    }
+    // Emitted straight into the dialog's flow row (no Row wrapper) so they wrap instead of squeezing.
+    TextButton(onClick = actions.onScan) { Text(stringResource(R.string.action_scan_qr)) }
+    TextButton(onClick = actions.onCancel) { Text(stringResource(R.string.cancel)) }
 }
 
 

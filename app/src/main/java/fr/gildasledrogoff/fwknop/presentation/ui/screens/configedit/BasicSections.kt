@@ -2,6 +2,8 @@ package fr.gildasledrogoff.fwknop.presentation.ui.screens.configedit
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +23,7 @@ import fr.gildasledrogoff.fwknop.presentation.ui.components.SectionCard
 import fr.gildasledrogoff.fwknop.presentation.ui.components.hintRes
 import fr.gildasledrogoff.fwknop.presentation.ui.components.labelRes
 import fr.gildasledrogoff.fwknop.presentation.ui.components.labelsOf
+import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 
 @Composable
@@ -39,6 +42,38 @@ fun ServerSection(server: ServerDraft, onChange: (ServerDraft) -> Unit) {
             label = stringResource(R.string.field_server_address),
             keyboardType = KeyboardType.Uri,
         )
+        LabeledSwitch(
+            label = stringResource(R.string.field_port_knocking),
+            checked = server.portKnocking,
+            onCheckedChange = { onChange(server.copy(portKnocking = it)) },
+            supportingText = stringResource(R.string.hint_port_knocking),
+        )
+        AnimatedVisibility(visible = server.portKnocking) { KnockSequenceFields(server, onChange) }
+        AnimatedVisibility(visible = !server.portKnocking) { SpaEndpointFields(server, onChange) }
+    }
+}
+
+@Composable
+private fun KnockSequenceFields(server: ServerDraft, onChange: (ServerDraft) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing)) {
+        FormTextField(
+            value = server.knockSequence,
+            onValueChange = { onChange(server.copy(knockSequence = it)) },
+            label = stringResource(R.string.field_knock_sequence),
+            supportingText = stringResource(R.string.hint_knock_sequence),
+        )
+        FormTextField(
+            value = server.knockDelayMs,
+            onValueChange = { onChange(server.copy(knockDelayMs = it)) },
+            label = stringResource(R.string.field_knock_delay),
+            keyboardType = KeyboardType.Number,
+        )
+    }
+}
+
+@Composable
+private fun SpaEndpointFields(server: ServerDraft, onChange: (ServerDraft) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing)) {
         LabeledSwitch(
             label = stringResource(R.string.field_random_port),
             checked = server.randomPort,
@@ -95,6 +130,17 @@ private fun SourceIpHint(@StringRes text: Int) {
 @Composable
 private fun ServerSectionPreview() {
     FwknopTheme { ServerSection(ServerDraft(host = "knock.example.org"), {}) }
+}
+
+@AdaptivePreviews
+@Composable
+private fun PortKnockingSectionPreview() {
+    FwknopTheme {
+        ServerSection(
+            ServerDraft(host = "knock.example.org", portKnocking = true, knockSequence = "tcp/7000,udp/8000"),
+            {},
+        )
+    }
 }
 
 @AdaptivePreviews

@@ -45,6 +45,8 @@ class ParseQrConfigUseCase @Inject constructor() {
             serverPort = stanzas["PORT"]?.toIntOrNull(),
             randomPort = stanzas.boolean("PORT_RANDOM"),
             protocol = stanzas.enum<Protocol>("PROTO"),
+            knockSequence = stanzas.decoded("KNOCK_SEQ"),
+            knockDelayMs = stanzas["KNOCK_DELAY"]?.toIntOrNull(),
             messageType = stanzas.enum<MessageType>("MSG_TYPE"),
             ports = stanzas.decoded("ACCESS"),
             timeoutSeconds = stanzas["TIMEOUT"]?.toIntOrNull(),

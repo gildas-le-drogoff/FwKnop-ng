@@ -26,6 +26,8 @@ fun ConfigError.toUiError(): UiError = UiError.Message(
         ConfigError.NicknameBlank -> R.string.error_nickname_blank
         ConfigError.NicknameTaken -> R.string.error_nickname_taken
         ConfigError.ServerInvalid -> R.string.error_server_invalid
+        ConfigError.KnockSequenceInvalid -> R.string.error_knock_sequence_invalid
+        ConfigError.KnockDelayInvalid -> R.string.error_knock_delay_invalid
         ConfigError.PortsFormat -> R.string.error_ports_format
         ConfigError.TimeoutInvalid -> R.string.error_timeout_invalid
         ConfigError.NatIpInvalid -> R.string.error_nat_ip_invalid
@@ -39,6 +41,9 @@ fun ConfigError.toUiError(): UiError = UiError.Message(
         ConfigError.KeyBase64Length -> R.string.error_key_base64_length
         ConfigError.KeyBase64Chars -> R.string.error_key_base64_chars
         ConfigError.WireGuardKeyMissing -> R.string.error_wireguard_key_missing
+        ConfigError.WakeMacInvalid -> R.string.error_wake_mac_invalid
+        ConfigError.WakeHostInvalid -> R.string.error_wake_host_invalid
+        ConfigError.WakePortInvalid -> R.string.error_wake_port_invalid
         is ConfigError.Storage -> R.string.error_config_storage
     },
 )

@@ -15,6 +15,7 @@ import fr.gildasledrogoff.fwknop.data.repository.PublicIpRepositoryImpl
 import fr.gildasledrogoff.fwknop.data.repository.SettingsRepositoryImpl
 import fr.gildasledrogoff.fwknop.data.repository.SpaPacketRepositoryImpl
 import fr.gildasledrogoff.fwknop.data.repository.SpaTransportRepositoryImpl
+import fr.gildasledrogoff.fwknop.data.repository.WakeOnLanRepositoryImpl
 import fr.gildasledrogoff.fwknop.domain.repository.BackupRepository
 import fr.gildasledrogoff.fwknop.domain.repository.GpgRepository
 import fr.gildasledrogoff.fwknop.domain.repository.KnockTimerScheduler
@@ -23,6 +24,7 @@ import fr.gildasledrogoff.fwknop.domain.repository.PublicIpRepository
 import fr.gildasledrogoff.fwknop.domain.repository.SettingsRepository
 import fr.gildasledrogoff.fwknop.domain.repository.SpaPacketRepository
 import fr.gildasledrogoff.fwknop.domain.repository.SpaTransportRepository
+import fr.gildasledrogoff.fwknop.domain.repository.WakeOnLanRepository
 import fr.gildasledrogoff.fwknop.presentation.service.KnockTimerSchedulerImpl
 import fr.gildasledrogoff.fwknop.utils.dispatcher.DefaultDispatcherProvider
 import fr.gildasledrogoff.fwknop.utils.dispatcher.DispatcherProvider
@@ -46,6 +48,8 @@ interface BindingsModule {
     fun bindSpaTransportRepository(impl: SpaTransportRepositoryImpl): SpaTransportRepository
     @Binds
     fun bindPortProbeRepository(impl: PortProbeRepositoryImpl): PortProbeRepository
+    @Binds
+    fun bindWakeOnLanRepository(impl: WakeOnLanRepositoryImpl): WakeOnLanRepository
     @Binds
     fun bindGpgRepository(impl: GpgRepositoryImpl): GpgRepository
     @Binds

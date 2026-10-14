@@ -43,12 +43,16 @@ import fr.gildasledrogoff.fwknop.presentation.state.KnockState
 import fr.gildasledrogoff.fwknop.presentation.state.NfcEraseReason
 import fr.gildasledrogoff.fwknop.presentation.state.SecuritySettingsEvent
 import fr.gildasledrogoff.fwknop.presentation.state.SentNotice
+import fr.gildasledrogoff.fwknop.presentation.state.WakeOnLanEffect
+import fr.gildasledrogoff.fwknop.presentation.state.WakeOnLanEvent
+import fr.gildasledrogoff.fwknop.presentation.state.WakeOnLanState
 import fr.gildasledrogoff.fwknop.presentation.ui.components.ErrorDialog
 import fr.gildasledrogoff.fwknop.presentation.ui.components.description
 import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
 import fr.gildasledrogoff.fwknop.presentation.ui.components.openAppSettings
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.backup.BackupHost
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.knock.KnockHost
+import fr.gildasledrogoff.fwknop.presentation.ui.screens.knock.WakeOnLanHost
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.nfc.NfcKnockReader
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.settings.SecurityHost
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
@@ -58,6 +62,7 @@ import fr.gildasledrogoff.fwknop.presentation.viewmodel.ConfigListViewModel
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.KnockViewModel
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.NfcEraseViewModel
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.SecuritySettingsViewModel
+import fr.gildasledrogoff.fwknop.presentation.viewmodel.WakeOnLanViewModel
 import kotlinx.coroutines.delay
 
 @Immutable
@@ -83,13 +88,16 @@ fun ConfigListScreen(
     backupViewModel: BackupViewModel = hiltViewModel(),
     nfcEraseViewModel: NfcEraseViewModel = hiltViewModel(),
     securityViewModel: SecuritySettingsViewModel = hiltViewModel(),
+    wakeViewModel: WakeOnLanViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val knockState by knockViewModel.state.collectAsStateWithLifecycle()
+    val wakeState by wakeViewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var lastSent by remember { mutableStateOf<KnockEffect.Sent?>(null) }
     var justSent by remember { mutableStateOf<KnockEffect.Sent?>(null) }
     var portChecked by remember { mutableStateOf<KnockEffect.PortChecked?>(null) }
+    var woken by remember { mutableStateOf<WakeOnLanEffect.Sent?>(null) }
     val haptics = LocalHapticFeedback.current
     StartupEffects(state, navigation.onHelp)
     SecurityHost(securityViewModel, snackbarHostState)
@@ -102,13 +110,16 @@ fun ConfigListScreen(
         nfcEraseViewModel.offer(NfcEraseReason.FWKNOP)
     }
     NfcKnockReader(state.nfcKnockEnabled, knockViewModel, nfcEraseViewModel)
+    WakeOnLanHost(wakeViewModel) { woken = it }
     BackupHost(backupViewModel, snackbarHostState)
     lastSent?.let { SentSnackbar(it, snackbarHostState) { lastSent = null } }
     portChecked?.let { PortCheckSnackbar(it, snackbarHostState) { portChecked = null } }
+    woken?.let { WakeSentSnackbar(it, snackbarHostState) { woken = null } }
     justSent?.let { sent -> LaunchedEffect(sent) { delay(SUCCESS_MS); justSent = null } }
     val knock = KnockActivity(
         sending = (knockState as? KnockState.Sending)?.nickname,
         sent = justSent?.nickname,
+        waking = (wakeState as? WakeOnLanState.Sending)?.nickname,
     )
     val actions = ConfigCardActions(
         onKnock = { knockViewModel.onEvent(KnockEvent.Knock(it)) },
@@ -119,6 +130,7 @@ fun ConfigListScreen(
         onDiagnose = navigation.onDiagnose,
         onExportFile = { backupViewModel.onEvent(BackupEvent.ExportConfigRequested(it)) },
         onDelete = { viewModel.onEvent(ConfigListEvent.DeleteConfig(it)) },
+        onWake = { wakeViewModel.onEvent(WakeOnLanEvent.Wake(it)) },
     )
     ConfigListScaffold(
         state = state,
@@ -246,6 +258,15 @@ private fun PortCheckSnackbar(
     }
     LaunchedEffect(checked) {
         hostState.showSnackbar(message, duration = SnackbarDuration.Long)
+        onShown()
+    }
+}
+
+@Composable
+private fun WakeSentSnackbar(sent: WakeOnLanEffect.Sent, hostState: SnackbarHostState, onShown: () -> Unit) {
+    val message = stringResource(R.string.wake_sent, sent.nickname)
+    LaunchedEffect(sent) {
+        hostState.showSnackbar(message)
         onShown()
     }
 }

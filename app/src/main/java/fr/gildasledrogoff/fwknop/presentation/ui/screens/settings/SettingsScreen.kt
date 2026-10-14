@@ -46,6 +46,7 @@ import fr.gildasledrogoff.fwknop.presentation.state.SettingsEffect
 import fr.gildasledrogoff.fwknop.presentation.state.SettingsEvent
 import fr.gildasledrogoff.fwknop.presentation.state.SettingsState
 import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
+import fr.gildasledrogoff.fwknop.presentation.ui.components.ButtonRow
 import fr.gildasledrogoff.fwknop.presentation.ui.components.CollectEffects
 import fr.gildasledrogoff.fwknop.presentation.ui.components.ErrorDialog
 import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
@@ -243,18 +244,16 @@ private fun ThemeMode.labelRes(): Int = when (this) {
 
 @Composable
 private fun SettingsButtons(onEvent: (SettingsEvent) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing)) {
+    ButtonRow {
         OutlinedButton(
             onClick = { onEvent(SettingsEvent.ResetDefaults) },
             shape = MaterialTheme.shapes.small,
-            modifier = Modifier.weight(1f)
         ) {
             Text(stringResource(R.string.action_defaults))
         }
         Button(
             onClick = { onEvent(SettingsEvent.Save) },
             shape = MaterialTheme.shapes.small,
-            modifier = Modifier.weight(1f),
         ) {
             Text(stringResource(R.string.action_save))
         }

@@ -9,7 +9,46 @@ data class SpaConfig(
     val sourceIp: SourceIp,
     val crypto: SpaCrypto,
     val externalApp: ExternalApp,
+    val method: KnockMethod = KnockMethod.Spa,
+    val wakeOnLan: WakeOnLan? = null,
 )
+
+sealed interface KnockMethod {
+    data object Spa : KnockMethod
+
+    /**
+     * Classic port knocking: one TCP SYN or empty UDP datagram per port, in order. Crypto, source IP
+     * and the SPA port/protocol of the config are then left dormant.
+     */
+    data class PortSequence(val ports: List<KnockPort>, val delayMs: Int) : KnockMethod {
+        companion object {
+            const val DEFAULT_DELAY_MS = 500
+            const val MAX_DELAY_MS = 10_000
+        }
+    }
+}
+
+/** Protocol is [Protocol.TCP] or [Protocol.UDP]. */
+data class KnockPort(val protocol: Protocol, val port: Int)
+
+/** "tcp/7000,udp/8000": the form stored, exported and shown in the editor. */
+fun List<KnockPort>.toSequenceText(): String =
+    joinToString(",") { "${it.protocol.name.lowercase()}/${it.port}" }
+
+/** Accepts commas or blanks as separators; a bare port is TCP. Null when any entry is invalid. */
+fun parseKnockSequence(text: String): List<KnockPort>? {
+    val entries = text.split(',', ' ', '\n', '\t').map { it.trim() }.filter { it.isNotEmpty() }
+    if (entries.isEmpty()) return null
+    return entries.map { entry ->
+        val protocol = when (entry.substringBefore('/', "tcp").lowercase()) {
+            "tcp" -> Protocol.TCP
+            "udp" -> Protocol.UDP
+            else -> return null
+        }
+        val port = entry.substringAfter('/').takeIf { it.isPort() }?.toInt() ?: return null
+        KnockPort(protocol, port)
+    }
+}
 
 data class ServerEndpoint(
     val host: String,

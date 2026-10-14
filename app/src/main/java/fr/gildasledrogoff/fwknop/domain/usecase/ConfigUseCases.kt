@@ -2,8 +2,11 @@ package fr.gildasledrogoff.fwknop.domain.usecase
 
 import fr.gildasledrogoff.fwknop.domain.error.ConfigError
 import fr.gildasledrogoff.fwknop.domain.model.ConfigDraft
+import fr.gildasledrogoff.fwknop.domain.model.CryptoDraft
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
+import fr.gildasledrogoff.fwknop.domain.model.KnockMethod
 import fr.gildasledrogoff.fwknop.domain.model.Nickname
+import fr.gildasledrogoff.fwknop.domain.model.SourceIpDraft
 import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
 import fr.gildasledrogoff.fwknop.domain.model.flatMap
 import fr.gildasledrogoff.fwknop.domain.model.map
@@ -30,17 +33,29 @@ class ValidateConfigUseCase @Inject constructor() {
         val nickname = draft.nickname.trim()
         if (nickname.isEmpty()) return DomainResult.Failure(ConfigError.NicknameBlank)
         return draft.server.toEndpoint().flatMap { server ->
-            draft.access.toAccessRule().flatMap { access ->
-                draft.sourceIp.toSourceIp().flatMap { sourceIp ->
-                    draft.crypto.toCrypto().flatMap { crypto ->
-                        draft.externalApp.toExternalApp().map { app ->
-                            SpaConfig(Nickname(nickname), server, access, sourceIp, crypto, app)
+            draft.server.toKnockMethod().flatMap { method ->
+                val spa = method == KnockMethod.Spa
+                val access = if (spa) draft.access.toAccessRule() else draft.access.toKnockAccessRule()
+                access.flatMap { access ->
+                    draft.sourceIp.toSourceIp().orDormant(spa) { SourceIpDraft().toSourceIp() }.flatMap { sourceIp ->
+                        draft.crypto.toCrypto().orDormant(spa) { CryptoDraft().toCrypto() }.flatMap { crypto ->
+                            draft.externalApp.toExternalApp().flatMap { app ->
+                                draft.wakeOnLan.toWakeOnLan().map { wake ->
+                                    SpaConfig(Nickname(nickname), server, access, sourceIp, crypto, app, method, wake)
+                                }
+                            }
                         }
                     }
                 }
             }
         }
     }
+
+    /** A port knock ignores this section, hidden in the editor: kept when valid, reset otherwise. */
+    private fun <T> DomainResult<T, ConfigError>.orDormant(
+        spa: Boolean,
+        fallback: () -> DomainResult<T, ConfigError>,
+    ): DomainResult<T, ConfigError> = if (spa || this is DomainResult.Success) this else fallback()
 }
 
 class SaveConfigUseCase @Inject constructor(

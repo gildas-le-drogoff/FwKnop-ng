@@ -5,6 +5,8 @@ sealed interface ConfigError {
     data object NicknameBlank : ConfigError
     data object NicknameTaken : ConfigError
     data object ServerInvalid : ConfigError
+    data object KnockSequenceInvalid : ConfigError
+    data object KnockDelayInvalid : ConfigError
     data object PortsFormat : ConfigError
     data object TimeoutInvalid : ConfigError
     data object NatIpInvalid : ConfigError
@@ -18,5 +20,8 @@ sealed interface ConfigError {
     data object KeyBase64Length : ConfigError
     data object KeyBase64Chars : ConfigError
     data object WireGuardKeyMissing : ConfigError
+    data object WakeMacInvalid : ConfigError
+    data object WakeHostInvalid : ConfigError
+    data object WakePortInvalid : ConfigError
     data class Storage(val cause: Throwable) : ConfigError
 }

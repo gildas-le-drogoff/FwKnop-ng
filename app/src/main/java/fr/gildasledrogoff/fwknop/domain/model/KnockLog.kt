@@ -18,7 +18,12 @@ data class KnockLogEvent(
             config: SpaConfig,
             source: ResolvedSourceIp?,
             result: DomainResult<*, KnockError>,
-        ) = KnockLogEvent(config.nickname, config.server.protocol, source, KnockLogOutcome.of(result))
+        ) = KnockLogEvent(config.nickname, config.knockProtocol(), source, KnockLogOutcome.of(result))
+
+        private fun SpaConfig.knockProtocol(): Protocol = when (val method = method) {
+            KnockMethod.Spa -> server.protocol
+            is KnockMethod.PortSequence -> method.ports.first().protocol
+        }
     }
 }
 
@@ -72,6 +77,8 @@ private fun ConfigError.logCode(): String = when (this) {
     ConfigError.NicknameBlank -> "NICKNAME_BLANK"
     ConfigError.NicknameTaken -> "NICKNAME_TAKEN"
     ConfigError.ServerInvalid -> "SERVER_INVALID"
+    ConfigError.KnockSequenceInvalid -> "KNOCK_SEQUENCE_INVALID"
+    ConfigError.KnockDelayInvalid -> "KNOCK_DELAY_INVALID"
     ConfigError.PortsFormat -> "PORTS_FORMAT"
     ConfigError.TimeoutInvalid -> "TIMEOUT_INVALID"
     ConfigError.NatIpInvalid -> "NAT_IP_INVALID"
@@ -85,6 +92,9 @@ private fun ConfigError.logCode(): String = when (this) {
     ConfigError.KeyBase64Length -> "KEY_BASE64_LENGTH"
     ConfigError.KeyBase64Chars -> "KEY_BASE64_CHARS"
     ConfigError.WireGuardKeyMissing -> "WIREGUARD_KEY_MISSING"
+    ConfigError.WakeMacInvalid -> "WAKE_MAC_INVALID"
+    ConfigError.WakeHostInvalid -> "WAKE_HOST_INVALID"
+    ConfigError.WakePortInvalid -> "WAKE_PORT_INVALID"
     is ConfigError.Storage -> "STORAGE"
 }
 

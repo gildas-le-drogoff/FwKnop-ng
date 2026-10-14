@@ -2,11 +2,12 @@ package fr.gildasledrogoff.fwknop.domain.model
 
 fun SpaConfig.toDraft(): ConfigDraft = ConfigDraft(
     nickname = nickname.value,
-    server = server.toDraft(),
+    server = server.toDraft().with(method),
     access = access.toDraft(),
     sourceIp = sourceIp.toDraft(),
     crypto = crypto.toDraft(),
     externalApp = externalApp.toDraft(),
+    wakeOnLan = wakeOnLan.toDraft(),
 )
 
 private fun ServerEndpoint.toDraft(): ServerDraft = ServerDraft(
@@ -15,6 +16,15 @@ private fun ServerEndpoint.toDraft(): ServerDraft = ServerDraft(
     randomPort = port is ServerPort.Random,
     protocol = protocol,
 )
+
+private fun ServerDraft.with(method: KnockMethod): ServerDraft = when (method) {
+    KnockMethod.Spa -> this
+    is KnockMethod.PortSequence -> copy(
+        portKnocking = true,
+        knockSequence = method.ports.toSequenceText(),
+        knockDelayMs = method.delayMs.toString(),
+    )
+}
 
 private fun AccessRule.toDraft(): AccessDraft {
     val ports = portAccess?.toDraft() ?: AccessDraft(ports = "")
@@ -107,6 +117,9 @@ private fun ServerDraft.with(config: QrConfig) = copy(
     port = config.serverPort?.toString() ?: port,
     randomPort = config.randomPort ?: randomPort,
     protocol = config.protocol ?: protocol,
+    portKnocking = config.knockSequence != null || portKnocking,
+    knockSequence = config.knockSequence ?: knockSequence,
+    knockDelayMs = config.knockDelayMs?.toString() ?: knockDelayMs,
 )
 
 private fun AccessDraft.with(config: QrConfig): AccessDraft {

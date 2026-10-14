@@ -2,6 +2,7 @@ package fr.gildasledrogoff.fwknop.domain.usecase
 
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
+import fr.gildasledrogoff.fwknop.domain.model.KnockMethod
 import fr.gildasledrogoff.fwknop.domain.model.KnockObserver
 import fr.gildasledrogoff.fwknop.domain.model.KnockRequest
 import fr.gildasledrogoff.fwknop.domain.model.KnockRoute
@@ -25,7 +26,9 @@ class ResolveKnockRouteUseCase @Inject constructor(
         observer: KnockObserver = KnockObserver.None,
     ): DomainResult<KnockRoute, KnockError> {
         val host = request.config.server.host
-        val declared = when (val source = request.config.sourceIp) {
+        // A port knock carries no address: the server sees the packet source.
+        val sourceIp = if (request.config.method == KnockMethod.Spa) request.config.sourceIp else SourceIp.Source
+        val declared = when (val source = sourceIp) {
             SourceIp.Resolve -> return resolveFromServer(host, observer)
             SourceIp.Source -> source(SourceIp.ANY_ADDRESS, SourceIpMethod.PacketSource)
             is SourceIp.Fixed -> source(source.address, SourceIpMethod.Fixed)

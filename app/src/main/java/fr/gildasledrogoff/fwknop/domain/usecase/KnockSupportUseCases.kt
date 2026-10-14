@@ -7,6 +7,7 @@ import fr.gildasledrogoff.fwknop.domain.model.Encryption
 import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
 import fr.gildasledrogoff.fwknop.domain.model.GpgKeyRole
 import fr.gildasledrogoff.fwknop.domain.model.InteractionId
+import fr.gildasledrogoff.fwknop.domain.model.KnockMethod
 import fr.gildasledrogoff.fwknop.domain.model.KnockOutcome
 import fr.gildasledrogoff.fwknop.domain.model.KnockRequest
 import fr.gildasledrogoff.fwknop.domain.model.KnockTimerOutcome
@@ -47,7 +48,9 @@ class ScheduleKnockTimerUseCase @Inject constructor(
     private fun planFor(request: KnockRequest): KnockTimerPlan? {
         val access = request.config.access.portAccess ?: return null
         val seconds = access.timeoutSeconds ?: return null
-        val canReknock = access.keepOpen && request.config.crypto.encryption is Encryption.Rijndael
+        // GPG needs the user on each knock; a port knock never encrypts.
+        val unattended = request.config.method != KnockMethod.Spa || request.config.crypto.encryption is Encryption.Rijndael
+        val canReknock = access.keepOpen && unattended
         return if (canReknock) {
             KnockTimerPlan.KeepOpen(request, seconds)
         } else {

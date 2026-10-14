@@ -3,9 +3,11 @@ package fr.gildasledrogoff.fwknop.data.remote.api
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.net.ConnectException
 import java.net.DatagramPacket
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.net.SocketTimeoutException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,6 +41,20 @@ class SpaTransportApi @Inject constructor(private val httpClient: OkHttpClient) 
         }
     }
 
+    /**
+     * The SYN is what the knock daemon watches: refused, unanswered (filtered port) or accepted,
+     * the knock is done. Only local failures (no route, EPERM) propagate.
+     */
+    fun knockTcp(address: String, port: Int, route: NetworkPath.Route) {
+        route.socket().use { socket ->
+            try {
+                socket.connect(InetSocketAddress(address, port), KNOCK_TIMEOUT_MS)
+            } catch (_: ConnectException) {
+            } catch (_: SocketTimeoutException) {
+            }
+        }
+    }
+
     
     fun sendHttp(packet: String, address: String, host: String, route: NetworkPath.Route) {
         val path = packet.replace('+', '-').replace('/', '_')
@@ -51,5 +67,8 @@ class SpaTransportApi @Inject constructor(private val httpClient: OkHttpClient) 
 
     private companion object {
         const val TCP_TIMEOUT_MS = 10_000
+
+        // Below the first SYN retransmission (1 s): a filtered port gets a single knock.
+        const val KNOCK_TIMEOUT_MS = 300
     }
 }

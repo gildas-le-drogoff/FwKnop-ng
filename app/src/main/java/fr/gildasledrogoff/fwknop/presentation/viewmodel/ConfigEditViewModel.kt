@@ -75,6 +75,7 @@ class ConfigEditViewModel @Inject constructor(
             is ConfigEditEvent.SourceIpChanged -> updateDraft { it.copy(sourceIp = event.value) }
             is ConfigEditEvent.CryptoChanged -> updateDraft { it.copy(crypto = event.value) }
             is ConfigEditEvent.ExternalAppChanged -> updateDraft { it.copy(externalApp = event.value) }
+            is ConfigEditEvent.WakeOnLanChanged -> updateDraft { it.copy(wakeOnLan = event.value) }
             is ConfigEditEvent.QrScanned -> onQrScanned(event.content)
             is ConfigEditEvent.QrImportSelected -> applyPendingQr(event.fullConfig)
             ConfigEditEvent.QrImportDismissed -> _state.update { it.copy(pendingQr = null) }

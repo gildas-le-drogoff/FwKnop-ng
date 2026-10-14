@@ -104,6 +104,7 @@ private fun ConfigGrid(
                 actions.copy(onDelete = { pendingDelete = it }, onDuplicate = { pendingDuplicate = it }),
                 Modifier.animateItem(),
                 knock.of(summary.nickname),
+                waking = knock.waking == summary.nickname,
             )
         }
     }
@@ -157,7 +158,8 @@ internal val previewSummaries = listOf(
         Protocol.UDP,
         MessageType.OPEN_PORT,
         "tcp/22",
-        true
+        true,
+        wakeOnLan = true,
     ),
     ConfigSummary(
         "office-nat",

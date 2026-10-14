@@ -33,6 +33,9 @@ data class ConfigEntity(
     @ColumnInfo(name = ConfigColumns.GPG_SIG) val gpgSig: Long,
     @ColumnInfo(name = ConfigColumns.GPG_KEY) val gpgKey: Long,
     @ColumnInfo(name = ConfigColumns.USE_GPG, defaultValue = "0") val useGpg: Boolean,
+    @ColumnInfo(name = ConfigColumns.KNOCK_SEQUENCE, defaultValue = "''") val knockSequence: String = "",
+    @ColumnInfo(name = ConfigColumns.KNOCK_DELAY, defaultValue = "500") val knockDelay: Int = 500,
+    @ColumnInfo(name = ConfigColumns.WAKE_ON_LAN, defaultValue = "''") val wakeOnLan: String = "",
 )
 
 object ConfigColumns {
@@ -59,4 +62,7 @@ object ConfigColumns {
     const val GPG_SIG = "GPG_SIG"
     const val GPG_KEY = "GPG_KEY"
     const val USE_GPG = "USE_GPG"
+    const val KNOCK_SEQUENCE = "KNOCK_SEQUENCE"
+    const val KNOCK_DELAY = "KNOCK_DELAY"
+    const val WAKE_ON_LAN = "WAKE_ON_LAN"
 }

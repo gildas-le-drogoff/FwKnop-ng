@@ -22,11 +22,15 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -41,10 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -57,7 +57,6 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.presentation.state.ConfigSummary
@@ -66,6 +65,7 @@ import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
 import fr.gildasledrogoff.fwknop.presentation.ui.components.LargeFontPreviews
 import fr.gildasledrogoff.fwknop.presentation.ui.components.labelRes
 import fr.gildasledrogoff.fwknop.presentation.ui.components.scaledMaxLines
+import fr.gildasledrogoff.fwknop.presentation.ui.theme.ConfigAccent
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.configAccent
@@ -80,13 +80,18 @@ data class ConfigCardActions(
     val onExportFile: (String) -> Unit,
     val onDelete: (String) -> Unit,
     val onDiagnose: (String) -> Unit = {},
+    val onWake: (String) -> Unit = {},
 )
 
 enum class KnockVisual { IDLE, SENDING, SENT }
 
 
 @Immutable
-data class KnockActivity(val sending: String? = null, val sent: String? = null) {
+data class KnockActivity(
+    val sending: String? = null,
+    val sent: String? = null,
+    val waking: String? = null,
+) {
     fun of(nickname: String): KnockVisual = when (nickname) {
         sending -> KnockVisual.SENDING
         sent -> KnockVisual.SENT
@@ -100,6 +105,7 @@ fun ConfigCard(
     actions: ConfigCardActions,
     modifier: Modifier = Modifier,
     knock: KnockVisual = KnockVisual.IDLE,
+    waking: Boolean = false,
 ) {
     val dimens = DimensTheme.dimens
     val accent = configAccent(summary.nickname)
@@ -118,36 +124,31 @@ fun ConfigCard(
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(dimens.itemSpacing),
-            modifier = Modifier
-                .accentEdge(accent)
-                .padding(dimens.cardPadding),
+            modifier = Modifier.padding(dimens.cardPadding),
         ) {
             ConfigCardHeader(summary, accent, actions)
             ConfigTags(summary)
-            KnockButton(summary.nickname, knock, actions.onKnock)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(dimens.itemSpacing),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.weight(1f)) { KnockButton(summary.nickname, knock, actions.onKnock) }
+                if (summary.wakeOnLan) WakeButton(summary.nickname, waking, actions.onWake)
+            }
         }
     }
 }
 
-
-private fun Modifier.accentEdge(accent: Color): Modifier = drawWithCache {
-    val wash = Brush.verticalGradient(listOf(accent.copy(alpha = 0.12f), Color.Transparent), endY = 96.dp.toPx())
-    val stripe = Size(4.dp.toPx(), size.height)
-    onDrawBehind {
-        drawRect(wash)
-        val x = if (layoutDirection == LayoutDirection.Rtl) size.width - stripe.width else 0f
-        drawRect(accent, topLeft = Offset(x, 0f), size = stripe)
-    }
-}
-
 @Composable
-private fun ConfigCardHeader(summary: ConfigSummary, accent: Color, actions: ConfigCardActions) {
+private fun ConfigCardHeader(summary: ConfigSummary, accent: ConfigAccent, actions: ConfigCardActions) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        FwknopIcon(
-            R.drawable.ic_shield_rounded_fill,
-            null,
-            tint = accent
-        )
+        Surface(shape = CircleShape, color = accent.container, contentColor = accent.content) {
+            FwknopIcon(
+                R.drawable.ic_shield_rounded_fill,
+                null,
+                modifier = Modifier.padding(8.dp),
+            )
+        }
         Column(
             Modifier
                 .weight(1f)
@@ -180,9 +181,13 @@ private fun ConfigTags(summary: ConfigSummary) {
         verticalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing),
     ) {
         // Bare "UDP" or "tcp/22" mean little when read out: TalkBack gets the field name too.
-        val protocol = summary.protocol.name
-        Tag(protocol, stringResource(R.string.a11y_tag_protocol, protocol))
-        Tag(stringResource(summary.messageType.labelRes()))
+        if (summary.portKnocking) {
+            Tag(stringResource(R.string.tag_port_knocking))
+        } else {
+            val protocol = summary.protocol.name
+            Tag(protocol, stringResource(R.string.a11y_tag_protocol, protocol))
+            Tag(stringResource(summary.messageType.labelRes()))
+        }
         if (summary.accessDetail.isNotEmpty()) {
             Tag(summary.accessDetail, stringResource(R.string.a11y_tag_access, summary.accessDetail))
         }
@@ -233,6 +238,22 @@ private fun KnockButton(nickname: String, status: KnockVisual, onKnock: (String)
     }
 }
 
+
+@Composable
+private fun WakeButton(nickname: String, waking: Boolean, onWake: (String) -> Unit) {
+    val description = stringResource(R.string.a11y_wake_config, nickname)
+    FilledTonalIconButton(
+        onClick = { onWake(nickname) },
+        enabled = !waking,
+        modifier = Modifier.semantics { contentDescription = description },
+    ) {
+        if (waking) {
+            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+        } else {
+            FwknopIcon(R.drawable.ic_power_rounded, null)
+        }
+    }
+}
 
 @Composable
 private fun KnockIcon(sent: Boolean) {

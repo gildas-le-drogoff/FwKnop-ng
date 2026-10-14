@@ -1,11 +1,14 @@
 package fr.gildasledrogoff.fwknop.data.mapper
 
 import fr.gildasledrogoff.fwknop.data.local.models.ConfigEntity
+import fr.gildasledrogoff.fwknop.domain.model.KnockMethod
 import fr.gildasledrogoff.fwknop.domain.model.Nickname
 import fr.gildasledrogoff.fwknop.domain.model.ServerEndpoint
 import fr.gildasledrogoff.fwknop.domain.model.ServerPort
 import fr.gildasledrogoff.fwknop.domain.model.SourceIp
 import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
+import fr.gildasledrogoff.fwknop.domain.model.parseKnockSequence
+import fr.gildasledrogoff.fwknop.domain.model.toSequenceText
 
 internal object LegacyValues {
     const val RESOLVE_IP = "Resolve IP"
@@ -25,6 +28,8 @@ fun ConfigEntity.toDomain(): SpaConfig = SpaConfig(
     sourceIp = accessIp.toSourceIp(),
     crypto = toCrypto(),
     externalApp = toExternalApp(),
+    method = toKnockMethod(),
+    wakeOnLan = wakeOnLan.toWakeOnLan(),
 )
 
 fun SpaConfig.toEntity(): ConfigEntity {
@@ -54,8 +59,16 @@ fun SpaConfig.toEntity(): ConfigEntity {
         gpgSig = cryptoCols.gpgSigner,
         gpgKey = cryptoCols.gpgRecipient,
         useGpg = cryptoCols.useGpg,
+        knockSequence = (method as? KnockMethod.PortSequence)?.ports?.toSequenceText().orEmpty(),
+        knockDelay = (method as? KnockMethod.PortSequence)?.delayMs ?: KnockMethod.PortSequence.DEFAULT_DELAY_MS,
+        wakeOnLan = wakeOnLan.toWakeColumn(),
     )
 }
+
+private fun ConfigEntity.toKnockMethod(): KnockMethod =
+    parseKnockSequence(knockSequence)
+        ?.let { KnockMethod.PortSequence(it, knockDelay.coerceIn(0, KnockMethod.PortSequence.MAX_DELAY_MS)) }
+        ?: KnockMethod.Spa
 
 private fun ConfigEntity.toServerPort(): ServerPort =
     if (serverPort.equals(LegacyValues.RANDOM_PORT, ignoreCase = true)) {

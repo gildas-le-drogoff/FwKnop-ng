@@ -7,6 +7,7 @@ data class ConfigDraft(
     val sourceIp: SourceIpDraft = SourceIpDraft(),
     val crypto: CryptoDraft = CryptoDraft(),
     val externalApp: ExternalAppDraft = ExternalAppDraft(),
+    val wakeOnLan: WakeOnLanDraft = WakeOnLanDraft(),
 )
 
 data class ServerDraft(
@@ -14,6 +15,9 @@ data class ServerDraft(
     val port: String = ServerPort.DEFAULT.toString(),
     val randomPort: Boolean = false,
     val protocol: Protocol = Protocol.UDP,
+    val portKnocking: Boolean = false,
+    val knockSequence: String = "",
+    val knockDelayMs: String = KnockMethod.PortSequence.DEFAULT_DELAY_MS.toString(),
 )
 
 enum class MessageType { OPEN_PORT, NAT_ACCESS, LOCAL_NAT_ACCESS, SERVER_COMMAND }

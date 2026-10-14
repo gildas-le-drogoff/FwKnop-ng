@@ -170,6 +170,12 @@ class FakeSpaTransportRepository(
         sent += packet to target
         return DomainResult.Success(Unit)
     }
+    val knocked = mutableListOf<KnockTarget>()
+    override suspend fun knockPort(target: KnockTarget): DomainResult<Unit, KnockError> {
+        sendError?.let { return DomainResult.Failure(it) }
+        knocked += target
+        return DomainResult.Success(Unit)
+    }
 }
 class FakeGpgRepository(var encryptResult: DomainResult<String, GpgError> = DomainResult.Success("cipher")) :
     GpgRepository {

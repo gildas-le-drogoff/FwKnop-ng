@@ -5,11 +5,14 @@ import fr.gildasledrogoff.fwknop.domain.error.KnockError
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.Encryption
 import fr.gildasledrogoff.fwknop.domain.model.KnockLogEvent
+import fr.gildasledrogoff.fwknop.domain.model.KnockMethod
 import fr.gildasledrogoff.fwknop.domain.model.KnockObserver
 import fr.gildasledrogoff.fwknop.domain.model.KnockOutcome
 import fr.gildasledrogoff.fwknop.domain.model.KnockStep
 import fr.gildasledrogoff.fwknop.domain.model.KnockPrompt
 import fr.gildasledrogoff.fwknop.domain.model.KnockRequest
+import fr.gildasledrogoff.fwknop.domain.model.KnockRoute
+import fr.gildasledrogoff.fwknop.domain.model.KnockTarget
 import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
 import fr.gildasledrogoff.fwknop.domain.model.SecretKey
 import fr.gildasledrogoff.fwknop.domain.model.SourceIp
@@ -21,11 +24,13 @@ import fr.gildasledrogoff.fwknop.domain.repository.GpgRepository
 import fr.gildasledrogoff.fwknop.domain.repository.KnockHistoryRepository
 import fr.gildasledrogoff.fwknop.domain.repository.SpaPacketRepository
 import fr.gildasledrogoff.fwknop.domain.repository.SpaTransportRepository
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 import kotlin.random.Random
 
 class GetRequiredPromptsUseCase @Inject constructor() {
     operator fun invoke(config: SpaConfig): List<KnockPrompt> = buildList {
+        if (config.method != KnockMethod.Spa) return@buildList
         val encryption = config.crypto.encryption
         if (encryption is Encryption.Rijndael && encryption.key.value.isEmpty()) add(KnockPrompt.KEY)
         if (config.sourceIp is SourceIp.Prompt) add(KnockPrompt.SOURCE_IP)
@@ -102,18 +107,47 @@ class SendKnockUseCase @Inject constructor(
         observer: KnockObserver,
         onRoute: (ResolvedSourceIp) -> Unit,
     ): DomainResult<KnockOutcome, KnockError> {
-        val server = request.config.server
         return resolveRoute(request, observer).flatMap { route ->
             onRoute(route.source)
             observer.onStep(KnockStep.RouteSelected(route))
-            buildPacket(request, route.source.address, route.serverIp)
-                .flatMap { packet ->
-                    observer.onStep(KnockStep.PacketBuilt(packet.toByteArray(Charsets.UTF_8).size))
-                    val target = server.toTarget(route.serverIp, random)
-                    observer.onStep(KnockStep.Sending(target))
-                    transport.sendPacket(packet, target)
-                }
-                .map { KnockOutcome(request, route.source) }
+            when (val method = request.config.method) {
+                KnockMethod.Spa -> sendSpa(request, route, observer)
+                is KnockMethod.PortSequence -> knockSequence(request, method, route.serverIp, observer)
+            }.map { KnockOutcome(request, route.source) }
         }
+    }
+
+    private suspend fun sendSpa(
+        request: KnockRequest,
+        route: KnockRoute,
+        observer: KnockObserver,
+    ): DomainResult<Unit, KnockError> =
+        buildPacket(request, route.source.address, route.serverIp).flatMap { packet ->
+            observer.onStep(KnockStep.PacketBuilt(packet.toByteArray(Charsets.UTF_8).size))
+            val target = request.config.server.toTarget(route.serverIp, random)
+            observer.onStep(KnockStep.Sending(target))
+            transport.sendPacket(packet, target)
+        }
+
+    private suspend fun knockSequence(
+        request: KnockRequest,
+        method: KnockMethod.PortSequence,
+        serverIp: String,
+        observer: KnockObserver,
+    ): DomainResult<Unit, KnockError> {
+        method.ports.forEachIndexed { index, port ->
+            if (index > 0) delay(method.delayMs.toLong())
+            val target = KnockTarget(serverIp, request.config.server.host, port.port, port.protocol)
+            observer.onStep(KnockStep.Sending(target))
+            val knocked = transport.knockPort(target)
+            if (knocked is DomainResult.Failure) return knocked
+        }
+        // Gives the knock daemon time to run its open command before the port check or the app launch.
+        delay(SEQUENCE_SETTLE_MS)
+        return DomainResult.Success(Unit)
+    }
+
+    private companion object {
+        const val SEQUENCE_SETTLE_MS = 1_000L
     }
 }

@@ -11,6 +11,7 @@ import fr.gildasledrogoff.fwknop.domain.model.InteractionId
 import fr.gildasledrogoff.fwknop.domain.model.ParsedQr
 import fr.gildasledrogoff.fwknop.domain.model.ServerDraft
 import fr.gildasledrogoff.fwknop.domain.model.SourceIpDraft
+import fr.gildasledrogoff.fwknop.domain.model.WakeOnLanDraft
 
 @Immutable
 data class ConfigEditState(
@@ -33,6 +34,7 @@ sealed interface ConfigEditEvent {
     data class SourceIpChanged(val value: SourceIpDraft) : ConfigEditEvent
     data class CryptoChanged(val value: CryptoDraft) : ConfigEditEvent
     data class ExternalAppChanged(val value: ExternalAppDraft) : ConfigEditEvent
+    data class WakeOnLanChanged(val value: WakeOnLanDraft) : ConfigEditEvent
     data class QrScanned(val content: String) : ConfigEditEvent
     data class QrImportSelected(val fullConfig: Boolean) : ConfigEditEvent
     data object QrImportDismissed : ConfigEditEvent

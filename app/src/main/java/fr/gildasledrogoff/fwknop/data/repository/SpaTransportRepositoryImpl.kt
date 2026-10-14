@@ -75,22 +75,39 @@ class SpaTransportRepositoryImpl @Inject constructor(
         packet: String,
         target: KnockTarget
     ): DomainResult<Unit, KnockError> =
-        withContext(dispatchers.io) {
-            if (localNetwork.needsRequest() && target.address.isLocalNetwork()) {
-                return@withContext DomainResult.Failure(KnockError.LocalNetworkPermissionRequired)
-            }
-            try {
-                send(packet, target)
-                delay(SETTLE_DELAY_MS)
-                DomainResult.Success(Unit)
-            } catch (e: IOException) {
-                transportFailure(e)
-            } catch (e: IllegalArgumentException) {
-                transportFailure(e)
-            } catch (e: SecurityException) {
-                transportFailure(e)
+        transmitting(target) {
+            send(packet, target)
+            delay(SETTLE_DELAY_MS)
+        }
+
+    override suspend fun knockPort(target: KnockTarget): DomainResult<Unit, KnockError> =
+        transmitting(target) {
+            val route = networkPath.current()
+            when (target.protocol) {
+                Protocol.TCP -> api.knockTcp(target.address, target.port, route)
+                Protocol.UDP -> api.sendUdp("", target.address, target.port, route)
+                Protocol.HTTP -> throw IllegalArgumentException("HTTP is not a knock protocol")
             }
         }
+
+    private suspend fun transmitting(
+        target: KnockTarget,
+        block: suspend () -> Unit,
+    ): DomainResult<Unit, KnockError> = withContext(dispatchers.io) {
+        if (localNetwork.needsRequest() && target.address.isLocalNetwork()) {
+            return@withContext DomainResult.Failure(KnockError.LocalNetworkPermissionRequired)
+        }
+        try {
+            block()
+            DomainResult.Success(Unit)
+        } catch (e: IOException) {
+            transportFailure(e)
+        } catch (e: IllegalArgumentException) {
+            transportFailure(e)
+        } catch (e: SecurityException) {
+            transportFailure(e)
+        }
+    }
 
     private fun transportFailure(error: Exception): DomainResult<Unit, KnockError> {
         DebugLog.failure("packet send", error)

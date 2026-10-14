@@ -20,6 +20,8 @@ class ConfigEntityCipher(private val columns: ColumnCipher) {
             ConfigColumns.NAT_PORT,
             ConfigColumns.SERVER_CMD,
             ConfigColumns.SSH_CMD,
+            ConfigColumns.KNOCK_SEQUENCE,
+            ConfigColumns.WAKE_ON_LAN,
         )
     }
 }
@@ -36,4 +38,10 @@ private fun ConfigEntity.mapSensitive(transform: (column: String, value: String)
     natPort = transform(ConfigColumns.NAT_PORT, natPort),
     serverCmd = transform(ConfigColumns.SERVER_CMD, serverCmd),
     sshCmd = transform(ConfigColumns.SSH_CMD, sshCmd),
+    // Rows migrated from v3 hold a plaintext ''; a ciphertext is never empty, and empty means "SPA".
+    knockSequence = knockSequence.takeIf { it.isNotEmpty() }
+        ?.let { transform(ConfigColumns.KNOCK_SEQUENCE, it) }.orEmpty(),
+    // Same for rows migrated from v4: empty means "no Wake-on-LAN".
+    wakeOnLan = wakeOnLan.takeIf { it.isNotEmpty() }
+        ?.let { transform(ConfigColumns.WAKE_ON_LAN, it) }.orEmpty(),
 )
