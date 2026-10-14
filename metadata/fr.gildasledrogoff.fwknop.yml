@@ -15,14 +15,14 @@ RepoType: git
 Repo: https://github.com/gildas-le-drogoff/FwKnop-ng.git
 
 Builds:
-  - versionName: 2.0.0
+  - versionName: 2.0.1
     versionCode: 37
-    commit: 97f6cda8327081416d633884dac902c2329480cf
+    commit: a5c78c954374a113cbb6a722c2046d127cb4b070
     subdir: app
     gradle:
       - yes
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 2.0.0
+CurrentVersion: 2.0.1
 CurrentVersionCode: 37
