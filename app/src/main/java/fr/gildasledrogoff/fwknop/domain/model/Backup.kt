@@ -1,13 +1,17 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.model
 
 import java.nio.CharBuffer
-
 
 data class Backup(
     val settings: AppSettings?,
     val configs: List<SpaConfig>,
     val nfcTagKey: NfcTagKey? = null,
 )
+
 class SealedBackup(val file: ByteArray, val configCount: Int)
 class BackupPassphrase(val chars: CharArray) {
     val isLongEnough: Boolean get() = isLongEnough(CharBuffer.wrap(chars))

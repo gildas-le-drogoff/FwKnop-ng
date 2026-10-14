@@ -1,13 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
@@ -23,9 +23,7 @@ object DimensTheme {
         @Composable get() = LocalWidthClass.current
 }
 
-
 val LocalDarkTheme = staticCompositionLocalOf { false }
-
 val dynamicColorSupported: Boolean
     get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
@@ -51,8 +49,6 @@ fun FwknopTheme(
     ) {
         val colors = colorScheme(darkTheme, dynamicColor)
         MaterialTheme(colorScheme = colors, shapes = FwknopShapes) {
-            
-            
             CompositionLocalProvider(LocalContentColor provides colors.onSurface, content = content)
         }
     }

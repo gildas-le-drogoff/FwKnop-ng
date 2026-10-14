@@ -1,8 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.datasource.stun
 
 import java.net.InetAddress
 import java.nio.ByteBuffer
-
 
 internal object StunMessage {
     const val TRANSACTION_ID_SIZE = 12
@@ -12,6 +15,12 @@ internal object StunMessage {
     private const val MAGIC_COOKIE = 0x2112A442
     private const val BINDING_REQUEST: Short = 0x0001
     private const val BINDING_SUCCESS = 0x0101
+    private const val BINDING_ERROR = 0x0111
+    private const val ERROR_CODE = 0x0009
+    private const val ERROR_REASON_OFFSET = 4
+    private const val ERROR_CLASS_MASK = 0x07
+    private const val ERROR_CLASS_FACTOR = 100
+    private const val BYTE = 0xFF
     private const val MAPPED_ADDRESS = 0x0001
     private const val XOR_MAPPED_ADDRESS = 0x0020
     private const val FAMILY_IPV4 = 0x01
@@ -20,37 +29,45 @@ internal object StunMessage {
     private const val IPV6_SIZE = 16
     private const val ADDRESS_OFFSET = 4
     private const val U16 = 0xFFFF
-
     fun bindingRequest(transactionId: ByteArray): ByteArray = ByteBuffer.allocate(HEADER_SIZE)
         .putShort(BINDING_REQUEST).putShort(0).putInt(MAGIC_COOKIE).put(transactionId).array()
 
-    
     fun mappedAddress(datagram: ByteArray, length: Int, transactionId: ByteArray): InetAddress? {
+        val attributes = attributes(datagram, length, transactionId, BINDING_SUCCESS) ?: return null
+        val mask = xorMask(transactionId)
+        return attributes[XOR_MAPPED_ADDRESS]?.let { decodeAddress(it, mask) }
+            ?: attributes[MAPPED_ADDRESS]?.let { decodeAddress(it, null) }
+    }
+
+
+    fun errorResponse(datagram: ByteArray, length: Int, transactionId: ByteArray): String? {
+        val attributes = attributes(datagram, length, transactionId, BINDING_ERROR) ?: return null
+        val value = attributes[ERROR_CODE]?.takeIf { it.size >= ERROR_REASON_OFFSET } ?: return "unknown error"
+        val code = (value[2].toInt() and ERROR_CLASS_MASK) * ERROR_CLASS_FACTOR + (value[3].toInt() and BYTE)
+        val reason = value.copyOfRange(ERROR_REASON_OFFSET, value.size).toString(Charsets.UTF_8).trim()
+        return "$code $reason".trim()
+    }
+
+
+    private fun attributes(datagram: ByteArray, length: Int, transactionId: ByteArray, type: Int): Map<Int, ByteArray>? {
         if (length < HEADER_SIZE) return null
         val buffer = ByteBuffer.wrap(datagram, 0, length)
-        val type = buffer.short.toInt() and U16
+        val actualType = buffer.short.toInt() and U16
         val end = HEADER_SIZE + (buffer.short.toInt() and U16)
         val cookie = buffer.int
         val id = ByteArray(TRANSACTION_ID_SIZE).also { buffer.get(it) }
-        val matches = type == BINDING_SUCCESS && cookie == MAGIC_COOKIE && id.contentEquals(transactionId)
-        return if (matches && end <= length) readAddress(buffer, end, xorMask(transactionId)) else null
-    }
-
-    
-    private fun readAddress(buffer: ByteBuffer, end: Int, mask: ByteArray): InetAddress? {
-        var plain: InetAddress? = null
+        val matches = actualType == type && cookie == MAGIC_COOKIE && id.contentEquals(transactionId)
+        if (!matches || end > length) return null
+        val attributes = mutableMapOf<Int, ByteArray>()
         while (buffer.position() + ATTRIBUTE_HEADER_SIZE <= end) {
-            val type = buffer.short.toInt() and U16
+            val attribute = buffer.short.toInt() and U16
             val size = buffer.short.toInt() and U16
             if (buffer.position() + size > end) return null
             val value = ByteArray(size).also { buffer.get(it) }
             buffer.position(minOf(end, buffer.position() + (ALIGNMENT - size % ALIGNMENT) % ALIGNMENT))
-            when (type) {
-                XOR_MAPPED_ADDRESS -> return decodeAddress(value, mask)
-                MAPPED_ADDRESS -> plain = decodeAddress(value, null)
-            }
+            attributes.putIfAbsent(attribute, value)
         }
-        return plain
+        return attributes
     }
 
     private fun decodeAddress(value: ByteArray, mask: ByteArray?): InetAddress? {
@@ -60,7 +77,9 @@ internal object StunMessage {
             else -> return null
         }
         if (value.size < ADDRESS_OFFSET + size) return null
-        val raw = ByteArray(size) { i -> (value[ADDRESS_OFFSET + i].toInt() xor (mask?.get(i)?.toInt() ?: 0)).toByte() }
+        val raw = ByteArray(size) { i ->
+            (value[ADDRESS_OFFSET + i].toInt() xor (mask?.get(i)?.toInt() ?: 0)).toByte()
+        }
         return InetAddress.getByAddress(raw)
     }
 

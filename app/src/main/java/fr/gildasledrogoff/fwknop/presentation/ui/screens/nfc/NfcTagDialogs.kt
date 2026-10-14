@@ -1,13 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.nfc
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
@@ -19,13 +18,26 @@ import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 
-
 @Composable
 fun NfcEraseConfirmDialog(reason: NfcEraseReason, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     val (title, body, confirm) = when (reason) {
-        NfcEraseReason.FOREIGN -> Triple(R.string.nfc_foreign_title, R.string.nfc_foreign_body, R.string.nfc_erase_all)
-        NfcEraseReason.LEGACY -> Triple(R.string.nfc_read_legacy_title, R.string.nfc_read_legacy, R.string.nfc_erase)
-        NfcEraseReason.FWKNOP -> Triple(R.string.nfc_erase_confirm_title, R.string.nfc_erase_confirm_body, R.string.nfc_erase)
+        NfcEraseReason.FOREIGN -> Triple(
+            R.string.nfc_foreign_title,
+            R.string.nfc_foreign_body,
+            R.string.nfc_erase_all
+        )
+
+        NfcEraseReason.LEGACY -> Triple(
+            R.string.nfc_read_legacy_title,
+            R.string.nfc_read_legacy,
+            R.string.nfc_erase
+        )
+
+        NfcEraseReason.FWKNOP -> Triple(
+            R.string.nfc_erase_confirm_title,
+            R.string.nfc_erase_confirm_body,
+            R.string.nfc_erase
+        )
     }
     AlertDialog(
         onDismissRequest = onDismiss,

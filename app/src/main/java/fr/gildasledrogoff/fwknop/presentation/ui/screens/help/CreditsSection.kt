@@ -1,22 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.help
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,12 +28,26 @@ private data class Credit(
     @StringRes val title: Int,
     @StringRes val body: Int,
     @DrawableRes val icon: Int,
+    @DrawableRes val avatar: Int? = null,
 )
 
 private val credits = listOf(
-    Credit(R.string.credits_authors_title, R.string.credits_authors_body, R.drawable.ic_group_rounded),
-    Credit(R.string.credits_contributors_title, R.string.credits_contributors_body, R.drawable.ic_code_rounded),
-    Credit(R.string.credits_artwork_title, R.string.credits_artwork_body, R.drawable.ic_palette_rounded),
+    Credit(
+        R.string.credits_authors_title,
+        R.string.credits_authors_body,
+        R.drawable.ic_group_rounded,
+        avatar = R.drawable.ic_lama,
+    ),
+    Credit(
+        R.string.credits_contributors_title,
+        R.string.credits_contributors_body,
+        R.drawable.ic_code_rounded
+    ),
+    Credit(
+        R.string.credits_artwork_title,
+        R.string.credits_artwork_body,
+        R.drawable.ic_palette_rounded
+    ),
 )
 
 @Composable
@@ -129,11 +135,15 @@ private fun PeopleCard() {
 @Composable
 private fun CreditRow(credit: Credit) {
     Row(horizontalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing)) {
-        IconBadge(
-            credit.icon,
-            container = MaterialTheme.colorScheme.secondaryContainer,
-            content = MaterialTheme.colorScheme.onSecondaryContainer,
-        )
+        if (credit.avatar != null) {
+            AvatarBadge(credit.avatar)
+        } else {
+            IconBadge(
+                credit.icon,
+                container = MaterialTheme.colorScheme.secondaryContainer,
+                content = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        }
         Column(Modifier.weight(1f)) {
             Text(stringResource(credit.title), style = MaterialTheme.typography.titleSmall)
             HtmlText(
@@ -204,7 +214,11 @@ private fun LibraryItem(library: OpenSourceLibrary) {
             Text(library.name, style = MaterialTheme.typography.titleSmall)
             LicenseBadge(library.license)
             library.notice?.let {
-                Text(it, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
+                Text(
+                    it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.onSurfaceVariant
+                )
             }
         }
         FwknopIcon(

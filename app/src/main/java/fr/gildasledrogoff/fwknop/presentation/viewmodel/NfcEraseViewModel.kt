@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.viewmodel
 
 import android.nfc.Tag
@@ -25,23 +29,17 @@ class NfcEraseViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = MutableStateFlow<NfcEraseState>(NfcEraseState.Idle)
     val state: StateFlow<NfcEraseState> = _state.asStateFlow()
-
-    
     private val erasing = AtomicBoolean(false)
     private var readTag: Tag? = null
-
-    
     fun onTagRead(tag: Tag) {
         readTag = tag
     }
 
-    
     fun offer(reason: NfcEraseReason) {
         if (_state.value != NfcEraseState.Idle) return
         _state.value = NfcEraseState.Confirm(reason)
     }
 
-    
     fun confirm() {
         val confirm = _state.value as? NfcEraseState.Confirm ?: return
         _state.value = NfcEraseState.Waiting(confirm.reason.wholeTag)
@@ -57,7 +55,11 @@ class NfcEraseViewModel @Inject constructor(
         if (!erasing.compareAndSet(false, true)) return
         viewModelScope.launch {
             val result = try {
-                withContext(dispatchers.io) { if (waiting.wholeTag) writer.wipe(tag) else writer.erase(tag) }
+                withContext(dispatchers.io) {
+                    if (waiting.wholeTag) writer.wipe(tag) else writer.erase(
+                        tag
+                    )
+                }
             } finally {
                 erasing.set(false)
             }

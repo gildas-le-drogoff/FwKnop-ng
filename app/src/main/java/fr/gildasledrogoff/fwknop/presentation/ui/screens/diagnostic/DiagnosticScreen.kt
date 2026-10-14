@@ -1,26 +1,15 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.diagnostic
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,41 +17,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.gildasledrogoff.fwknop.R
-import fr.gildasledrogoff.fwknop.domain.model.AddressFamily
-import fr.gildasledrogoff.fwknop.domain.model.KnockTarget
-import fr.gildasledrogoff.fwknop.domain.model.Protocol
-import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
-import fr.gildasledrogoff.fwknop.presentation.state.DiagnosticDetail
-import fr.gildasledrogoff.fwknop.presentation.state.DiagnosticEffect
-import fr.gildasledrogoff.fwknop.presentation.state.DiagnosticEvent
-import fr.gildasledrogoff.fwknop.presentation.state.DiagnosticPhase
-import fr.gildasledrogoff.fwknop.presentation.state.DiagnosticState
-import fr.gildasledrogoff.fwknop.presentation.state.DiagnosticStep
-import fr.gildasledrogoff.fwknop.presentation.state.StepStatus
-import fr.gildasledrogoff.fwknop.presentation.state.UiError
-import fr.gildasledrogoff.fwknop.presentation.state.text
-import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.CollectEffects
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ErrorDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.FormTextField
-import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
-import fr.gildasledrogoff.fwknop.presentation.ui.components.SecretTextField
-import fr.gildasledrogoff.fwknop.presentation.ui.components.SectionCard
-import fr.gildasledrogoff.fwknop.presentation.ui.components.description
-import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberInteractionLauncher
+import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.presentation.state.*
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.DiagnosticViewModel
@@ -87,14 +53,21 @@ fun DiagnosticScreen(onBack: () -> Unit, viewModel: DiagnosticViewModel = hiltVi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DiagnosticScaffold(nickname: String, onBack: () -> Unit, content: @Composable () -> Unit) {
+private fun DiagnosticScaffold(
+    nickname: String,
+    onBack: () -> Unit,
+    content: @Composable () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.title_diagnostic, nickname)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        FwknopIcon(R.drawable.ic_arrow_back_rounded, stringResource(R.string.action_back))
+                        FwknopIcon(
+                            R.drawable.ic_arrow_back_rounded,
+                            stringResource(R.string.action_back)
+                        )
                     }
                 },
             )
@@ -147,12 +120,20 @@ fun DiagnosticContent(state: DiagnosticState, onEvent: (DiagnosticEvent) -> Unit
 @Composable
 private fun DiagnosticButtons(state: DiagnosticState, onRun: () -> Unit, onCancel: () -> Unit) {
     if (state.running) {
-        OutlinedButton(onClick = onCancel, shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = onCancel,
+            shape = MaterialTheme.shapes.small,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text(stringResource(R.string.cancel))
         }
     } else {
         val label = if (state.finished) R.string.diagnostic_rerun else R.string.diagnostic_run
-        Button(onClick = onRun, shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = onRun,
+            shape = MaterialTheme.shapes.small,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text(stringResource(label))
         }
     }
@@ -164,7 +145,8 @@ private fun StepRow(step: DiagnosticStep) {
     val status = stringResource(step.status.labelRes())
     val detail = step.detail?.let { detailText(it) }
     val error = (step.status as? StepStatus.Failed)?.error?.text()
-    val spoken = listOfNotNull(title, status, detail, error).joinToString(". ")
+    val notes = noteLines(step.notes)
+    val spoken = (listOfNotNull(title, status, detail, error) + notes.map { it.first }).joinToString(". ")
     Row(
         horizontalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing),
         modifier = Modifier
@@ -180,9 +162,55 @@ private fun StepRow(step: DiagnosticStep) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (muted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
             )
-            error?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error) }
+            error?.let {
+                Text(
+                    it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+            notes.forEach { (text, color) -> Text(text, style = MaterialTheme.typography.bodySmall, color = color) }
         }
     }
+}
+
+
+@Composable
+private fun noteLines(notes: List<DiagnosticNote>): List<Pair<String, Color>> = buildList {
+    val thirdParties = notes.filterIsInstance<DiagnosticNote.ThirdParty>().mapNotNull { it.method.thirdPartyName() }
+    if (thirdParties.isNotEmpty()) {
+        add(
+            stringResource(R.string.diagnostic_third_parties, thirdParties.distinct().joinToString(", ")) to
+                    MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+    notes.filterIsInstance<DiagnosticNote.CrossCheck>().forEach { (check) ->
+        val name = check.method.thirdPartyName().orEmpty()
+        val line = when (check.verdict) {
+            CrossCheckVerdict.CONFIRMED ->
+                stringResource(R.string.diagnostic_cross_check_confirmed, name, check.answer) to
+                        MaterialTheme.colorScheme.onSurfaceVariant
+
+            CrossCheckVerdict.SUSPECT -> stringResource(
+                R.string.diagnostic_cross_check_suspect,
+                name,
+                check.answer,
+                check.reference?.address.orEmpty(),
+            ) to MaterialTheme.colorScheme.error
+
+            CrossCheckVerdict.UNVERIFIED ->
+                stringResource(R.string.diagnostic_cross_check_unverified, name, check.answer) to
+                        MaterialTheme.colorScheme.tertiary
+        }
+        add(line)
+    }
+}
+
+private fun SourceIpMethod.thirdPartyName(): String? = when (this) {
+    is SourceIpMethod.Stun -> server
+    is SourceIpMethod.Https -> host
+    SourceIpMethod.Dns -> "OpenDNS"
+    else -> null
 }
 
 @Composable
@@ -191,8 +219,10 @@ private fun StatusIcon(status: StepStatus) {
         StepStatus.Running -> CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
         StepStatus.Done ->
             FwknopIcon(R.drawable.ic_check_rounded, null, tint = MaterialTheme.colorScheme.primary)
+
         is StepStatus.Failed ->
             FwknopIcon(R.drawable.ic_error_rounded, null, tint = MaterialTheme.colorScheme.error)
+
         StepStatus.Pending, StepStatus.Skipped -> Box(
             Modifier
                 .size(12.dp)
@@ -215,7 +245,12 @@ private fun DiagnosticVerdict(succeeded: Boolean) {
 @Composable
 private fun detailText(detail: DiagnosticDetail): String = when (detail) {
     is DiagnosticDetail.Server ->
-        stringResource(R.string.diagnostic_server_detail, detail.host, detail.addresses.joinToString(", "))
+        stringResource(
+            R.string.diagnostic_server_detail,
+            detail.host,
+            detail.addresses.joinToString(", ")
+        )
+
     is DiagnosticDetail.Source -> detail.source.description()
     is DiagnosticDetail.Family -> stringResource(
         when (detail.family) {
@@ -223,15 +258,22 @@ private fun detailText(detail: DiagnosticDetail): String = when (detail) {
             AddressFamily.IPV6 -> R.string.diagnostic_family_ipv6
         },
         detail.serverIp,
-    )
+    ).let { if (detail.bypassesVpn) it + "\n" + stringResource(R.string.diagnostic_vpn_bypassed) else it }
+
     is DiagnosticDetail.Packet ->
         pluralStringResource(R.plurals.diagnostic_packet_size, detail.sizeBytes, detail.sizeBytes)
+
     is DiagnosticDetail.Transport -> transportText(detail.target)
 }
 
 @Composable
 private fun transportText(target: KnockTarget): String =
-    stringResource(R.string.diagnostic_transport_detail, target.protocol.name, target.address, target.port)
+    stringResource(
+        R.string.diagnostic_transport_detail,
+        target.protocol.name,
+        target.address,
+        target.port
+    )
 
 private fun DiagnosticPhase.titleRes(): Int = when (this) {
     DiagnosticPhase.SERVER_DNS -> R.string.diagnostic_step_server_dns
@@ -261,7 +303,12 @@ private fun DiagnosticContentPreview() {
         DiagnosticStep(
             DiagnosticPhase.SOURCE_IP,
             StepStatus.Done,
-            DiagnosticDetail.Source(ResolvedSourceIp("203.0.113.9", SourceIpMethod.Stun("stun.example.org"))),
+            DiagnosticDetail.Source(
+                ResolvedSourceIp(
+                    "203.0.113.9",
+                    SourceIpMethod.Stun("stun.example.org")
+                )
+            ),
         ),
         DiagnosticStep(
             DiagnosticPhase.ADDRESS_FAMILY,
@@ -272,10 +319,24 @@ private fun DiagnosticContentPreview() {
         DiagnosticStep(
             DiagnosticPhase.TRANSPORT,
             StepStatus.Failed(UiError.Detailed(R.string.error_transport, "Network is unreachable")),
-            DiagnosticDetail.Transport(KnockTarget("192.0.2.10", "spa.example.org", 62201, Protocol.UDP)),
+            DiagnosticDetail.Transport(
+                KnockTarget(
+                    "192.0.2.10",
+                    "spa.example.org",
+                    62201,
+                    Protocol.UDP
+                )
+            ),
         ),
     )
     FwknopTheme {
-        DiagnosticContent(DiagnosticState(nickname = "home", loading = false, finished = true, steps = steps)) {}
+        DiagnosticContent(
+            DiagnosticState(
+                nickname = "home",
+                loading = false,
+                finished = true,
+                steps = steps
+            )
+        ) {}
     }
 }

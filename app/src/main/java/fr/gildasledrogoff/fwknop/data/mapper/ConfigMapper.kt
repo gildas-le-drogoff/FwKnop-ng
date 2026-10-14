@@ -1,11 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.mapper
 
 import fr.gildasledrogoff.fwknop.data.local.models.ConfigEntity
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.ServerEndpoint
-import fr.gildasledrogoff.fwknop.domain.model.ServerPort
-import fr.gildasledrogoff.fwknop.domain.model.SourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
+import fr.gildasledrogoff.fwknop.domain.model.*
 
 internal object LegacyValues {
     const val RESOLVE_IP = "Resolve IP"
@@ -20,11 +20,13 @@ internal object LegacyValues {
 
 fun ConfigEntity.toDomain(): SpaConfig = SpaConfig(
     nickname = Nickname(nickName),
-    server = ServerEndpoint(serverIp, toServerPort(), protocol.toProtocol()),
+    server = protocol.toProtocol().let { ServerEndpoint(serverIp, toServerPort(it), it) },
     access = toAccessRule(),
     sourceIp = accessIp.toSourceIp(),
     crypto = toCrypto(),
     externalApp = toExternalApp(),
+    method = toKnockMethod(),
+    wakeOnLan = wakeOnLan.toWakeOnLan(),
 )
 
 fun SpaConfig.toEntity(): ConfigEntity {
@@ -54,15 +56,33 @@ fun SpaConfig.toEntity(): ConfigEntity {
         gpgSig = cryptoCols.gpgSigner,
         gpgKey = cryptoCols.gpgRecipient,
         useGpg = cryptoCols.useGpg,
+        knockSequence = (method as? KnockMethod.PortSequence)?.ports?.toSequenceText().orEmpty(),
+        knockDelay = (method as? KnockMethod.PortSequence)?.delayMs
+            ?: KnockMethod.PortSequence.DEFAULT_DELAY_MS,
+        wakeOnLan = wakeOnLan.toWakeColumn(),
     )
 }
 
-private fun ConfigEntity.toServerPort(): ServerPort =
-    if (serverPort.equals(LegacyValues.RANDOM_PORT, ignoreCase = true)) {
+private fun ConfigEntity.toKnockMethod(): KnockMethod =
+    parseKnockSequence(knockSequence)
+        ?.let {
+            KnockMethod.PortSequence(
+                it,
+                knockDelay.coerceIn(0, KnockMethod.PortSequence.MAX_DELAY_MS)
+            )
+        }
+        ?: KnockMethod.Spa
+
+private fun ConfigEntity.toServerPort(protocol: Protocol): ServerPort {
+    val port = if (serverPort.equals(LegacyValues.RANDOM_PORT, ignoreCase = true)) {
         ServerPort.Random
     } else {
-        ServerPort.Fixed(serverPort.trim().toIntOrNull() ?: ServerPort.DEFAULT)
+        ServerPort.Fixed(serverPort.trim().toIntOrNull() ?: protocol.defaultPort)
     }
+
+    val legacyHttpPort = port == ServerPort.Random || port == ServerPort.Fixed(ServerPort.DEFAULT)
+    return if (protocol == Protocol.HTTP && legacyHttpPort) ServerPort.Fixed(ServerPort.HTTP_DEFAULT) else port
+}
 
 private fun ServerPort.toColumn(): String = when (this) {
     is ServerPort.Fixed -> value.toString()

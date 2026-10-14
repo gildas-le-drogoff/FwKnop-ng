@@ -1,20 +1,21 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.spa
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.data.datasource.spa.RijndaelCipher
-import fr.gildasledrogoff.fwknop.data.datasource.spa.SpaEntropy
 import fr.gildasledrogoff.fwknop.data.datasource.spa.SpaMessageEncoder
 import fr.gildasledrogoff.fwknop.data.datasource.spa.SpaPacketEncoder
 import fr.gildasledrogoff.fwknop.domain.error.GpgError
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
-import fr.gildasledrogoff.fwknop.domain.model.DigestAlgorithm
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.NatTarget
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.SpaPacketParams
-import com.google.common.truth.Truth.assertThat
+import fr.gildasledrogoff.fwknop.domain.model.*
+import org.junit.Test
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
-import org.junit.Test
+import fr.gildasledrogoff.fwknop.data.datasource.spa.SpaEntropy
+
 class SpaPacketEncoderTest {
     private val entropy = object : SpaEntropy {
         override fun randomValue() = "1234567890123456"

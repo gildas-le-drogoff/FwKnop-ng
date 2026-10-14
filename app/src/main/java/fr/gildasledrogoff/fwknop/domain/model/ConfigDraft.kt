@@ -1,12 +1,20 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.model
 
+
+enum class ConfigKind { FWKNOP, PORT_KNOCK, WAKE_ON_LAN }
 data class ConfigDraft(
+    val kind: ConfigKind = ConfigKind.FWKNOP,
     val nickname: String = "",
     val server: ServerDraft = ServerDraft(),
     val access: AccessDraft = AccessDraft(),
     val sourceIp: SourceIpDraft = SourceIpDraft(),
     val crypto: CryptoDraft = CryptoDraft(),
     val externalApp: ExternalAppDraft = ExternalAppDraft(),
+    val wakeOnLan: WakeOnLanDraft = WakeOnLanDraft(),
 )
 
 data class ServerDraft(
@@ -14,6 +22,15 @@ data class ServerDraft(
     val port: String = ServerPort.DEFAULT.toString(),
     val randomPort: Boolean = false,
     val protocol: Protocol = Protocol.UDP,
+    val knockSequence: String = "",
+    val knockDelayMs: String = KnockMethod.PortSequence.DEFAULT_DELAY_MS.toString(),
+)
+
+
+fun ServerDraft.withProtocol(newProtocol: Protocol): ServerDraft = copy(
+    protocol = newProtocol,
+    port = if (port.trim() == protocol.defaultPort.toString()) newProtocol.defaultPort.toString() else port,
+    randomPort = randomPort && newProtocol != Protocol.HTTP,
 )
 
 enum class MessageType { OPEN_PORT, NAT_ACCESS, LOCAL_NAT_ACCESS, SERVER_COMMAND }

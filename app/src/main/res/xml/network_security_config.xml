@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<!--
+Cleartext is needed by SPA over HTTP only: fwknopd sniffs a plain "GET /<packet>" (the packet is
+already encrypted and authenticated). A domain-config cannot scope it: the servers are typed by the
+user at run time and the request goes to the resolved IP literal, not a known host name.
+Every other request stays on HTTPS by code (the IP lookup URL is rejected unless https://).
+Trust anchors keep the platform default (system CAs only).
+-->
+<network-security-config>
+  <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

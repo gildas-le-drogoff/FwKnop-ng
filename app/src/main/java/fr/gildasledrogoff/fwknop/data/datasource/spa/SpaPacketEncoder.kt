@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.datasource.spa
 
 import fr.gildasledrogoff.fwknop.domain.error.GpgError
@@ -19,8 +23,6 @@ class SpaPacketEncoder @Inject constructor(
     }
 
     fun gpgPayload(params: SpaPacketParams): String? = messages.payload(params)
-
-    
     fun gpgPacket(params: SpaPacketParams, cipher: String): DomainResult<String, KnockError> {
         val data = cipher.trimEnd('=')
         if (!data.startsWith(SpaFormat.GPG_PREFIX)) return gpgFailure(GpgError.UnsupportedKey)
@@ -35,7 +37,6 @@ class SpaPacketEncoder @Inject constructor(
     }
 
     private fun gpgFailure(error: GpgError) = DomainResult.Failure(KnockError.Gpg(error))
-
     private fun SpaPacketParams.authenticate(data: String): String? {
         if (data.length !in SpaFormat.ENCODED_LENGTH) return null
         val hmacKey = hmac?.takeIf { it.value.isNotEmpty() } ?: return data

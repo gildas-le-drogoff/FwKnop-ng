@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.components
 
 import android.app.Activity
@@ -11,14 +15,8 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.app.ActivityCompat
@@ -47,7 +45,6 @@ fun rememberQrScanner(onScanned: (String) -> Unit): () -> Unit {
                     .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
                     .setBeepEnabled(false)
                     .setOrientationLocked(false)
-                    
                     .addExtra(Intents.Scan.SHOW_MISSING_CAMERA_PERMISSION_DIALOG, false),
             )
         }
@@ -64,11 +61,12 @@ private fun CameraDeniedDialog(onDismiss: () -> Unit) {
         openAppSettings(context)
         onDismiss()
     }
-    ErrorDialog(UiError.Message(R.string.error_camera_denied), action = action, onDismiss = onDismiss)
+    ErrorDialog(
+        UiError.Message(R.string.error_camera_denied),
+        action = action,
+        onDismiss = onDismiss
+    )
 }
-
-
-
 
 @Composable
 fun rememberPermissionRequest(
@@ -136,9 +134,6 @@ fun rememberExternalAppLauncher(onError: (UiError) -> Unit): (ExternalApp, Strin
     }
 }
 
-
-
-
 private fun startWireGuard(context: Context, app: ExternalApp.WireGuard): UiError? {
     when {
         !context.isInstalled(WIREGUARD_PACKAGE) -> return UiError.Message(R.string.error_no_wireguard_app)
@@ -176,14 +171,12 @@ private fun ExternalApp.missingAppError(): UiError = UiError.Message(
     },
 )
 
-
 fun openAppSettings(context: Context) = startSettings(
     context,
     Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:${context.packageName}".toUri()),
 )
 
 fun openNfcSettings(context: Context) = startSettings(context, Intent(Settings.ACTION_NFC_SETTINGS))
-
 private fun startSettings(context: Context, intent: Intent) {
     try {
         context.startActivity(intent)

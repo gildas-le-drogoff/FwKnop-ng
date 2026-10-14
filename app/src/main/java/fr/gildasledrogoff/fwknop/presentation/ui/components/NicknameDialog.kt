@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
@@ -6,12 +10,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
@@ -25,7 +25,6 @@ data class NicknameSpec(
     val taken: Set<String>,
     val confirmLabel: String,
 )
-
 
 @Composable
 fun NicknameDialog(spec: NicknameSpec, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
@@ -42,7 +41,11 @@ fun NicknameDialog(spec: NicknameSpec, onConfirm: (String) -> Unit, onDismiss: (
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing)) {
                 spec.text?.let {
-                    Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 FormTextField(
                     value = nickname,
@@ -53,7 +56,10 @@ fun NicknameDialog(spec: NicknameSpec, onConfirm: (String) -> Unit, onDismiss: (
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(trimmed) }, enabled = error == null) { Text(spec.confirmLabel) }
+            TextButton(
+                onClick = { onConfirm(trimmed) },
+                enabled = error == null
+            ) { Text(spec.confirmLabel) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )

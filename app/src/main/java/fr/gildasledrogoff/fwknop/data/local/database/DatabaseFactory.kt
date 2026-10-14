@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.local.database
 
 import android.content.Context
@@ -14,7 +18,13 @@ class DatabaseFactory @Inject constructor(
         val database =
             Room.databaseBuilder(context, FwknopDatabase::class.java, FwknopDatabase.NAME)
                 .openHelperFactory(SupportOpenHelperFactory(passphrase))
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(
+                    MIGRATION_1_2,
+                    MIGRATION_2_3,
+                    MIGRATION_3_4,
+                    MIGRATION_4_5,
+                    MIGRATION_5_6
+                )
                 .build()
         try {
             database.openHelper.writableDatabase

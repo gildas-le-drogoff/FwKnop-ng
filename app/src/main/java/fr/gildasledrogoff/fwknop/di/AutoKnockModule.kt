@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.di
 
 import dagger.Binds
@@ -18,10 +22,13 @@ import fr.gildasledrogoff.fwknop.utils.helpers.LocationAccess
 interface AutoKnockModule {
     @Binds
     fun bindAutoKnockRepository(impl: AutoKnockRepositoryImpl): AutoKnockRepository
+
     @Binds
     fun bindWifiNetworkRepository(impl: WifiNetworkRepositoryImpl): WifiNetworkRepository
+
     @Binds
     fun bindAutoKnockMonitor(impl: AutoKnockController): AutoKnockMonitor
+
     @Binds
     fun bindLocationAccess(impl: AndroidLocationAccess): LocationAccess
 }

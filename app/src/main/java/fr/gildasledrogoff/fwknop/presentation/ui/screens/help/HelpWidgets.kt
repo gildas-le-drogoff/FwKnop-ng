@@ -1,6 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.help
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -13,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -55,11 +61,30 @@ fun IconBadge(
 }
 
 @Composable
+fun AvatarBadge(
+    @DrawableRes icon: Int,
+    modifier: Modifier = Modifier,
+) {
+    Image(
+        painter = painterResource(icon),
+        contentDescription = null,
+        modifier = modifier
+            .size(40.dp)
+            .clip(MaterialTheme.shapes.medium),
+    )
+}
+
+@Composable
 fun HtmlText(html: String, modifier: Modifier = Modifier, color: Color = Color.Unspecified) {
     val links = rememberLinkStyles()
     val text =
         remember(html, links) { AnnotatedString.fromHtml(htmlString = html, linkStyles = links) }
-    Text(text = text, style = MaterialTheme.typography.bodyLarge, color = color, modifier = modifier)
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyLarge,
+        color = color,
+        modifier = modifier
+    )
 }
 
 @Composable

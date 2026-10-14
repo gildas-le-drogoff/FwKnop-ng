@@ -1,5 +1,8 @@
-package fr.gildasledrogoff.fwknop.fakes
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
+package fr.gildasledrogoff.fwknop.fakes
 import fr.gildasledrogoff.fwknop.domain.model.AutoKnockSettings
 import fr.gildasledrogoff.fwknop.domain.repository.AutoKnockMonitor
 import fr.gildasledrogoff.fwknop.domain.repository.AutoKnockRepository
@@ -10,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.time.Duration
-
 class FakeAutoKnockRepository(initial: AutoKnockSettings = AutoKnockSettings()) : AutoKnockRepository {
     val state = MutableStateFlow(initial)
     override val settings: Flow<AutoKnockSettings> = state
@@ -18,22 +20,18 @@ class FakeAutoKnockRepository(initial: AutoKnockSettings = AutoKnockSettings()) 
         state.value = settings
     }
 }
-
 class FakeWifiNetworkRepository(var current: String? = null) : WifiNetworkRepository {
     val ssids = MutableSharedFlow<List<String?>>(replay = 1)
     override fun connectedSsids(): Flow<List<String?>> = ssids
     override suspend fun currentSsid(): String? = current
     override suspend fun awaitInternet(timeout: Duration): Boolean = true
 }
-
 class FakeLocationAccess(var status: LocationAccessStatus = LocationAccessStatus.GRANTED) : LocationAccess {
     override fun status() = status
 }
-
 class FakeAutoKnockMonitor : AutoKnockMonitor {
     var refreshes = 0
         private set
-
     override fun refresh() {
         refreshes++
     }

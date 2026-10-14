@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.fakes
 import android.app.Activity
 import fr.gildasledrogoff.fwknop.data.local.security.NfcTagDigester
@@ -6,46 +10,8 @@ import fr.gildasledrogoff.fwknop.domain.error.ConfigError
 import fr.gildasledrogoff.fwknop.domain.error.GpgError
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
 import fr.gildasledrogoff.fwknop.domain.error.VaultError
-import fr.gildasledrogoff.fwknop.domain.model.AccessRule
-import fr.gildasledrogoff.fwknop.domain.model.AppSettings
-import fr.gildasledrogoff.fwknop.domain.model.DigestAlgorithm
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.Encryption
-import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyRole
-import fr.gildasledrogoff.fwknop.domain.model.InteractionId
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogEntry
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogEvent
-import fr.gildasledrogoff.fwknop.domain.model.KnockTarget
-import fr.gildasledrogoff.fwknop.domain.model.KnockTimerPlan
-import fr.gildasledrogoff.fwknop.domain.model.NfcTagDigest
-import fr.gildasledrogoff.fwknop.domain.model.NfcTagKey
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.PortAccess
-import fr.gildasledrogoff.fwknop.domain.model.Protocol
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.ServerEndpoint
-import fr.gildasledrogoff.fwknop.domain.model.ServerPort
-import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
-import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
-import fr.gildasledrogoff.fwknop.domain.model.SpaCrypto
-import fr.gildasledrogoff.fwknop.domain.model.SpaPacketParams
-import fr.gildasledrogoff.fwknop.domain.model.VaultState
-import fr.gildasledrogoff.fwknop.domain.model.VaultStatus
-import fr.gildasledrogoff.fwknop.domain.repository.ConfigRepository
-import fr.gildasledrogoff.fwknop.domain.repository.ConfigResult
-import fr.gildasledrogoff.fwknop.domain.repository.GpgRepository
-import fr.gildasledrogoff.fwknop.domain.repository.KnockHistoryRepository
-import fr.gildasledrogoff.fwknop.domain.repository.KnockTimerScheduler
-import fr.gildasledrogoff.fwknop.domain.repository.NfcTagRepository
-import fr.gildasledrogoff.fwknop.domain.repository.PublicIpRepository
-import fr.gildasledrogoff.fwknop.domain.repository.SettingsRepository
-import fr.gildasledrogoff.fwknop.domain.repository.SpaPacketRepository
-import fr.gildasledrogoff.fwknop.domain.repository.SpaTransportRepository
-import fr.gildasledrogoff.fwknop.domain.repository.VaultRepository
+import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.domain.repository.*
 import fr.gildasledrogoff.fwknop.utils.helpers.LocalNetworkAccess
 import fr.gildasledrogoff.fwknop.utils.helpers.PermissionSnapshot
 import fr.gildasledrogoff.fwknop.utils.helpers.PermissionStatus
@@ -55,7 +21,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import java.time.Instant
-import java.util.Base64
+import java.util.*
+
 fun sampleConfig(
     nickname: String = "home",
     access: AccessRule = AccessRule.OpenPort(PortAccess("tcp/22", 30, keepOpen = false)),
@@ -95,7 +62,6 @@ class FakeConfigRepository(initial: List<SpaConfig> = emptyList()) : ConfigRepos
     private inline fun <T> guarded(block: () -> T): ConfigResult<T> =
         storageError?.let { DomainResult.Failure(ConfigError.Storage(it)) } ?: DomainResult.Success(block())
 }
-
 class FakeNfcTagRepository(var key: ByteArray? = null) : NfcTagRepository {
     override suspend fun digest(nickname: Nickname): NfcTagDigest {
         val key = key ?: ByteArray(NfcTagKeys.KEY_BYTES) { it.toByte() }.also { key = it }
@@ -168,6 +134,12 @@ class FakeSpaTransportRepository(
             return DomainResult.Failure(KnockError.LocalNetworkPermissionRequired)
         }
         sent += packet to target
+        return DomainResult.Success(Unit)
+    }
+    val knocked = mutableListOf<KnockTarget>()
+    override suspend fun knockPort(target: KnockTarget): DomainResult<Unit, KnockError> {
+        sendError?.let { return DomainResult.Failure(it) }
+        knocked += target
         return DomainResult.Success(Unit)
     }
 }

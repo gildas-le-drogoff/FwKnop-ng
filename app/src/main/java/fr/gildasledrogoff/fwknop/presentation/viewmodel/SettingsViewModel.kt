@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -12,13 +16,7 @@ import fr.gildasledrogoff.fwknop.presentation.state.SettingsEvent
 import fr.gildasledrogoff.fwknop.presentation.state.SettingsState
 import fr.gildasledrogoff.fwknop.presentation.state.toUiError
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -49,11 +47,12 @@ class SettingsViewModel @Inject constructor(
                     form = AppSettings(
                         helpShown = it.form.helpShown,
                         lockSuggestionDismissed = it.form.lockSuggestionDismissed,
-                        // Set on the history screen, not here.
+
                         knockHistoryRetention = it.form.knockHistoryRetention,
                     )
                 )
             }
+
             SettingsEvent.Save -> save()
             SettingsEvent.DismissError -> _state.update { it.copy(error = null) }
             SettingsEvent.Reload -> load()

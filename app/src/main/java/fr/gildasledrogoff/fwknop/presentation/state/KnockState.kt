@@ -1,19 +1,17 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.state
 
 import android.content.Intent
 import androidx.compose.runtime.Immutable
-import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
-import fr.gildasledrogoff.fwknop.domain.model.InteractionId
-import fr.gildasledrogoff.fwknop.domain.model.NfcTagDigest
-import fr.gildasledrogoff.fwknop.domain.model.PortCheck
-import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
+import fr.gildasledrogoff.fwknop.domain.model.*
 
 @Immutable
 sealed interface KnockState {
     data object Idle : KnockState
-    
     data object Authenticating : KnockState
-    
     data class ChooseConfig(val nicknames: List<String>) : KnockState
     data class PromptKey(val nickname: String) : KnockState
     data class PromptSourceIp(
@@ -23,12 +21,8 @@ sealed interface KnockState {
     ) : KnockState
 
     data class ExplainPermission(val nickname: String, val permission: KnockPermission) : KnockState
-
-    
     data class AwaitingPermission(val permission: KnockPermission) : KnockState
     data class Sending(val nickname: String) : KnockState
-    
-    
     data class Failed(
         val error: UiError,
         val fixInAppSettings: Boolean = false,
@@ -38,9 +32,7 @@ sealed interface KnockState {
 }
 
 enum class KnockPermission { NOTIFICATIONS, LOCAL_NETWORK }
-
 enum class SentNotice { KEEP_OPEN_NEEDS_NOTIFICATIONS, KEEP_OPEN_UNAVAILABLE }
-
 sealed interface KnockEvent {
     data class Knock(val nickname: String) : KnockEvent
     data class KnockFromNfc(val digests: List<NfcTagDigest>) : KnockEvent
@@ -64,7 +56,12 @@ sealed interface KnockEvent {
 
 sealed interface KnockEffect {
     data object Authenticate : KnockEffect
-    data class Sent(val nickname: String, val source: ResolvedSourceIp, val notice: SentNotice? = null) : KnockEffect
+    data class Sent(
+        val nickname: String,
+        val source: ResolvedSourceIp,
+        val notice: SentNotice? = null
+    ) : KnockEffect
+
     data class PortChecked(val nickname: String, val check: PortCheck) : KnockEffect
     data class LaunchApp(val app: ExternalApp, val nickname: String) : KnockEffect
     data class LaunchInteraction(val id: InteractionId) : KnockEffect

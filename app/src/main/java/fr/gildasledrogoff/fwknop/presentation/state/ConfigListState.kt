@@ -1,13 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.state
 
 import androidx.compose.runtime.Immutable
-import fr.gildasledrogoff.fwknop.domain.model.AccessRule
-import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
-import fr.gildasledrogoff.fwknop.domain.model.MessageType
-import fr.gildasledrogoff.fwknop.domain.model.Protocol
-import fr.gildasledrogoff.fwknop.domain.model.ServerPort
-import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
-import fr.gildasledrogoff.fwknop.domain.model.portAccess
+import fr.gildasledrogoff.fwknop.domain.model.*
 
 @Immutable
 data class ConfigSummary(
@@ -17,6 +15,7 @@ data class ConfigSummary(
     val messageType: MessageType,
     val accessDetail: String,
     val launchesApp: Boolean,
+    val kind: ConfigKind = ConfigKind.FWKNOP,
 )
 
 @Immutable
@@ -38,12 +37,14 @@ sealed interface ConfigListEvent {
 
 fun SpaConfig.toSummary(): ConfigSummary = ConfigSummary(
     nickname = nickname.value,
-    endpoint = "${server.host}:${server.port.label()}",
+
+    endpoint = if (kind == ConfigKind.FWKNOP) "${server.host}:${server.port.label()}" else server.host,
     protocol = server.protocol,
     messageType = access.messageType(),
     accessDetail = (access as? AccessRule.ServerCommand)?.command
         ?: access.portAccess?.ports.orEmpty(),
     launchesApp = externalApp != ExternalApp.None,
+    kind = kind,
 )
 
 private fun ServerPort.label(): String = when (this) {

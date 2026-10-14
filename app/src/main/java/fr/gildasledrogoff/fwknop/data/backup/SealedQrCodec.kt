@@ -1,14 +1,17 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.backup
 
 import fr.gildasledrogoff.fwknop.domain.error.BackupError
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.SealedQr
 import java.io.ByteArrayOutputStream
-import java.util.Base64
+import java.util.*
 import java.util.zip.DataFormatException
 import java.util.zip.Deflater
 import java.util.zip.Inflater
-
 
 class SealedQrCodec(
     private val cipher: BackupCipher = BackupCipher(magic = BackupCipher.QR_MAGIC),
@@ -52,7 +55,6 @@ class SealedQrCodec(
         }
     }
 
-    
     private fun inflate(bytes: ByteArray): String? {
         val inflater = Inflater()
         val out = ByteArrayOutputStream()

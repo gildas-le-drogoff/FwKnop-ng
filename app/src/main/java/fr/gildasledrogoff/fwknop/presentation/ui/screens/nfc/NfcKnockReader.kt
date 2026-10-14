@@ -1,22 +1,16 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.nfc
 
 import android.nfc.Tag
 import android.widget.Toast
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.gildasledrogoff.fwknop.R
-import fr.gildasledrogoff.fwknop.presentation.state.KnockEvent
-import fr.gildasledrogoff.fwknop.presentation.state.KnockState
-import fr.gildasledrogoff.fwknop.presentation.state.NfcEraseReason
-import fr.gildasledrogoff.fwknop.presentation.state.NfcEraseState
-import fr.gildasledrogoff.fwknop.presentation.state.UiError
+import fr.gildasledrogoff.fwknop.presentation.state.*
 import fr.gildasledrogoff.fwknop.presentation.ui.components.ErrorDialog
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.KnockViewModel
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.NfcEraseViewModel
@@ -24,10 +18,12 @@ import fr.gildasledrogoff.fwknop.utils.helpers.FwknopNdef
 import fr.gildasledrogoff.fwknop.utils.helpers.FwknopTagContent
 import kotlinx.coroutines.launch
 
-
-
 @Composable
-fun NfcKnockReader(enabled: Boolean, knockViewModel: KnockViewModel, eraseViewModel: NfcEraseViewModel) {
+fun NfcKnockReader(
+    enabled: Boolean,
+    knockViewModel: KnockViewModel,
+    eraseViewModel: NfcEraseViewModel
+) {
     val knock by knockViewModel.state.collectAsStateWithLifecycle()
     val erase by eraseViewModel.state.collectAsStateWithLifecycle()
     var unsupported by remember { mutableStateOf(false) }
@@ -37,16 +33,20 @@ fun NfcKnockReader(enabled: Boolean, knockViewModel: KnockViewModel, eraseViewMo
         if (eraseViewModel.state.value is NfcEraseState.Waiting) {
             eraseViewModel.onTagDiscovered(tag)
         } else {
-            
             scope.launch { if (onTagRead(tag, knockViewModel, eraseViewModel)) unsupported = true }
         }
     }
     NfcEraseContent(erase, eraseViewModel)
-    if (unsupported) ErrorDialog(UiError.Message(R.string.nfc_read_unsupported)) { unsupported = false }
+    if (unsupported) ErrorDialog(UiError.Message(R.string.nfc_read_unsupported)) {
+        unsupported = false
+    }
 }
 
-
-private fun onTagRead(tag: Tag, knockViewModel: KnockViewModel, eraseViewModel: NfcEraseViewModel): Boolean {
+private fun onTagRead(
+    tag: Tag,
+    knockViewModel: KnockViewModel,
+    eraseViewModel: NfcEraseViewModel
+): Boolean {
     if (knockViewModel.state.value != KnockState.Idle || eraseViewModel.state.value != NfcEraseState.Idle) {
         return false
     }
@@ -65,7 +65,12 @@ private fun NfcEraseContent(state: NfcEraseState, viewModel: NfcEraseViewModel) 
     val context = LocalContext.current
     when (state) {
         NfcEraseState.Idle -> Unit
-        is NfcEraseState.Confirm -> NfcEraseConfirmDialog(state.reason, viewModel::confirm, viewModel::dismiss)
+        is NfcEraseState.Confirm -> NfcEraseConfirmDialog(
+            state.reason,
+            viewModel::confirm,
+            viewModel::dismiss
+        )
+
         is NfcEraseState.Waiting -> NfcErasingDialog(state.wholeTag, onCancel = viewModel::dismiss)
         NfcEraseState.Erased -> LaunchedEffect(Unit) {
             Toast.makeText(context, R.string.nfc_erased, Toast.LENGTH_SHORT).show()

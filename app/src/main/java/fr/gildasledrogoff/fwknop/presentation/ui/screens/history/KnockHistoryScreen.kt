@@ -1,26 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.history
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -31,23 +19,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.gildasledrogoff.fwknop.R
-import fr.gildasledrogoff.fwknop.domain.model.KnockHistoryRetention
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogEntry
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogEvent
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogOutcome
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.Protocol
-import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
+import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.presentation.state.KnockHistoryEvent
 import fr.gildasledrogoff.fwknop.presentation.state.KnockHistoryState
 import fr.gildasledrogoff.fwknop.presentation.state.KnockHistoryWipe
-import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ConfirmDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ConfirmSpec
-import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
-import fr.gildasledrogoff.fwknop.presentation.ui.components.SectionCard
-import fr.gildasledrogoff.fwknop.presentation.ui.components.description
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.KnockHistoryViewModel
@@ -82,13 +58,19 @@ private fun KnockHistoryScaffold(
                 title = { Text(stringResource(R.string.title_history)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        FwknopIcon(R.drawable.ic_arrow_back_rounded, stringResource(R.string.action_back))
+                        FwknopIcon(
+                            R.drawable.ic_arrow_back_rounded,
+                            stringResource(R.string.action_back)
+                        )
                     }
                 },
                 actions = {
                     if (state.entries.isNotEmpty()) {
                         IconButton(onClick = { onEvent(KnockHistoryEvent.ClearRequested) }) {
-                            FwknopIcon(R.drawable.ic_delete_rounded, stringResource(R.string.action_history_clear))
+                            FwknopIcon(
+                                R.drawable.ic_delete_rounded,
+                                stringResource(R.string.action_history_clear)
+                            )
                         }
                     }
                 },
@@ -129,19 +111,17 @@ fun KnockHistoryContent(state: KnockHistoryState, onEvent: (KnockHistoryEvent) -
 }
 
 @Composable
-private fun RetentionSection(retention: KnockHistoryRetention, onSelect: (KnockHistoryRetention) -> Unit) {
+private fun RetentionSection(
+    retention: KnockHistoryRetention,
+    onSelect: (KnockHistoryRetention) -> Unit
+) {
     SectionCard(stringResource(R.string.section_history_retention), R.drawable.ic_history_rounded) {
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            KnockHistoryRetention.entries.forEachIndexed { index, option ->
-                SegmentedButton(
-                    selected = retention == option,
-                    onClick = { onSelect(option) },
-                    shape = SegmentedButtonDefaults.itemShape(index, KnockHistoryRetention.entries.size),
-                ) {
-                    Text(stringResource(option.labelRes()))
-                }
-            }
-        }
+        val options = DropdownOptions(
+            label = stringResource(R.string.field_history_retention),
+            options = KnockHistoryRetention.entries,
+            optionLabel = labelsOf(KnockHistoryRetention.entries) { it.labelRes() },
+        )
+        OptionDropdown(options, retention, onSelect, Modifier.fillMaxWidth())
         Text(
             stringResource(R.string.field_history_retention_hint),
             style = MaterialTheme.typography.bodySmall,
@@ -152,7 +132,8 @@ private fun RetentionSection(retention: KnockHistoryRetention, onSelect: (KnockH
 
 @Composable
 private fun EmptyHistory(retention: KnockHistoryRetention) {
-    val body = if (retention == KnockHistoryRetention.OFF) R.string.history_empty_off else R.string.history_empty
+    val body =
+        if (retention == KnockHistoryRetention.OFF) R.string.history_empty_off else R.string.history_empty
     Text(
         stringResource(body),
         style = MaterialTheme.typography.bodyLarge,
@@ -182,8 +163,12 @@ private fun KnockLogCard(entry: KnockLogEntry, formatter: DateTimeFormatter) {
                 tint = if (sent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
             )
             Column(Modifier.weight(1f)) {
+                val method = when (event.kind) {
+                    KnockLogKind.KNOCK -> event.protocol.name
+                    KnockLogKind.WAKE_ON_LAN -> stringResource(R.string.section_wake_on_lan)
+                }
                 Text(
-                    stringResource(R.string.history_entry_title, event.nickname.value, event.protocol.name),
+                    stringResource(R.string.history_entry_title, event.nickname.value, method),
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
@@ -191,7 +176,12 @@ private fun KnockLogCard(entry: KnockLogEntry, formatter: DateTimeFormatter) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                event.source?.let { Text(it.description(), style = MaterialTheme.typography.bodyMedium) }
+                event.source?.let {
+                    Text(
+                        it.description(),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
                 if (outcome is KnockLogOutcome.Failed) {
                     Text(
                         listOfNotNull(outcome.code, outcome.detail).joinToString(" · "),
@@ -219,6 +209,7 @@ private fun KnockHistoryWipe.confirmSpec(): ConfirmSpec = when (this) {
         stringResource(R.string.history_clear_confirm_body),
         stringResource(R.string.action_history_clear),
     )
+
     KnockHistoryWipe.Disable -> ConfirmSpec(
         stringResource(R.string.history_disable_confirm_title),
         stringResource(R.string.history_disable_confirm_body),
@@ -235,6 +226,11 @@ private fun KnockHistoryContentPreview() {
             KnockHistoryState(
                 isLoading = false,
                 entries = listOf(
+                    KnockLogEntry(
+                        3,
+                        Instant.parse("2026-10-15T08:31:00Z"),
+                        KnockLogEvent.wakeOnLan(Nickname("home"), DomainResult.Success(Unit)),
+                    ),
                     KnockLogEntry(
                         2,
                         Instant.parse("2026-10-15T08:30:00Z"),

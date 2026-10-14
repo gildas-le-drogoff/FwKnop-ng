@@ -1,59 +1,20 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation
 import app.cash.turbine.test
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
-import fr.gildasledrogoff.fwknop.domain.model.AccessRule
-import fr.gildasledrogoff.fwknop.domain.model.AppSettings
-import fr.gildasledrogoff.fwknop.domain.model.PortAccess
-import fr.gildasledrogoff.fwknop.domain.model.Encryption
-import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
-import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
-import fr.gildasledrogoff.fwknop.domain.usecase.BuildSpaPacketUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.GetConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.GetExternalAppDelayUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.GetNfcKnockConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.GetRequiredPromptsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.NeedsTimerNotificationUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ObserveVaultStatusUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ParseQrClientIpUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ResolveKnockRouteUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ScheduleKnockTimerUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.SendKnockUseCase
-import fr.gildasledrogoff.fwknop.fakes.FakeKnockHistoryRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeConfigRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeGpgRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeKnockTimerScheduler
-import fr.gildasledrogoff.fwknop.fakes.FakeNfcTagRepository
-import fr.gildasledrogoff.fwknop.fakes.FakePortProbeRepository
-import fr.gildasledrogoff.fwknop.domain.model.PortCheck
-import fr.gildasledrogoff.fwknop.domain.usecase.VerifyPortAccessUseCase
-import fr.gildasledrogoff.fwknop.fakes.FakeRuntimePermissions
-import fr.gildasledrogoff.fwknop.fakes.FakePublicIpRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeSettingsRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeSpaPacketRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeSpaTransportRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeVaultRepository
-import fr.gildasledrogoff.fwknop.fakes.sampleConfig
-import fr.gildasledrogoff.fwknop.domain.model.NfcTagDigest
-import fr.gildasledrogoff.fwknop.presentation.state.AuthResult
-import fr.gildasledrogoff.fwknop.presentation.state.KnockEffect
-import fr.gildasledrogoff.fwknop.presentation.state.KnockEvent
-import fr.gildasledrogoff.fwknop.presentation.state.KnockPermission
-import fr.gildasledrogoff.fwknop.presentation.state.SentNotice
-import fr.gildasledrogoff.fwknop.presentation.state.KnockState
-import fr.gildasledrogoff.fwknop.presentation.state.UiError
+import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.domain.usecase.*
+import fr.gildasledrogoff.fwknop.fakes.*
+import fr.gildasledrogoff.fwknop.presentation.state.*
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.KnockViewModel
 import fr.gildasledrogoff.fwknop.utils.helpers.InteractionRegistry
 import fr.gildasledrogoff.fwknop.utils.helpers.PermissionStatus
-import com.google.common.truth.Truth.assertThat
-import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -61,6 +22,9 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import kotlin.random.Random
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class KnockViewModelTest {
     private val transport = FakeSpaTransportRepository()
@@ -272,6 +236,9 @@ class KnockViewModelTest {
         assertThat(vm.state.value).isEqualTo(KnockState.PromptSourceIp("home"))
         vm.onEvent(KnockEvent.SourceIpSubmitted("bad"))
         assertThat(vm.state.value).isEqualTo(KnockState.PromptSourceIp("home", invalid = true))
+
+        vm.onEvent(KnockEvent.SourceIpSubmitted("2001:db8::8"))
+        assertThat(vm.state.value).isEqualTo(KnockState.PromptSourceIp("home", invalid = true))
         vm.onEvent(KnockEvent.SourceIpScanned("CLIENT_IP:198.51.100.8"))
         assertThat(packets.built.single().sourceIp).isEqualTo("198.51.100.8")
         assertThat(packets.built.single().key.value).isEqualTo("typed")
@@ -387,5 +354,4 @@ class KnockViewModelTest {
         assertThat(vm.state.value).isEqualTo(KnockState.Idle)
     }
 }
-
 private val FIXED_SOURCE = ResolvedSourceIp("198.51.100.4", SourceIpMethod.Fixed)

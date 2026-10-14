@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.configlist
 
 import androidx.activity.compose.ReportDrawnWhen
@@ -23,19 +27,13 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import fr.gildasledrogoff.fwknop.R
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
 import fr.gildasledrogoff.fwknop.domain.model.MessageType
 import fr.gildasledrogoff.fwknop.domain.model.Protocol
 import fr.gildasledrogoff.fwknop.domain.model.uniqueNickname
 import fr.gildasledrogoff.fwknop.presentation.state.ConfigListState
 import fr.gildasledrogoff.fwknop.presentation.state.ConfigSummary
-import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ConfirmDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ConfirmSpec
-import fr.gildasledrogoff.fwknop.presentation.ui.components.EmptyState
-import fr.gildasledrogoff.fwknop.presentation.ui.components.LargeFontPreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.NicknameDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.NicknameSpec
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ShieldLockIllustration
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 
@@ -47,13 +45,13 @@ fun ConfigListContent(
     knock: KnockActivity = KnockActivity(),
     onDuplicate: (source: String, nickname: String) -> Unit = { _, _ -> },
 ) {
-    // Fully drawn once the configs are listed: the cold start metric that matters before a knock.
+
     ReportDrawnWhen { !state.isLoading }
     val loading = stringResource(R.string.a11y_loading_configs)
     Box(
         modifier
             .fillMaxSize()
-            // Lets UiAutomator (baseline profile, macrobenchmark) find the tags as resource ids.
+
             .semantics { testTagsAsResourceId = true }
             .then(if (state.isLoading) Modifier else Modifier.testTag(CONFIG_LIST_TAG)),
     ) {
@@ -63,6 +61,7 @@ fun ConfigListContent(
                     .align(Alignment.Center)
                     .semantics { contentDescription = loading },
             )
+
             state.configs.isEmpty() -> EmptyState(
                 title = stringResource(R.string.empty_title),
                 body = stringResource(R.string.empty_body),
@@ -88,7 +87,7 @@ private fun ConfigGrid(
     LazyVerticalGrid(
         columns = GridCells.Adaptive(dimens.cardMinWidth),
         modifier = Modifier.testTag(CONFIG_GRID_TAG),
-        // Room below the last card so the "New config" button never covers its knock button.
+
         contentPadding = PaddingValues(
             start = dimens.screenPadding,
             top = dimens.screenPadding,
@@ -101,9 +100,12 @@ private fun ConfigGrid(
         items(configs, key = { it.nickname }) { summary ->
             ConfigCard(
                 summary,
-                actions.copy(onDelete = { pendingDelete = it }, onDuplicate = { pendingDuplicate = it }),
+                actions.copy(
+                    onDelete = { pendingDelete = it },
+                    onDuplicate = { pendingDuplicate = it }),
                 Modifier.animateItem(),
                 knock.of(summary.nickname),
+                waking = knock.waking == summary.nickname,
             )
         }
     }
@@ -115,7 +117,11 @@ private fun ConfigGrid(
     }
     pendingDuplicate?.let { source ->
         val taken = configs.mapTo(mutableSetOf()) { it.nickname }
-        DuplicateDialog(source, taken, { onDuplicate(source, it) }, onDone = { pendingDuplicate = null })
+        DuplicateDialog(
+            source,
+            taken,
+            { onDuplicate(source, it) },
+            onDone = { pendingDuplicate = null })
     }
 }
 
@@ -149,7 +155,6 @@ private fun DeleteConfirmDialog(nickname: String, onConfirm: () -> Unit, onDone:
 private val FAB_CLEARANCE = 72.dp
 private const val CONFIG_LIST_TAG = "config_list"
 private const val CONFIG_GRID_TAG = "config_grid"
-
 internal val previewSummaries = listOf(
     ConfigSummary(
         "home",
@@ -157,7 +162,7 @@ internal val previewSummaries = listOf(
         Protocol.UDP,
         MessageType.OPEN_PORT,
         "tcp/22",
-        true
+        true,
     ),
     ConfigSummary(
         "office-nat",
@@ -169,11 +174,20 @@ internal val previewSummaries = listOf(
     ),
     ConfigSummary(
         "router",
-        "192.0.2.1:62201",
+        "192.0.2.1:80",
         Protocol.HTTP,
         MessageType.SERVER_COMMAND,
         "reboot",
         false
+    ),
+    ConfigSummary(
+        "nas",
+        "255.255.255.255",
+        Protocol.UDP,
+        MessageType.OPEN_PORT,
+        "",
+        false,
+        kind = ConfigKind.WAKE_ON_LAN,
     ),
 )
 
@@ -198,6 +212,9 @@ private fun ConfigListEmptyPreview() {
 @Composable
 private fun ConfigListLargeFontPreview() {
     FwknopTheme {
-        ConfigListContent(ConfigListState(isLoading = false, configs = previewSummaries), previewActions)
+        ConfigListContent(
+            ConfigListState(isLoading = false, configs = previewSummaries),
+            previewActions
+        )
     }
 }

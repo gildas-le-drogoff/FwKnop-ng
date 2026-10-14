@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.backup
 
 import android.net.Uri
@@ -17,19 +21,9 @@ import fr.gildasledrogoff.fwknop.presentation.state.BackupDialog
 import fr.gildasledrogoff.fwknop.presentation.state.BackupEffect
 import fr.gildasledrogoff.fwknop.presentation.state.BackupEvent
 import fr.gildasledrogoff.fwknop.presentation.state.BackupMode
-import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.CollectEffects
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ConfirmDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ConfirmSpec
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ErrorDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.NicknameDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.NicknameSpec
-import fr.gildasledrogoff.fwknop.presentation.ui.components.PassphraseDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.PassphraseSpec
-import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberUserAuthenticator
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.BackupViewModel
-
 
 @Composable
 fun BackupHost(

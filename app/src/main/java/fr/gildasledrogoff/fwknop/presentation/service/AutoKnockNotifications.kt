@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.service
 
 import android.Manifest
@@ -23,7 +27,6 @@ import javax.inject.Singleton
 @Singleton
 class AutoKnockNotifications @Inject constructor(@param:ApplicationContext private val context: Context) {
     private val manager = NotificationManagerCompat.from(context)
-
     fun monitoring(): Notification {
         ensureChannels()
         return NotificationCompat.Builder(context, MONITOR_CHANNEL)
@@ -81,10 +84,16 @@ class AutoKnockNotifications @Inject constructor(@param:ApplicationContext priva
     private fun ensureChannels() {
         manager.createNotificationChannelsCompat(
             listOf(
-                NotificationChannelCompat.Builder(MONITOR_CHANNEL, NotificationManagerCompat.IMPORTANCE_MIN)
+                NotificationChannelCompat.Builder(
+                    MONITOR_CHANNEL,
+                    NotificationManagerCompat.IMPORTANCE_MIN
+                )
                     .setName(context.getString(R.string.auto_knock_channel_monitor))
                     .build(),
-                NotificationChannelCompat.Builder(RESULT_CHANNEL, NotificationManagerCompat.IMPORTANCE_DEFAULT)
+                NotificationChannelCompat.Builder(
+                    RESULT_CHANNEL,
+                    NotificationManagerCompat.IMPORTANCE_DEFAULT
+                )
                     .setName(context.getString(R.string.auto_knock_channel_result))
                     .build(),
             )

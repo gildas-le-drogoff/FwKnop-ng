@@ -1,4 +1,11 @@
+<!--
+SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
 <resources>
-    <!-- Window-level theme only: everything inside is drawn by Compose Material 3. -->
-    <style name="Theme.Fwknop" parent="android:Theme.Material.Light.NoActionBar" />
+  <!-- Window-level theme only: everything inside is drawn by Compose Material 3. -->
+  <style
+    name="Theme.Fwknop"
+    parent="android:Theme.Material.Light.NoActionBar"
+  />
 </resources>

@@ -1,30 +1,25 @@
-package fr.gildasledrogoff.fwknop.security
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
+package fr.gildasledrogoff.fwknop.security
 import androidx.test.platform.app.InstrumentationRegistry
-import fr.gildasledrogoff.fwknop.data.repository.KnockHistoryRepositoryImpl
-import fr.gildasledrogoff.fwknop.domain.model.AppSettings
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.KnockHistoryRetention
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogEvent
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogOutcome
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.Protocol
-import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
-import fr.gildasledrogoff.fwknop.domain.repository.SettingsRepository
 import com.google.common.truth.Truth.assertThat
+import fr.gildasledrogoff.fwknop.data.repository.KnockHistoryRepositoryImpl
+import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneOffset
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class KnockHistoryEndToEndTest {
@@ -37,11 +32,9 @@ class KnockHistoryEndToEndTest {
         override fun instant() = now
     }
     private val history = KnockHistoryRepositoryImpl(testVault.session, settings, clock)
-
     @Before
     @After
     fun wipe() = testVault.wipe()
-
     @Test
     fun aRecordedKnockIsReadableAndNeverInClearOnDisk() = runBlocking {
         unlock()
@@ -53,14 +46,12 @@ class KnockHistoryEndToEndTest {
         testVault.repository.lock()
         testVault.assertNothingInClearOnDisk(listOf(SOURCE_IP, STUN_SERVER, NICKNAME))
     }
-
     @Test
     fun aKnockWhileLockedIsDroppedWithoutBlocking() = runBlocking {
         history.record(event(SOURCE_IP))
         unlock()
         assertThat(history.observeHistory().first()).isEmpty()
     }
-
     @Test
     fun entriesOlderThanTheRetentionArePurgedOnWrite() = runBlocking {
         unlock()
@@ -69,7 +60,6 @@ class KnockHistoryEndToEndTest {
         history.record(event("192.0.2.2"))
         assertThat(history.observeHistory().first().map { it.event.source?.address }).containsExactly("192.0.2.2")
     }
-
     @Test
     fun aShorterRetentionPurgesOnDemand() = runBlocking {
         unlock()
@@ -81,7 +71,6 @@ class KnockHistoryEndToEndTest {
         history.purgeExpired()
         assertThat(history.observeHistory().first()).isEmpty()
     }
-
     @Test
     fun retentionOffRecordsNothingAndWipesTheJournal() = runBlocking {
         unlock()
@@ -92,17 +81,14 @@ class KnockHistoryEndToEndTest {
         history.purgeExpired()
         assertThat(history.observeHistory().first()).isEmpty()
     }
-
     private suspend fun unlock() =
         assertThat(testVault.repository.unlock()).isEqualTo(DomainResult.Success(Unit))
-
     private fun event(sourceIp: String) = KnockLogEvent(
         nickname = Nickname(NICKNAME),
         protocol = Protocol.UDP,
         source = ResolvedSourceIp(sourceIp, SourceIpMethod.Stun(STUN_SERVER)),
         outcome = KnockLogOutcome.Failed("TRANSPORT", "ENETUNREACH"),
     )
-
     private class MutableSettings : SettingsRepository {
         val state = MutableStateFlow(AppSettings())
         override val settings = state
@@ -112,7 +98,6 @@ class KnockHistoryEndToEndTest {
         override suspend fun markHelpShown() = Unit
         override suspend fun dismissLockSuggestion() = Unit
     }
-
     private companion object {
         const val NICKNAME = "knock-history-host"
         const val SOURCE_IP = "203.0.113.77"

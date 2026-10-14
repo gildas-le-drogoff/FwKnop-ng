@@ -1,12 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.state
 
 import fr.gildasledrogoff.fwknop.R
-import fr.gildasledrogoff.fwknop.domain.error.BackupError
-import fr.gildasledrogoff.fwknop.domain.error.ConfigError
-import fr.gildasledrogoff.fwknop.domain.error.GpgError
-import fr.gildasledrogoff.fwknop.domain.error.KnockError
-import fr.gildasledrogoff.fwknop.domain.error.SettingsError
-import fr.gildasledrogoff.fwknop.domain.error.VaultError
+import fr.gildasledrogoff.fwknop.domain.error.*
 import fr.gildasledrogoff.fwknop.domain.model.BackupPassphrase
 import fr.gildasledrogoff.fwknop.utils.helpers.NfcWriteResult
 
@@ -26,6 +25,8 @@ fun ConfigError.toUiError(): UiError = UiError.Message(
         ConfigError.NicknameBlank -> R.string.error_nickname_blank
         ConfigError.NicknameTaken -> R.string.error_nickname_taken
         ConfigError.ServerInvalid -> R.string.error_server_invalid
+        ConfigError.KnockSequenceInvalid -> R.string.error_knock_sequence_invalid
+        ConfigError.KnockDelayInvalid -> R.string.error_knock_delay_invalid
         ConfigError.PortsFormat -> R.string.error_ports_format
         ConfigError.TimeoutInvalid -> R.string.error_timeout_invalid
         ConfigError.NatIpInvalid -> R.string.error_nat_ip_invalid
@@ -39,6 +40,10 @@ fun ConfigError.toUiError(): UiError = UiError.Message(
         ConfigError.KeyBase64Length -> R.string.error_key_base64_length
         ConfigError.KeyBase64Chars -> R.string.error_key_base64_chars
         ConfigError.WireGuardKeyMissing -> R.string.error_wireguard_key_missing
+        ConfigError.WakeMacInvalid -> R.string.error_wake_mac_invalid
+        ConfigError.WakeHostInvalid -> R.string.error_wake_host_invalid
+        ConfigError.WakePortInvalid -> R.string.error_wake_port_invalid
+        ConfigError.WakePasswordInvalid -> R.string.error_wake_password_invalid
         is ConfigError.Storage -> R.string.error_config_storage
     },
 )
@@ -48,17 +53,26 @@ fun KnockError.toUiError(): UiError = when (this) {
     is KnockError.Config -> error.toUiError()
     KnockError.KeyMissing -> UiError.Message(R.string.error_key_blank)
     KnockError.SourceIpMissing, KnockError.SourceIpInvalid -> UiError.Message(R.string.error_source_ip_invalid)
-    is KnockError.SourceIpUnresolved -> UiError.Detailed(R.string.error_source_ip_unresolved, detail)
+    is KnockError.SourceIpUnresolved -> UiError.Detailed(
+        R.string.error_source_ip_unresolved,
+        detail
+    )
+
     KnockError.NfcDisabled -> UiError.Message(R.string.error_nfc_disabled)
     KnockError.NfcTagUnknown -> UiError.Message(R.string.error_nfc_tag_unknown)
     KnockError.NfcLockRequired -> UiError.Message(R.string.error_nfc_lock_required)
     is KnockError.ServerUnresolved -> UiError.Detailed(R.string.error_server_unresolved, host)
-    is KnockError.ServerFamilyMismatch -> UiError.Detailed(R.string.error_server_family_mismatch, host)
+    is KnockError.ServerFamilyMismatch -> UiError.Detailed(
+        R.string.error_server_family_mismatch,
+        host
+    )
+
     KnockError.PacketGeneration -> UiError.Message(R.string.error_packet_generation)
     KnockError.GpgKeysMissing -> UiError.Message(R.string.error_gpg_keys_missing)
     is KnockError.Gpg -> error.toUiError()
     KnockError.LocalNetworkBlocked, KnockError.LocalNetworkPermissionRequired ->
         UiError.Message(R.string.error_local_network_blocked)
+
     is KnockError.Transport -> UiError.Detailed(
         R.string.error_transport,
         cause.message ?: cause.javaClass.simpleName

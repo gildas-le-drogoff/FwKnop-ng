@@ -1,7 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.configlist
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -17,18 +21,27 @@ import fr.gildasledrogoff.fwknop.presentation.ui.components.SectionCard
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 
-
 @Composable
 fun LockSuggestionCard(onEnable: () -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
-    SectionCard(stringResource(R.string.lock_suggestion_title), R.drawable.ic_lock_rounded, modifier) {
-        Text(stringResource(R.string.lock_suggestion_body), style = MaterialTheme.typography.bodyMedium)
+    SectionCard(
+        stringResource(R.string.lock_suggestion_title),
+        R.drawable.ic_lock_rounded,
+        modifier
+    ) {
+        Text(
+            stringResource(R.string.lock_suggestion_body),
+            style = MaterialTheme.typography.bodyMedium
+        )
         Text(
             stringResource(R.string.lock_suggestion_nfc),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing, Alignment.End),
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(
+                DimensTheme.dimens.itemSpacing,
+                Alignment.End
+            ),
             modifier = Modifier.fillMaxWidth(),
         ) {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_later)) }

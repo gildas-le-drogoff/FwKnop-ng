@@ -1,13 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.domain.error.BackupError
-import fr.gildasledrogoff.fwknop.domain.model.AppSettings
-import fr.gildasledrogoff.fwknop.domain.model.AutoLockDelay
-import fr.gildasledrogoff.fwknop.domain.model.Backup
-import fr.gildasledrogoff.fwknop.domain.model.BackupPassphrase
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.ThemeMode
-import fr.gildasledrogoff.fwknop.domain.repository.BackupRepository
+import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.domain.usecase.ExportBackupUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.OpenBackupFileUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.RestoreBackupUseCase
@@ -15,9 +13,10 @@ import fr.gildasledrogoff.fwknop.fakes.FakeConfigRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeNfcTagRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeSettingsRepository
 import fr.gildasledrogoff.fwknop.fakes.sampleConfig
-import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import fr.gildasledrogoff.fwknop.domain.repository.BackupRepository
+
 private class FakeBackupRepository : BackupRepository {
     private val sealed = mutableMapOf<String, Backup>()
     override suspend fun seal(backup: Backup, passphrase: BackupPassphrase): ByteArray {

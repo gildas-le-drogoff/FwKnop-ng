@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
 <paths>
-    <!-- PNG copies of exported QR configs, shared through the chooser. -->
-    <cache-path
-        name="qr"
-        path="qr/" />
+  <!-- PNG copies of exported QR configs, shared through the chooser. -->
+  <cache-path name="qr" path="qr/" />
 </paths>

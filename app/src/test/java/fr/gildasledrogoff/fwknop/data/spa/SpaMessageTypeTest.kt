@@ -1,13 +1,18 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.spa
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.data.datasource.spa.SpaMessageType
 import fr.gildasledrogoff.fwknop.data.datasource.spa.androidUsername
 import fr.gildasledrogoff.fwknop.data.datasource.spa.messageType
-import fr.gildasledrogoff.fwknop.domain.model.DigestAlgorithm
 import fr.gildasledrogoff.fwknop.domain.model.NatTarget
+import org.junit.Test
+import fr.gildasledrogoff.fwknop.domain.model.DigestAlgorithm
 import fr.gildasledrogoff.fwknop.domain.model.SecretKey
 import fr.gildasledrogoff.fwknop.domain.model.SpaPacketParams
-import com.google.common.truth.Truth.assertThat
-import org.junit.Test
+
 class SpaMessageTypeTest {
     private fun params(timeout: Int?, nat: NatTarget? = null, command: String? = null) = SpaPacketParams(
         accessPorts = "tcp/22",

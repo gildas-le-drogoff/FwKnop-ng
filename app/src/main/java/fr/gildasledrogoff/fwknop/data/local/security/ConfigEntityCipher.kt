@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.local.security
 
 import fr.gildasledrogoff.fwknop.data.local.models.ConfigColumns
@@ -20,6 +24,8 @@ class ConfigEntityCipher(private val columns: ColumnCipher) {
             ConfigColumns.NAT_PORT,
             ConfigColumns.SERVER_CMD,
             ConfigColumns.SSH_CMD,
+            ConfigColumns.KNOCK_SEQUENCE,
+            ConfigColumns.WAKE_ON_LAN,
         )
     }
 }
@@ -36,4 +42,10 @@ private fun ConfigEntity.mapSensitive(transform: (column: String, value: String)
     natPort = transform(ConfigColumns.NAT_PORT, natPort),
     serverCmd = transform(ConfigColumns.SERVER_CMD, serverCmd),
     sshCmd = transform(ConfigColumns.SSH_CMD, sshCmd),
+
+    knockSequence = knockSequence.takeIf { it.isNotEmpty() }
+        ?.let { transform(ConfigColumns.KNOCK_SEQUENCE, it) }.orEmpty(),
+
+    wakeOnLan = wakeOnLan.takeIf { it.isNotEmpty() }
+        ?.let { transform(ConfigColumns.WAKE_ON_LAN, it) }.orEmpty(),
 )

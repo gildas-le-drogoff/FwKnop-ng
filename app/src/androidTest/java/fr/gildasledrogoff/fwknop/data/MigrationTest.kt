@@ -1,22 +1,22 @@
-package fr.gildasledrogoff.fwknop.data
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
+package fr.gildasledrogoff.fwknop.data
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.SupportSQLiteDatabase
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
-import fr.gildasledrogoff.fwknop.data.local.database.FwknopDatabase
-import fr.gildasledrogoff.fwknop.data.local.database.MIGRATION_1_2
-import fr.gildasledrogoff.fwknop.data.local.database.MIGRATION_2_3
+import fr.gildasledrogoff.fwknop.data.local.database.*
 import org.junit.Rule
 import org.junit.Test
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class MigrationTest {
     @get:Rule
     val helper = MigrationTestHelper(InstrumentationRegistry.getInstrumentation(), FwknopDatabase::class.java)
-
     @Test
     fun v1RowsGetTheirGpgModeFromTheRecipient() {
         helper.createDatabase(DB, 1).use { db ->
@@ -32,7 +32,6 @@ class MigrationTest {
             }
         }
     }
-
     @Test
     fun v2ConfigsSurviveTheKnockLogTableCreation() {
         helper.createDatabase(DB, 2).use { db -> insertV1(db, "plain", gpgKey = 0) }
@@ -41,7 +40,39 @@ class MigrationTest {
             db.query("SELECT COUNT(*) FROM knock_log").use { assertThat(it.moveToFirst() && it.getInt(0) == 0).isTrue() }
         }
     }
-
+    @Test
+    fun v3ConfigsStayInSpaMode() {
+        helper.createDatabase(DB, 3).use { db -> insertV1(db, "plain", gpgKey = 0) }
+        helper.runMigrationsAndValidate(DB, 4, true, MIGRATION_3_4).use { db ->
+            db.query("SELECT KNOCK_SEQUENCE, KNOCK_DELAY FROM configs").use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getString(0)).isEmpty()
+                assertThat(cursor.getInt(1)).isEqualTo(500)
+            }
+        }
+    }
+    @Test
+    fun v4ConfigsHaveNoWakeOnLan() {
+        helper.createDatabase(DB, 4).use { db -> insertV1(db, "plain", gpgKey = 0) }
+        helper.runMigrationsAndValidate(DB, 5, true, MIGRATION_4_5).use { db ->
+            db.query("SELECT WAKE_ON_LAN FROM configs").use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getString(0)).isEmpty()
+            }
+        }
+    }
+    @Test
+    fun v5KnockLogEntriesAreKnocks() {
+        helper.createDatabase(DB, 5).use { db ->
+            db.execSQL("INSERT INTO knock_log (TIMESTAMP, NICK_NAME, PROTOCOL, RESULT) VALUES (0, 'home', 'UDP', 'SENT')")
+        }
+        helper.runMigrationsAndValidate(DB, 6, true, MIGRATION_5_6).use { db ->
+            db.query("SELECT KIND FROM knock_log").use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getString(0)).isEqualTo("KNOCK")
+            }
+        }
+    }
     private fun insertV1(db: SupportSQLiteDatabase, nickname: String, gpgKey: Long) =
         db.execSQL(
             """
@@ -53,7 +84,6 @@ class MigrationTest {
             """.trimIndent(),
             arrayOf<Any>(nickname, gpgKey),
         )
-
     private companion object {
         const val DB = "migration-test.db"
     }

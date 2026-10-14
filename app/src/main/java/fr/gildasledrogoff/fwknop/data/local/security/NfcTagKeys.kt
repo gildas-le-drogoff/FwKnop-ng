@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.local.security
 
 import android.content.Context
@@ -22,10 +26,8 @@ class PrefsSealedNfcTagKeyStore @Inject constructor(
     }
 }
 
-
 class NfcTagKeys @Inject constructor(private val store: SealedNfcTagKeyStore) {
     fun read(aead: Aead): ByteArray? = store.read()?.let { aead.decrypt(it, ASSOCIATED_DATA) }
-
     fun obtain(aead: Aead): ByteArray =
         read(aead) ?: ByteArray(KEY_BYTES).also(SecureRandom()::nextBytes).also { write(aead, it) }
 
@@ -49,18 +51,19 @@ class NfcTagKeys @Inject constructor(private val store: SealedNfcTagKeyStore) {
     }
 }
 
-
 object NfcTagDigester {
     private const val SALT_BYTES = NfcTagDigest.SALT_BYTES
     private const val ALGORITHM = "HmacSHA256"
-
     fun digest(key: ByteArray, nickname: String, salt: ByteArray = randomSalt()): ByteArray =
         salt + mac(key, salt, nickname)
 
     fun matches(key: ByteArray, digest: ByteArray, nickname: String): Boolean {
         if (digest.size != NfcTagDigest.SIZE) return false
         val salt = digest.copyOfRange(0, SALT_BYTES)
-        return MessageDigest.isEqual(digest.copyOfRange(SALT_BYTES, digest.size), mac(key, salt, nickname))
+        return MessageDigest.isEqual(
+            digest.copyOfRange(SALT_BYTES, digest.size),
+            mac(key, salt, nickname)
+        )
     }
 
     private fun mac(key: ByteArray, salt: ByteArray, nickname: String): ByteArray =

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.model
 
 @JvmInline
@@ -14,11 +18,11 @@ data class KnockRequest(
 )
 
 data class KnockOutcome(val request: KnockRequest, val source: ResolvedSourceIp)
-
 sealed interface PortCheck {
     data class Reachable(val ports: List<Int>) : PortCheck
     data class Closed(val ports: List<Int>) : PortCheck
 }
+
 enum class KnockPrompt { KEY, SOURCE_IP }
 data class NatTarget(val address: String, val port: Int, val local: Boolean)
 data class SpaPacketParams(
@@ -43,11 +47,6 @@ sealed interface KnockTimerPlan {
 enum class KnockTimerOutcome {
     NONE,
     SCHEDULED,
-
-    
     NOTIFICATIONS_BLOCKED,
-
-    
     KEEP_OPEN_UNAVAILABLE,
 }
-

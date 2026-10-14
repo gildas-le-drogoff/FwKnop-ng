@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.settings
 
 import android.content.ActivityNotFoundException
@@ -12,19 +16,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -40,15 +34,7 @@ import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.domain.model.AutoKnockSettings
 import fr.gildasledrogoff.fwknop.presentation.state.AutoKnockEvent
 import fr.gildasledrogoff.fwknop.presentation.state.AutoKnockState
-import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.DropdownOptions
-import fr.gildasledrogoff.fwknop.presentation.ui.components.FormTextField
-import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
-import fr.gildasledrogoff.fwknop.presentation.ui.components.LabeledSwitch
-import fr.gildasledrogoff.fwknop.presentation.ui.components.LargeFontPreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.OptionDropdown
-import fr.gildasledrogoff.fwknop.presentation.ui.components.SectionCard
-import fr.gildasledrogoff.fwknop.presentation.ui.components.openAppSettings
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.AutoKnockViewModel
@@ -68,14 +54,16 @@ fun AutoKnockHost(viewModel: AutoKnockViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val refresh = { viewModel.onEvent(AutoKnockEvent.PermissionsChanged) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { refresh() }
-    val foreground = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        refresh()
-    }
-    val background = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        // Refused for good: only the system settings can still grant it.
-        if (!granted) openAppSettings(context)
-        refresh()
-    }
+    val foreground =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            refresh()
+        }
+    val background =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+
+            if (!granted) openAppSettings(context)
+            refresh()
+        }
     val actions = LocationActions(
         onGrant = { foreground.launch(LocationAccess.FOREGROUND) },
         onGrantBackground = { LocationAccess.BACKGROUND?.let(background::launch) },
@@ -97,7 +85,11 @@ fun AutoKnockHost(viewModel: AutoKnockViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun AutoKnockSection(state: AutoKnockState, onEvent: (AutoKnockEvent) -> Unit, location: LocationActions) {
+fun AutoKnockSection(
+    state: AutoKnockState,
+    onEvent: (AutoKnockEvent) -> Unit,
+    location: LocationActions
+) {
     SectionCard(stringResource(R.string.section_auto_knock), R.drawable.ic_wifi_rounded) {
         LabeledSwitch(
             label = stringResource(R.string.field_auto_knock),
@@ -137,7 +129,12 @@ private fun ConfigChoice(state: AutoKnockState, onEvent: (AutoKnockEvent) -> Uni
         modifier = Modifier.fillMaxWidth(),
     )
     if (state.configUnavailable) {
-        Notice(stringResource(R.string.auto_knock_config_unavailable, state.settings.nickname.orEmpty()))
+        Notice(
+            stringResource(
+                R.string.auto_knock_config_unavailable,
+                state.settings.nickname.orEmpty()
+            )
+        )
     }
 }
 
@@ -157,14 +154,21 @@ private fun TrustedNetworks(state: AutoKnockState, onEvent: (AutoKnockEvent) -> 
     }
     state.settings.trustedSsids.forEach { ssid ->
         Row(verticalAlignment = Alignment.CenterVertically) {
-            FwknopIcon(R.drawable.ic_wifi_rounded, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            FwknopIcon(
+                R.drawable.ic_wifi_rounded,
+                null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Text(
                 ssid,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f),
             )
             IconButton(onClick = { onEvent(AutoKnockEvent.SsidRemoved(ssid)) }) {
-                FwknopIcon(R.drawable.ic_delete_rounded, stringResource(R.string.a11y_remove_network, ssid))
+                FwknopIcon(
+                    R.drawable.ic_delete_rounded,
+                    stringResource(R.string.a11y_remove_network, ssid)
+                )
             }
         }
     }
@@ -202,14 +206,32 @@ private fun LocationStatus(status: LocationAccessStatus, actions: LocationAction
     val (message, action, onClick) = when (status) {
         LocationAccessStatus.GRANTED -> return
         LocationAccessStatus.PERMISSION_MISSING ->
-            Triple(R.string.auto_knock_location_missing, R.string.action_allow_location, actions.onGrant)
+            Triple(
+                R.string.auto_knock_location_missing,
+                R.string.action_allow_location,
+                actions.onGrant
+            )
+
         LocationAccessStatus.BACKGROUND_MISSING ->
-            Triple(R.string.auto_knock_background_missing, R.string.action_allow_background_location, actions.onGrantBackground)
+            Triple(
+                R.string.auto_knock_background_missing,
+                R.string.action_allow_background_location,
+                actions.onGrantBackground
+            )
+
         LocationAccessStatus.SERVICE_OFF ->
-            Triple(R.string.auto_knock_location_off, R.string.action_enable_location, actions.onEnableService)
+            Triple(
+                R.string.auto_knock_location_off,
+                R.string.action_enable_location,
+                actions.onEnableService
+            )
     }
     Notice(stringResource(message))
-    OutlinedButton(onClick = onClick, shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth()) {
+    OutlinedButton(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.small,
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Text(stringResource(action))
     }
 }
@@ -219,16 +241,22 @@ private fun Notice(text: String) {
     Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
 }
 
-/** Enabling is only possible after ticking that the consequences are understood. */
+
 @Composable
 fun AutoKnockWarningDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     var understood by rememberSaveable { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { FwknopIcon(R.drawable.ic_error_rounded, null, tint = MaterialTheme.colorScheme.error) },
+        icon = {
+            FwknopIcon(
+                R.drawable.ic_error_rounded,
+                null,
+                tint = MaterialTheme.colorScheme.error
+            )
+        },
         title = { Text(stringResource(R.string.auto_knock_warning_title)) },
         text = {
-            // Scrolls with the largest font sizes.
+
             Column(
                 verticalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing),
                 modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -238,10 +266,16 @@ fun AutoKnockWarningDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .toggleable(value = understood, role = Role.Checkbox, onValueChange = { understood = it }),
+                        .toggleable(
+                            value = understood,
+                            role = Role.Checkbox,
+                            onValueChange = { understood = it }),
                 ) {
                     Checkbox(checked = understood, onCheckedChange = null)
-                    Text(stringResource(R.string.auto_knock_warning_ack), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(R.string.auto_knock_warning_ack),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
             }
         },
@@ -256,7 +290,11 @@ fun AutoKnockWarningDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
 
 private val previewState = AutoKnockState(
     isLoading = false,
-    settings = AutoKnockSettings(enabled = true, nickname = "home", trustedSsids = setOf("Maison", "Bureau-5G")),
+    settings = AutoKnockSettings(
+        enabled = true,
+        nickname = "home",
+        trustedSsids = setOf("Maison", "Bureau-5G")
+    ),
     candidates = listOf("home", "office-nat"),
     location = LocationAccessStatus.BACKGROUND_MISSING,
 )

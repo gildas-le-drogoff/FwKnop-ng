@@ -1,48 +1,22 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.domain.error.GpgError
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
-import fr.gildasledrogoff.fwknop.domain.model.AddressFamily
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.Encryption
-import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
-import fr.gildasledrogoff.fwknop.domain.model.InteractionId
-import fr.gildasledrogoff.fwknop.domain.model.KnockTarget
-import fr.gildasledrogoff.fwknop.domain.model.Protocol
-import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.SourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
-import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
-import fr.gildasledrogoff.fwknop.domain.usecase.BuildSpaPacketUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.GetConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.GetRequiredPromptsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ResolveKnockRouteUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.SendKnockUseCase
-import fr.gildasledrogoff.fwknop.fakes.FakeKnockHistoryRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeConfigRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeGpgRepository
-import fr.gildasledrogoff.fwknop.fakes.FakePublicIpRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeSpaPacketRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeSpaTransportRepository
-import fr.gildasledrogoff.fwknop.fakes.sampleConfig
-import fr.gildasledrogoff.fwknop.presentation.state.DiagnosticDetail
-import fr.gildasledrogoff.fwknop.presentation.state.DiagnosticEffect
-import fr.gildasledrogoff.fwknop.presentation.state.DiagnosticEvent
-import fr.gildasledrogoff.fwknop.presentation.state.DiagnosticPhase
-import fr.gildasledrogoff.fwknop.presentation.state.DiagnosticState
-import fr.gildasledrogoff.fwknop.presentation.state.StepStatus
-import fr.gildasledrogoff.fwknop.presentation.state.UiError
+import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.domain.usecase.*
+import fr.gildasledrogoff.fwknop.fakes.*
+import fr.gildasledrogoff.fwknop.presentation.state.*
 import fr.gildasledrogoff.fwknop.presentation.ui.navigation.DiagnosticRoute
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.DiagnosticViewModel
 import fr.gildasledrogoff.fwknop.utils.helpers.InteractionRegistry
-import com.google.common.truth.Truth.assertThat
-import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -50,6 +24,9 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import kotlin.random.Random
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class DiagnosticViewModelTest {
     private val publicIp = FakePublicIpRepository()
@@ -143,6 +120,8 @@ class DiagnosticViewModelTest {
         assertThat(vm.state.value.needsKey).isTrue()
         assertThat(vm.state.value.needsSourceIp).isTrue()
         vm.onEvent(DiagnosticEvent.Run(key = "typed", sourceIp = "not an ip"))
+        assertThat(vm.state.value.sourceIpInvalid).isTrue()
+        vm.onEvent(DiagnosticEvent.Run(key = "typed", sourceIp = "2001:db8::77"))
         assertThat(vm.state.value.sourceIpInvalid).isTrue()
         assertThat(transport.sent).isEmpty()
         vm.onEvent(DiagnosticEvent.Run(key = "typed", sourceIp = " 198.51.100.77 "))

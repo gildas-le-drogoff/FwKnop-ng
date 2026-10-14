@@ -1,4 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.security
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.data.local.security.DatabasePassphrases
 import fr.gildasledrogoff.fwknop.data.local.security.MasterKeyPolicy
 import fr.gildasledrogoff.fwknop.data.local.security.aead
@@ -6,10 +11,10 @@ import fr.gildasledrogoff.fwknop.fakes.FakeKeysetStore
 import fr.gildasledrogoff.fwknop.fakes.FakeMasterKeyStore
 import fr.gildasledrogoff.fwknop.fakes.FakeSealedPassphraseStore
 import fr.gildasledrogoff.fwknop.fakes.newKeyset
-import com.google.common.truth.Truth.assertThat
-import java.security.GeneralSecurityException
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import java.security.GeneralSecurityException
+
 class DatabasePassphrasesTest {
     private val store = FakeSealedPassphraseStore()
     private val passphrases = DatabasePassphrases(store)

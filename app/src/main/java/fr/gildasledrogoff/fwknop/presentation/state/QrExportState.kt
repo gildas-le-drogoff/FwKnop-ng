@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.state
 
 import androidx.compose.runtime.Immutable
@@ -8,8 +12,6 @@ sealed interface QrExportState {
     data object AwaitingAuth : QrExportState
     data object Denied : QrExportState
     data object Loading : QrExportState
-
-    
     data class Ready(
         val nickname: String,
         val qr: ImageBitmap?,

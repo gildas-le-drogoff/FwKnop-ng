@@ -1,28 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.configlist
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -33,36 +19,26 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.gildasledrogoff.fwknop.R
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
 import fr.gildasledrogoff.fwknop.domain.model.PortCheck
-import fr.gildasledrogoff.fwknop.presentation.state.BackupEvent
-import fr.gildasledrogoff.fwknop.presentation.state.ConfigListEvent
-import fr.gildasledrogoff.fwknop.presentation.state.ConfigListState
-import fr.gildasledrogoff.fwknop.presentation.state.KnockEffect
-import fr.gildasledrogoff.fwknop.presentation.state.KnockEvent
-import fr.gildasledrogoff.fwknop.presentation.state.KnockState
-import fr.gildasledrogoff.fwknop.presentation.state.NfcEraseReason
-import fr.gildasledrogoff.fwknop.presentation.state.SecuritySettingsEvent
-import fr.gildasledrogoff.fwknop.presentation.state.SentNotice
+import fr.gildasledrogoff.fwknop.presentation.state.*
 import fr.gildasledrogoff.fwknop.presentation.ui.components.ErrorDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.description
 import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
+import fr.gildasledrogoff.fwknop.presentation.ui.components.description
 import fr.gildasledrogoff.fwknop.presentation.ui.components.openAppSettings
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.backup.BackupHost
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.knock.KnockHost
+import fr.gildasledrogoff.fwknop.presentation.ui.screens.knock.WakeOnLanHost
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.nfc.NfcKnockReader
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.settings.SecurityHost
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.networkBackdrop
-import fr.gildasledrogoff.fwknop.presentation.viewmodel.BackupViewModel
-import fr.gildasledrogoff.fwknop.presentation.viewmodel.ConfigListViewModel
-import fr.gildasledrogoff.fwknop.presentation.viewmodel.KnockViewModel
-import fr.gildasledrogoff.fwknop.presentation.viewmodel.NfcEraseViewModel
-import fr.gildasledrogoff.fwknop.presentation.viewmodel.SecuritySettingsViewModel
+import fr.gildasledrogoff.fwknop.presentation.viewmodel.*
 import kotlinx.coroutines.delay
 
 @Immutable
 data class ConfigListNavigation(
-    val onCreate: () -> Unit,
+    val onCreate: (ConfigKind) -> Unit,
     val onEdit: (String) -> Unit,
     val onWriteNfc: (String) -> Unit,
     val onExportQr: (String) -> Unit,
@@ -83,13 +59,16 @@ fun ConfigListScreen(
     backupViewModel: BackupViewModel = hiltViewModel(),
     nfcEraseViewModel: NfcEraseViewModel = hiltViewModel(),
     securityViewModel: SecuritySettingsViewModel = hiltViewModel(),
+    wakeViewModel: WakeOnLanViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val knockState by knockViewModel.state.collectAsStateWithLifecycle()
+    val wakeState by wakeViewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var lastSent by remember { mutableStateOf<KnockEffect.Sent?>(null) }
     var justSent by remember { mutableStateOf<KnockEffect.Sent?>(null) }
     var portChecked by remember { mutableStateOf<KnockEffect.PortChecked?>(null) }
+    var woken by remember { mutableStateOf<WakeOnLanEffect.Sent?>(null) }
     val haptics = LocalHapticFeedback.current
     StartupEffects(state, navigation.onHelp)
     SecurityHost(securityViewModel, snackbarHostState)
@@ -102,13 +81,16 @@ fun ConfigListScreen(
         nfcEraseViewModel.offer(NfcEraseReason.FWKNOP)
     }
     NfcKnockReader(state.nfcKnockEnabled, knockViewModel, nfcEraseViewModel)
+    WakeOnLanHost(wakeViewModel) { woken = it }
     BackupHost(backupViewModel, snackbarHostState)
     lastSent?.let { SentSnackbar(it, snackbarHostState) { lastSent = null } }
     portChecked?.let { PortCheckSnackbar(it, snackbarHostState) { portChecked = null } }
+    woken?.let { WakeSentSnackbar(it, snackbarHostState) { woken = null } }
     justSent?.let { sent -> LaunchedEffect(sent) { delay(SUCCESS_MS); justSent = null } }
     val knock = KnockActivity(
         sending = (knockState as? KnockState.Sending)?.nickname,
         sent = justSent?.nickname,
+        waking = (wakeState as? WakeOnLanState.Sending)?.nickname,
     )
     val actions = ConfigCardActions(
         onKnock = { knockViewModel.onEvent(KnockEvent.Knock(it)) },
@@ -119,6 +101,7 @@ fun ConfigListScreen(
         onDiagnose = navigation.onDiagnose,
         onExportFile = { backupViewModel.onEvent(BackupEvent.ExportConfigRequested(it)) },
         onDelete = { viewModel.onEvent(ConfigListEvent.DeleteConfig(it)) },
+        onWake = { wakeViewModel.onEvent(WakeOnLanEvent.Wake(it)) },
     )
     ConfigListScaffold(
         state = state,
@@ -184,7 +167,6 @@ private fun ConfigListTopBar(
     LargeTopAppBar(
         title = { Text(stringResource(R.string.app_name)) },
         scrollBehavior = scrollBehavior,
-        
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -204,26 +186,48 @@ private fun ConfigListTopBar(
 }
 
 @Composable
-private fun NewConfigFab(onCreate: () -> Unit) {
+private fun NewConfigFab(onCreate: (ConfigKind) -> Unit) {
+    var choosing by remember { mutableStateOf(false) }
     ExtendedFloatingActionButton(
-        onClick = onCreate,
+        onClick = { choosing = true },
         icon = { FwknopIcon(R.drawable.ic_add_rounded, null) },
         text = { Text(stringResource(R.string.action_new_config)) },
     )
+    if (choosing) {
+        NewConfigDialog(
+            onChoose = {
+                choosing = false
+                onCreate(it)
+            },
+            onCancel = { choosing = false },
+        )
+    }
 }
 
 @Composable
-private fun SentSnackbar(sent: KnockEffect.Sent, hostState: SnackbarHostState, onShown: () -> Unit) {
+private fun SentSnackbar(
+    sent: KnockEffect.Sent,
+    hostState: SnackbarHostState,
+    onShown: () -> Unit
+) {
     val context = LocalContext.current
-    
-    val message = stringResource(sent.notice.messageRes(), sent.nickname) + "\n" + sent.source.description()
+    val message =
+        stringResource(sent.notice.messageRes(), sent.nickname) + "\n" + sent.source.description()
     val settingsLabel = stringResource(R.string.action_open_app_settings)
     LaunchedEffect(sent) {
         val result = when (sent.notice) {
             null -> hostState.showSnackbar(message)
             SentNotice.KEEP_OPEN_NEEDS_NOTIFICATIONS ->
-                hostState.showSnackbar(message, actionLabel = settingsLabel, duration = SnackbarDuration.Long)
-            SentNotice.KEEP_OPEN_UNAVAILABLE -> hostState.showSnackbar(message, duration = SnackbarDuration.Long)
+                hostState.showSnackbar(
+                    message,
+                    actionLabel = settingsLabel,
+                    duration = SnackbarDuration.Long
+                )
+
+            SentNotice.KEEP_OPEN_UNAVAILABLE -> hostState.showSnackbar(
+                message,
+                duration = SnackbarDuration.Long
+            )
         }
         if (result == SnackbarResult.ActionPerformed) openAppSettings(context)
         onShown()
@@ -250,13 +254,25 @@ private fun PortCheckSnackbar(
     }
 }
 
+@Composable
+private fun WakeSentSnackbar(
+    sent: WakeOnLanEffect.Sent,
+    hostState: SnackbarHostState,
+    onShown: () -> Unit
+) {
+    val message = stringResource(R.string.wake_sent, sent.nickname)
+    LaunchedEffect(sent) {
+        hostState.showSnackbar(message)
+        onShown()
+    }
+}
+
 @StringRes
 private fun SentNotice?.messageRes(): Int = when (this) {
     null -> R.string.knock_sent
     SentNotice.KEEP_OPEN_NEEDS_NOTIFICATIONS -> R.string.knock_sent_keep_open_blocked
     SentNotice.KEEP_OPEN_UNAVAILABLE -> R.string.knock_sent_keep_open_unavailable
 }
-
 
 private const val SUCCESS_MS = 2_500L
 

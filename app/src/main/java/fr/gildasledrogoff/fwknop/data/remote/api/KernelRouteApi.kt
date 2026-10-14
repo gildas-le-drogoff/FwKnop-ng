@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.remote.api
 
 import java.io.IOException
@@ -8,7 +12,6 @@ import javax.inject.Singleton
 
 @Singleton
 class KernelRouteApi @Inject constructor() {
-
     fun sourceAddressTowards(server: InetAddress, route: NetworkPath.Route): InetAddress =
         route.datagramSocket().use { socket ->
             socket.connect(InetSocketAddress(server, DISCARD_PORT))

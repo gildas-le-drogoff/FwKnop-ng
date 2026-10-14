@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.local.security
 
 import android.content.Context
@@ -5,7 +9,7 @@ import android.content.SharedPreferences
 import com.google.crypto.tink.Aead
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.security.SecureRandom
-import java.util.Base64
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,7 +18,6 @@ interface SealedPassphraseStore {
     fun write(sealed: ByteArray)
     fun clear()
 }
-
 
 abstract class PrefsSealedSecretStore(
     private val context: Context,

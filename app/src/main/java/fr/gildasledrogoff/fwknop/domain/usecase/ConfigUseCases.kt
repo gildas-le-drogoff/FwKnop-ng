@@ -1,12 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.usecase
 
 import fr.gildasledrogoff.fwknop.domain.error.ConfigError
-import fr.gildasledrogoff.fwknop.domain.model.ConfigDraft
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
-import fr.gildasledrogoff.fwknop.domain.model.flatMap
-import fr.gildasledrogoff.fwknop.domain.model.map
+import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.domain.repository.ConfigRepository
 import fr.gildasledrogoff.fwknop.domain.repository.ConfigResult
 import kotlinx.coroutines.flow.Flow
@@ -22,25 +21,78 @@ class GetConfigUseCase @Inject constructor(private val repository: ConfigReposit
 }
 
 class DeleteConfigUseCase @Inject constructor(private val repository: ConfigRepository) {
-    suspend operator fun invoke(nickname: Nickname): ConfigResult<Unit> = repository.deleteConfig(nickname)
+    suspend operator fun invoke(nickname: Nickname): ConfigResult<Unit> =
+        repository.deleteConfig(nickname)
 }
 
 class ValidateConfigUseCase @Inject constructor() {
     operator fun invoke(draft: ConfigDraft): DomainResult<SpaConfig, ConfigError> {
         val nickname = draft.nickname.trim()
         if (nickname.isEmpty()) return DomainResult.Failure(ConfigError.NicknameBlank)
+        if (draft.kind == ConfigKind.WAKE_ON_LAN) return wakeConfig(Nickname(nickname), draft)
+        val spa = draft.kind == ConfigKind.FWKNOP
         return draft.server.toEndpoint().flatMap { server ->
-            draft.access.toAccessRule().flatMap { access ->
-                draft.sourceIp.toSourceIp().flatMap { sourceIp ->
-                    draft.crypto.toCrypto().flatMap { crypto ->
-                        draft.externalApp.toExternalApp().map { app ->
-                            SpaConfig(Nickname(nickname), server, access, sourceIp, crypto, app)
+            draft.server.toKnockMethod(portKnocking = !spa).flatMap { method ->
+                val access =
+                    if (spa) draft.access.toAccessRule() else draft.access.toKnockAccessRule()
+                access.flatMap { access ->
+                    draft.sourceIp.toSourceIp().orDormant(spa) { SourceIpDraft().toSourceIp() }
+                        .flatMap { sourceIp ->
+                            draft.crypto.toCrypto().orDormant(spa) { CryptoDraft().toCrypto() }
+                                .flatMap { crypto ->
+                                    draft.externalApp.toExternalApp().map { app ->
+                                        SpaConfig(
+                                            Nickname(nickname),
+                                            server,
+                                            access,
+                                            sourceIp,
+                                            crypto,
+                                            app,
+                                            method
+                                        )
+                                    }
+                                }
                         }
-                    }
                 }
             }
         }
     }
+
+
+    private fun wakeConfig(
+        nickname: Nickname,
+        draft: ConfigDraft
+    ): DomainResult<SpaConfig, ConfigError> =
+        draft.wakeOnLan.toWakeOnLan().flatMap { parsed ->
+            val host = parsed.host ?: WakeOnLan.BROADCAST
+            CryptoDraft().toCrypto().map { crypto ->
+                SpaConfig(
+                    nickname = nickname,
+                    server = ServerEndpoint(
+                        host,
+                        ServerPort.Fixed(ServerPort.DEFAULT),
+                        Protocol.UDP
+                    ),
+                    access = AccessRule.OpenPort(
+                        PortAccess(
+                            "",
+                            timeoutSeconds = null,
+                            keepOpen = false
+                        )
+                    ),
+                    sourceIp = SourceIp.Resolve,
+                    crypto = crypto,
+                    externalApp = ExternalApp.None,
+                    wakeOnLan = parsed.copy(host = host),
+                )
+            }
+        }
+
+
+    private fun <T> DomainResult<T, ConfigError>.orDormant(
+        spa: Boolean,
+        fallback: () -> DomainResult<T, ConfigError>,
+    ): DomainResult<T, ConfigError> = if (spa || this is DomainResult.Success) this else fallback()
 }
 
 class SaveConfigUseCase @Inject constructor(
@@ -62,7 +114,9 @@ class SaveConfigUseCase @Inject constructor(
     ): DomainResult<SpaConfig, ConfigError> {
         if (config.nickname == previous) return DomainResult.Success(config)
         return repository.exists(config.nickname).flatMap { taken ->
-            if (taken) DomainResult.Failure(ConfigError.NicknameTaken) else DomainResult.Success(config)
+            if (taken) DomainResult.Failure(ConfigError.NicknameTaken) else DomainResult.Success(
+                config
+            )
         }
     }
 }

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.service
 
 import android.content.Context
@@ -16,7 +20,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** Runs [AutoKnockService] exactly when the automatic knock is armed and can read the Wi-Fi name. */
+
 @Singleton
 class AutoKnockController @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -24,7 +28,7 @@ class AutoKnockController @Inject constructor(
     private val location: LocationAccess,
     @param:ApplicationScope private val scope: CoroutineScope,
 ) : AutoKnockMonitor {
-    /** Follows the settings for the life of the process. */
+
     fun register() {
         scope.launch { observeSettings().collect(::sync) }
     }
@@ -34,7 +38,6 @@ class AutoKnockController @Inject constructor(
     }
 
     suspend fun syncNow() = sync(observeSettings().first())
-
     private fun sync(settings: AutoKnockSettings) {
         val intent = AutoKnockService.intent(context)
         if (!settings.armed || location.status() != LocationAccessStatus.GRANTED) {
@@ -44,8 +47,8 @@ class AutoKnockController @Inject constructor(
         try {
             ContextCompat.startForegroundService(context, intent)
         } catch (e: IllegalStateException) {
-            // Android 12+ refuses a foreground service started from the background outside of the
-            // exemptions (boot, app update, visible app): the next of those starts it.
+
+
             DebugLog.failure("auto-knock service start", e)
         }
     }

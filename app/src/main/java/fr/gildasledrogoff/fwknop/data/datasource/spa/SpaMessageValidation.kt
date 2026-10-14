@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.datasource.spa
 
 internal object SpaMessageValidation {
@@ -21,7 +25,12 @@ internal object SpaMessageValidation {
 
     private inline fun withAllowIp(message: String, checkRest: (String) -> Boolean): Boolean {
         val comma = message.indexOf(',')
-        return !(comma < 0 || message.length > SpaFormat.MAX_MESSAGE_LENGTH) && isValidIpv4(message.substring(0, comma)) && checkRest(message.substring(comma + 1))
+        return !(comma < 0 || message.length > SpaFormat.MAX_MESSAGE_LENGTH) && isValidIpv4(
+            message.substring(
+                0,
+                comma
+            )
+        ) && checkRest(message.substring(comma + 1))
     }
 
     private fun isValidIpv4(ip: String): Boolean =

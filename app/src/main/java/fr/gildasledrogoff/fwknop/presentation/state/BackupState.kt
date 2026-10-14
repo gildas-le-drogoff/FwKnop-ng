@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.state
 
 import android.net.Uri
 import androidx.annotation.PluralsRes
 import androidx.compose.runtime.Immutable
-
 
 enum class BackupMode {
     EXPORT_ALL, EXPORT_CONFIG, IMPORT;
@@ -16,8 +19,6 @@ sealed interface BackupDialog {
     data object None : BackupDialog
     data class Passphrase(val mode: BackupMode, val wrongPassphrase: Boolean = false) : BackupDialog
     data class ConfirmRestore(val configCount: Int) : BackupDialog
-
-    
     data class RenameImport(val nickname: String, val suggestion: String, val taken: Set<String>) :
         BackupDialog
 }

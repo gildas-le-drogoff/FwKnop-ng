@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.viewmodel
 
 import android.net.Uri
@@ -8,39 +12,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.domain.error.BackupError
-import fr.gildasledrogoff.fwknop.domain.model.Backup
-import fr.gildasledrogoff.fwknop.domain.model.BackupPassphrase
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.SealedBackup
-import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
-import fr.gildasledrogoff.fwknop.domain.model.uniqueNickname
-import fr.gildasledrogoff.fwknop.domain.usecase.AddConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ExportBackupUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ExportConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ObserveConfigsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.OpenBackupFileUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.RestoreBackupUseCase
-import fr.gildasledrogoff.fwknop.presentation.state.AuthPurpose
-import fr.gildasledrogoff.fwknop.presentation.state.AuthResult
-import fr.gildasledrogoff.fwknop.presentation.state.BackupDialog
-import fr.gildasledrogoff.fwknop.presentation.state.BackupEffect
-import fr.gildasledrogoff.fwknop.presentation.state.BackupEvent
-import fr.gildasledrogoff.fwknop.presentation.state.BackupMode
-import fr.gildasledrogoff.fwknop.presentation.state.BackupState
-import fr.gildasledrogoff.fwknop.presentation.state.UiError
-import fr.gildasledrogoff.fwknop.presentation.state.allowsSensitiveAction
-import fr.gildasledrogoff.fwknop.presentation.state.toUiError
+import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.domain.usecase.*
+import fr.gildasledrogoff.fwknop.presentation.state.*
 import fr.gildasledrogoff.fwknop.utils.dispatcher.DispatcherProvider
 import fr.gildasledrogoff.fwknop.utils.helpers.DocumentFiles
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.Clock
@@ -74,15 +52,11 @@ class BackupViewModel @Inject constructor(
         set(value) {
             savedStateHandle[KEY_URI] = value
         }
-
-    
     private var pendingNickname: String?
         get() = savedStateHandle[KEY_NICKNAME]
         set(value) {
             savedStateHandle[KEY_NICKNAME] = value
         }
-
-    
     private var pendingRestore: Backup? = null
     private val pendingImports = ArrayDeque<SpaConfig>()
     private var importedCount = 0
@@ -164,7 +138,12 @@ class BackupViewModel @Inject constructor(
         _state.update { it.copy(dialog = BackupDialog.None, busy = true) }
         viewModelScope.launch {
             when (mode) {
-                BackupMode.EXPORT_ALL -> export(uri, R.plurals.backup_exported) { exportBackup(passphrase) }
+                BackupMode.EXPORT_ALL -> export(uri, R.plurals.backup_exported) {
+                    exportBackup(
+                        passphrase
+                    )
+                }
+
                 BackupMode.EXPORT_CONFIG -> export(uri, R.plurals.configs_exported) {
                     exportConfig(Nickname(pendingNickname.orEmpty()), passphrase)
                 }
@@ -194,7 +173,6 @@ class BackupViewModel @Inject constructor(
         }
     }
 
-    
     private suspend fun open(uri: Uri, passphrase: BackupPassphrase) {
         val file = withContext(dispatchers.io) { documents.read(uri, MAX_FILE_BYTES) }
         if (file == null) {
@@ -227,7 +205,14 @@ class BackupViewModel @Inject constructor(
 
     private fun onOpenFailure(error: BackupError) {
         if (error == BackupError.WrongPassphrase) {
-            _state.update { it.copy(dialog = BackupDialog.Passphrase(BackupMode.IMPORT, wrongPassphrase = true)) }
+            _state.update {
+                it.copy(
+                    dialog = BackupDialog.Passphrase(
+                        BackupMode.IMPORT,
+                        wrongPassphrase = true
+                    )
+                )
+            }
         } else {
             abandon(error.toUiError())
         }
@@ -251,7 +236,6 @@ class BackupViewModel @Inject constructor(
         }
     }
 
-    
     private suspend fun importNext() {
         val current = observeConfigs().first()
         val taken = when (current) {
@@ -262,7 +246,8 @@ class BackupViewModel @Inject constructor(
             val config = pendingImports.firstOrNull() ?: return finishImports()
             val nickname = config.nickname.value
             if (nickname in taken) {
-                val dialog = BackupDialog.RenameImport(nickname, uniqueNickname(nickname, taken), taken)
+                val dialog =
+                    BackupDialog.RenameImport(nickname, uniqueNickname(nickname, taken), taken)
                 _state.update { it.copy(dialog = dialog) }
                 return
             }
@@ -294,7 +279,6 @@ class BackupViewModel @Inject constructor(
         }
     }
 
-    
     private fun skipImport() {
         pendingImports.removeFirstOrNull()
         closeDialog()
@@ -358,8 +342,6 @@ class BackupViewModel @Inject constructor(
         private const val KEY_MODE = "backup_mode"
         private const val KEY_URI = "backup_uri"
         private const val KEY_NICKNAME = "backup_nickname"
-
-        
         private fun String.toFileNamePart(): String =
             replace(Regex("[^A-Za-z0-9._-]+"), "_").trim('_').ifEmpty { "config" }
     }

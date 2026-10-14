@@ -1,11 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.local.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Transaction
-import androidx.room.Update
+import androidx.room.*
 import fr.gildasledrogoff.fwknop.data.local.models.ConfigEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -44,7 +43,6 @@ interface ConfigDao {
         insertAll(entities)
     }
 
-    
     @Transaction
     suspend fun upsertAllByNickname(entities: List<ConfigEntity>) {
         entities.forEach { upsert(it.copy(id = findByNickname(it.nickName)?.id ?: 0L)) }

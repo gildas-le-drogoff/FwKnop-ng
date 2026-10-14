@@ -1,23 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.usecase
 
 import fr.gildasledrogoff.fwknop.domain.error.ConfigError
-import fr.gildasledrogoff.fwknop.domain.model.AccessDraft
-import fr.gildasledrogoff.fwknop.domain.model.AccessRule
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
+import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult.Failure
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult.Success
-import fr.gildasledrogoff.fwknop.domain.model.MessageType
-import fr.gildasledrogoff.fwknop.domain.model.PortAccess
-import fr.gildasledrogoff.fwknop.domain.model.ServerDraft
-import fr.gildasledrogoff.fwknop.domain.model.ServerEndpoint
-import fr.gildasledrogoff.fwknop.domain.model.ServerPort
-import fr.gildasledrogoff.fwknop.domain.model.SourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpDraft
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMode
-import fr.gildasledrogoff.fwknop.domain.model.flatMap
-import fr.gildasledrogoff.fwknop.domain.model.isIpAddress
-import fr.gildasledrogoff.fwknop.domain.model.isPort
-import fr.gildasledrogoff.fwknop.domain.model.map
 
 private val PORTS_PATTERN = Regex("^(tcp|udp)/\\d.*")
 internal fun ServerDraft.toEndpoint(): DomainResult<ServerEndpoint, ConfigError> {
@@ -27,10 +17,24 @@ internal fun ServerDraft.toEndpoint(): DomainResult<ServerEndpoint, ConfigError>
 }
 
 private fun ServerDraft.toServerPort(): ServerPort {
-    if (randomPort) return ServerPort.Random
-    val value = port.trim().takeIf { it.isPort() }?.toInt() ?: ServerPort.DEFAULT
+    if (randomPort && protocol != Protocol.HTTP) return ServerPort.Random
+    val value = port.trim().takeIf { it.isPort() }?.toInt() ?: protocol.defaultPort
     return ServerPort.Fixed(value)
 }
+
+internal fun ServerDraft.toKnockMethod(portKnocking: Boolean): DomainResult<KnockMethod, ConfigError> {
+    if (!portKnocking) return Success(KnockMethod.Spa)
+    val ports =
+        parseKnockSequence(knockSequence) ?: return Failure(ConfigError.KnockSequenceInvalid)
+    val delay = knockDelayMs.trim().toIntOrNull()
+        ?.takeIf { it in 0..KnockMethod.PortSequence.MAX_DELAY_MS }
+        ?: return Failure(ConfigError.KnockDelayInvalid)
+    return Success(KnockMethod.PortSequence(ports, delay))
+}
+
+
+internal fun AccessDraft.toKnockAccessRule(): DomainResult<AccessRule, ConfigError> =
+    toPortAccess(portsRequired = false).map { AccessRule.OpenPort(it) }
 
 internal fun AccessDraft.toAccessRule(): DomainResult<AccessRule, ConfigError> = when (type) {
     MessageType.SERVER_COMMAND -> toServerCommand()
@@ -48,9 +52,10 @@ private fun AccessDraft.toServerCommand(): DomainResult<AccessRule, ConfigError>
         )
     )
 
-private fun AccessDraft.toPortAccess(): DomainResult<PortAccess, ConfigError> {
+private fun AccessDraft.toPortAccess(portsRequired: Boolean = true): DomainResult<PortAccess, ConfigError> {
     val trimmedPorts = ports.trim()
-    if (!PORTS_PATTERN.matches(trimmedPorts)) return Failure(ConfigError.PortsFormat)
+    val portsOmitted = !portsRequired && trimmedPorts.isEmpty()
+    if (!portsOmitted && !PORTS_PATTERN.matches(trimmedPorts)) return Failure(ConfigError.PortsFormat)
     val rawTimeout = timeout.trim()
     val seconds = if (rawTimeout.isEmpty()) {
         null
@@ -76,6 +81,7 @@ internal fun SourceIpDraft.toSourceIp(): DomainResult<SourceIp, ConfigError> = w
     SourceIpMode.SOURCE -> Success(SourceIp.Source)
     SourceIpMode.PROMPT -> Success(SourceIp.Prompt)
     SourceIpMode.ALLOW -> address.trim().let {
-        if (it.isIpAddress()) Success(SourceIp.Fixed(it)) else Failure(ConfigError.AllowIpInvalid)
+
+        if (it.isIpv4Address()) Success(SourceIp.Fixed(it)) else Failure(ConfigError.AllowIpInvalid)
     }
 }

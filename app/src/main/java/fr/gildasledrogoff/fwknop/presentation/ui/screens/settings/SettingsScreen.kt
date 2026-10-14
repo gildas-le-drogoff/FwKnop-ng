@@ -1,29 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.settings
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -39,19 +24,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.domain.model.AppSettings
 import fr.gildasledrogoff.fwknop.domain.model.ThemeMode
-import fr.gildasledrogoff.fwknop.presentation.state.BackupState
-import fr.gildasledrogoff.fwknop.presentation.state.SecuritySettingsEvent
-import fr.gildasledrogoff.fwknop.presentation.state.SecuritySettingsState
-import fr.gildasledrogoff.fwknop.presentation.state.SettingsEffect
-import fr.gildasledrogoff.fwknop.presentation.state.SettingsEvent
-import fr.gildasledrogoff.fwknop.presentation.state.SettingsState
-import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.CollectEffects
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ErrorDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
-import fr.gildasledrogoff.fwknop.presentation.ui.components.LabeledSwitch
-import fr.gildasledrogoff.fwknop.presentation.ui.components.SectionCard
-import fr.gildasledrogoff.fwknop.presentation.ui.components.SuggestionTextField
+import fr.gildasledrogoff.fwknop.domain.model.VpnRouting
+import fr.gildasledrogoff.fwknop.presentation.state.*
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.backup.BackupHost
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
@@ -108,9 +83,11 @@ private fun SettingsScaffold(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-        Box(Modifier
-            .fillMaxSize()
-            .padding(padding), contentAlignment = Alignment.TopCenter) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(padding), contentAlignment = Alignment.TopCenter
+        ) {
             if (!state.isLoading) content()
         }
     }
@@ -168,6 +145,7 @@ private fun SettingsForm(form: AppSettings, onChange: (AppSettings) -> Unit) {
         LabeledSwitch(stringResource(R.string.field_dns_lookup), form.dnsLookupEnabled, {
             onChange(form.copy(dnsLookupEnabled = it))
         })
+        VpnRoutingField(form.vpnRouting) { onChange(form.copy(vpnRouting = it)) }
         LabeledSwitch(stringResource(R.string.field_nfc_knock), form.nfcKnockEnabled, {
             onChange(form.copy(nfcKnockEnabled = it))
         })
@@ -184,6 +162,26 @@ private fun SettingsForm(form: AppSettings, onChange: (AppSettings) -> Unit) {
 }
 
 @Composable
+private fun VpnRoutingField(routing: VpnRouting, onChange: (VpnRouting) -> Unit) {
+    Column {
+        Text(stringResource(R.string.field_vpn_routing), style = MaterialTheme.typography.bodyLarge)
+        SingleChoiceSelector(VpnRouting.entries, routing, onChange, { stringResource(it.labelRes()) })
+        Text(
+            stringResource(R.string.field_vpn_routing_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@StringRes
+private fun VpnRouting.labelRes(): Int = when (this) {
+    VpnRouting.AUTO -> R.string.vpn_routing_auto
+    VpnRouting.VIA_VPN -> R.string.vpn_routing_via_vpn
+    VpnRouting.OUTSIDE_VPN -> R.string.vpn_routing_outside_vpn
+}
+
+@Composable
 private fun ExternalAppDelayField(seconds: Int, onChange: (Int) -> Unit) {
     val range = AppSettings.EXTERNAL_APP_DELAY_RANGE
     val label = stringResource(R.string.field_external_app_delay)
@@ -191,7 +189,11 @@ private fun ExternalAppDelayField(seconds: Int, onChange: (Int) -> Unit) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-            Text(value, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Text(
+                value,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
         Slider(
             value = seconds.toFloat(),
@@ -212,17 +214,12 @@ private fun ExternalAppDelayField(seconds: Int, onChange: (Int) -> Unit) {
 private fun AppearanceSection(form: AppSettings, onChange: (AppSettings) -> Unit) {
     SectionCard(stringResource(R.string.section_appearance), R.drawable.ic_palette_rounded) {
         Text(stringResource(R.string.field_theme), style = MaterialTheme.typography.bodyLarge)
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            ThemeMode.entries.forEachIndexed { index, mode ->
-                SegmentedButton(
-                    selected = form.themeMode == mode,
-                    onClick = { onChange(form.copy(themeMode = mode)) },
-                    shape = SegmentedButtonDefaults.itemShape(index, ThemeMode.entries.size),
-                ) {
-                    Text(stringResource(mode.labelRes()))
-                }
-            }
-        }
+        SingleChoiceSelector(
+            ThemeMode.entries,
+            form.themeMode,
+            { onChange(form.copy(themeMode = it)) },
+            { stringResource(it.labelRes()) },
+        )
         if (dynamicColorSupported) {
             LabeledSwitch(
                 label = stringResource(R.string.field_dynamic_color),
@@ -243,18 +240,16 @@ private fun ThemeMode.labelRes(): Int = when (this) {
 
 @Composable
 private fun SettingsButtons(onEvent: (SettingsEvent) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing)) {
+    ButtonRow {
         OutlinedButton(
             onClick = { onEvent(SettingsEvent.ResetDefaults) },
             shape = MaterialTheme.shapes.small,
-            modifier = Modifier.weight(1f)
         ) {
             Text(stringResource(R.string.action_defaults))
         }
         Button(
             onClick = { onEvent(SettingsEvent.Save) },
             shape = MaterialTheme.shapes.small,
-            modifier = Modifier.weight(1f),
         ) {
             Text(stringResource(R.string.action_save))
         }

@@ -1,71 +1,33 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.configlist
 
 import android.nfc.NfcAdapter
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.EnterExitState
-import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.onClick
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import fr.gildasledrogoff.fwknop.R
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
 import fr.gildasledrogoff.fwknop.presentation.state.ConfigSummary
-import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
-import fr.gildasledrogoff.fwknop.presentation.ui.components.LargeFontPreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.labelRes
-import fr.gildasledrogoff.fwknop.presentation.ui.components.scaledMaxLines
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
+import fr.gildasledrogoff.fwknop.presentation.ui.theme.ConfigAccent
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.configAccent
@@ -80,13 +42,17 @@ data class ConfigCardActions(
     val onExportFile: (String) -> Unit,
     val onDelete: (String) -> Unit,
     val onDiagnose: (String) -> Unit = {},
+    val onWake: (String) -> Unit = {},
 )
 
 enum class KnockVisual { IDLE, SENDING, SENT }
 
-
 @Immutable
-data class KnockActivity(val sending: String? = null, val sent: String? = null) {
+data class KnockActivity(
+    val sending: String? = null,
+    val sent: String? = null,
+    val waking: String? = null,
+) {
     fun of(nickname: String): KnockVisual = when (nickname) {
         sending -> KnockVisual.SENDING
         sent -> KnockVisual.SENT
@@ -100,13 +66,14 @@ fun ConfigCard(
     actions: ConfigCardActions,
     modifier: Modifier = Modifier,
     knock: KnockVisual = KnockVisual.IDLE,
+    waking: Boolean = false,
 ) {
     val dimens = DimensTheme.dimens
     val accent = configAccent(summary.nickname)
     val editLabel = stringResource(R.string.a11y_edit_config)
     ElevatedCard(
         onClick = { actions.onEdit(summary.nickname) },
-        // TalkBack: "double tap to edit" rather than a bare "double tap to activate".
+
         modifier = modifier
             .fillMaxWidth()
             .semantics {
@@ -118,36 +85,33 @@ fun ConfigCard(
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(dimens.itemSpacing),
-            modifier = Modifier
-                .accentEdge(accent)
-                .padding(dimens.cardPadding),
+            modifier = Modifier.padding(dimens.cardPadding),
         ) {
             ConfigCardHeader(summary, accent, actions)
             ConfigTags(summary)
-            KnockButton(summary.nickname, knock, actions.onKnock)
+            if (summary.kind == ConfigKind.WAKE_ON_LAN) {
+                WakeButton(summary.nickname, waking, actions.onWake)
+            } else {
+                KnockButton(summary.nickname, knock, actions.onKnock)
+            }
         }
     }
 }
 
-
-private fun Modifier.accentEdge(accent: Color): Modifier = drawWithCache {
-    val wash = Brush.verticalGradient(listOf(accent.copy(alpha = 0.12f), Color.Transparent), endY = 96.dp.toPx())
-    val stripe = Size(4.dp.toPx(), size.height)
-    onDrawBehind {
-        drawRect(wash)
-        val x = if (layoutDirection == LayoutDirection.Rtl) size.width - stripe.width else 0f
-        drawRect(accent, topLeft = Offset(x, 0f), size = stripe)
-    }
-}
-
 @Composable
-private fun ConfigCardHeader(summary: ConfigSummary, accent: Color, actions: ConfigCardActions) {
+private fun ConfigCardHeader(
+    summary: ConfigSummary,
+    accent: ConfigAccent,
+    actions: ConfigCardActions
+) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        FwknopIcon(
-            R.drawable.ic_shield_rounded_fill,
-            null,
-            tint = accent
-        )
+        Surface(shape = CircleShape, color = accent.container, contentColor = accent.content) {
+            FwknopIcon(
+                if (summary.kind == ConfigKind.WAKE_ON_LAN) R.drawable.ic_power_rounded else R.drawable.ic_shield_rounded_fill,
+                null,
+                modifier = Modifier.padding(8.dp),
+            )
+        }
         Column(
             Modifier
                 .weight(1f)
@@ -158,7 +122,7 @@ private fun ConfigCardHeader(summary: ConfigSummary, accent: Color, actions: Con
                 style = MaterialTheme.typography.titleLarge,
                 maxLines = scaledMaxLines(1),
                 overflow = TextOverflow.Ellipsis,
-                // Lets TalkBack users jump from card to card by heading.
+
                 modifier = Modifier.semantics { heading() },
             )
             Text(
@@ -169,7 +133,7 @@ private fun ConfigCardHeader(summary: ConfigSummary, accent: Color, actions: Con
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        ConfigCardMenu(summary.nickname, actions)
+        ConfigCardMenu(summary.nickname, summary.kind, actions)
     }
 }
 
@@ -179,12 +143,22 @@ private fun ConfigTags(summary: ConfigSummary) {
         horizontalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing),
         verticalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing),
     ) {
-        // Bare "UDP" or "tcp/22" mean little when read out: TalkBack gets the field name too.
-        val protocol = summary.protocol.name
-        Tag(protocol, stringResource(R.string.a11y_tag_protocol, protocol))
-        Tag(stringResource(summary.messageType.labelRes()))
+
+        when (summary.kind) {
+            ConfigKind.FWKNOP -> {
+                val protocol = summary.protocol.name
+                Tag(protocol, stringResource(R.string.a11y_tag_protocol, protocol))
+                Tag(stringResource(summary.messageType.labelRes()))
+            }
+
+            ConfigKind.PORT_KNOCK -> Tag(stringResource(R.string.tag_port_knocking))
+            ConfigKind.WAKE_ON_LAN -> Tag(stringResource(R.string.tag_wake_on_lan))
+        }
         if (summary.accessDetail.isNotEmpty()) {
-            Tag(summary.accessDetail, stringResource(R.string.a11y_tag_access, summary.accessDetail))
+            Tag(
+                summary.accessDetail,
+                stringResource(R.string.a11y_tag_access, summary.accessDetail)
+            )
         }
         if (summary.launchesApp) Tag(stringResource(R.string.tag_launches_app))
     }
@@ -203,14 +177,16 @@ private fun Tag(text: String, description: String? = null) {
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .padding(horizontal = DimensTheme.dimens.itemSpacing / 2)
-                .then(if (description != null) Modifier.semantics { contentDescription = description } else Modifier),
+                .then(if (description != null) Modifier.semantics {
+                    contentDescription = description
+                } else Modifier),
         )
     }
 }
 
 @Composable
 private fun KnockButton(nickname: String, status: KnockVisual, onKnock: (String) -> Unit) {
-    // Every card has a "Knock" button: TalkBack must say which config it knocks, and its progress.
+
     val description = stringResource(R.string.a11y_knock_config, nickname)
     val progress = when (status) {
         KnockVisual.IDLE -> null
@@ -233,6 +209,29 @@ private fun KnockButton(nickname: String, status: KnockVisual, onKnock: (String)
     }
 }
 
+@Composable
+private fun WakeButton(nickname: String, waking: Boolean, onWake: (String) -> Unit) {
+    val description = stringResource(R.string.a11y_wake_config, nickname)
+    Button(
+        onClick = { onWake(nickname) },
+        enabled = !waking,
+        shape = MaterialTheme.shapes.small,
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = description },
+    ) {
+        val iconModifier = Modifier.padding(end = ButtonDefaults.IconSpacing)
+        if (waking) {
+            CircularProgressIndicator(
+                iconModifier.size(ButtonDefaults.IconSize),
+                strokeWidth = 2.dp
+            )
+        } else {
+            FwknopIcon(R.drawable.ic_power_rounded, null, iconModifier)
+        }
+        Text(stringResource(R.string.action_wake))
+    }
+}
 
 @Composable
 private fun KnockIcon(sent: Boolean) {
@@ -240,7 +239,7 @@ private fun KnockIcon(sent: Boolean) {
         targetState = sent,
         transitionSpec = {
             (scaleIn(initialScale = 0.3f) + fadeIn()) togetherWith (scaleOut(targetScale = 0.3f) + fadeOut()) using
-                SizeTransform(clip = false)
+                    SizeTransform(clip = false)
         },
         label = "knockIcon",
     ) { done ->
@@ -255,14 +254,17 @@ private fun KnockIcon(sent: Boolean) {
     }
 }
 
-
 @Composable
 private fun Modifier.knockRipples(status: KnockVisual, color: Color): Modifier {
     val progress = remember { Animatable(0f) }
     LaunchedEffect(status) {
         progress.snapTo(0f)
         when (status) {
-            KnockVisual.SENDING -> progress.animateTo(1f, infiniteRepeatable(tween(1400, easing = LinearEasing)))
+            KnockVisual.SENDING -> progress.animateTo(
+                1f,
+                infiniteRepeatable(tween(1400, easing = LinearEasing))
+            )
+
             KnockVisual.SENT -> progress.animateTo(1f, tween(900, easing = FastOutSlowInEasing))
             KnockVisual.IDLE -> Unit
         }
@@ -274,7 +276,8 @@ private fun Modifier.knockRipples(status: KnockVisual, color: Color): Modifier {
         val start = size.height / 2
         val end = size.width * 0.6f
         for (i in 0 until rings) {
-            val f = if (looping) (progress.value + i.toFloat() / rings) % 1f else progress.value - i * 0.25f
+            val f =
+                if (looping) (progress.value + i.toFloat() / rings) % 1f else progress.value - i * 0.25f
             if (f <= 0f || f >= 1f) continue
             drawCircle(
                 color = color.copy(alpha = (1f - f) * 0.45f),
@@ -286,9 +289,11 @@ private fun Modifier.knockRipples(status: KnockVisual, color: Color): Modifier {
 }
 
 @Composable
-private fun ConfigCardMenu(nickname: String, actions: ConfigCardActions) {
+private fun ConfigCardMenu(nickname: String, kind: ConfigKind, actions: ConfigCardActions) {
     var expanded by remember { mutableStateOf(false) }
     val nfcAvailable = rememberNfcAvailable()
+
+    val knocks = kind != ConfigKind.WAKE_ON_LAN
     Box {
         IconButton(onClick = { expanded = true }) {
             FwknopIcon(
@@ -307,24 +312,28 @@ private fun ConfigCardMenu(nickname: String, actions: ConfigCardActions) {
                 R.string.action_duplicate,
                 R.drawable.ic_content_copy_rounded
             ) { close(); actions.onDuplicate(nickname) }
-            MenuItem(
-                R.string.action_export_qr,
-                R.drawable.ic_qr_code_rounded
-            ) { close(); actions.onExportQr(nickname) }
+            if (knocks) {
+                MenuItem(
+                    R.string.action_export_qr,
+                    R.drawable.ic_qr_code_rounded
+                ) { close(); actions.onExportQr(nickname) }
+            }
             MenuItem(
                 R.string.action_export_file,
                 R.drawable.ic_download_rounded
             ) { close(); actions.onExportFile(nickname) }
-            if (nfcAvailable) {
+            if (knocks && nfcAvailable) {
                 MenuItem(
                     R.string.action_write_nfc,
                     R.drawable.ic_nfc_rounded
                 ) { close(); actions.onWriteNfc(nickname) }
             }
-            MenuItem(
-                R.string.action_diagnose,
-                R.drawable.ic_bolt_rounded
-            ) { close(); actions.onDiagnose(nickname) }
+            if (knocks) {
+                MenuItem(
+                    R.string.action_diagnose,
+                    R.drawable.ic_bolt_rounded
+                ) { close(); actions.onDiagnose(nickname) }
+            }
             MenuItem(
                 R.string.action_delete,
                 R.drawable.ic_delete_rounded
@@ -360,7 +369,13 @@ private fun ConfigCardPreview() {
 @AdaptivePreviews
 @Composable
 private fun ConfigCardSentPreview() {
-    FwknopTheme(darkTheme = true) { ConfigCard(previewSummaries[1], previewActions, knock = KnockVisual.SENT) }
+    FwknopTheme(darkTheme = true) {
+        ConfigCard(
+            previewSummaries[1],
+            previewActions,
+            knock = KnockVisual.SENT
+        )
+    }
 }
 
 @LargeFontPreviews

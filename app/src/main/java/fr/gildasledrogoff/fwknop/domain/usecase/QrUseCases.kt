@@ -1,18 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.usecase
 
 import fr.gildasledrogoff.fwknop.domain.error.BackupError
-import fr.gildasledrogoff.fwknop.domain.model.BackupPassphrase
-import fr.gildasledrogoff.fwknop.domain.model.DigestAlgorithm
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
-import fr.gildasledrogoff.fwknop.domain.model.MessageType
-import fr.gildasledrogoff.fwknop.domain.model.ParsedQr
-import fr.gildasledrogoff.fwknop.domain.model.Protocol
-import fr.gildasledrogoff.fwknop.domain.model.QrConfig
-import fr.gildasledrogoff.fwknop.domain.model.QrKeys
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMode
-import fr.gildasledrogoff.fwknop.domain.model.decodeQrValue
+import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.domain.repository.SealedQrRepository
 import javax.inject.Inject
 
@@ -45,6 +38,8 @@ class ParseQrConfigUseCase @Inject constructor() {
             serverPort = stanzas["PORT"]?.toIntOrNull(),
             randomPort = stanzas.boolean("PORT_RANDOM"),
             protocol = stanzas.enum<Protocol>("PROTO"),
+            knockSequence = stanzas.decoded("KNOCK_SEQ"),
+            knockDelayMs = stanzas["KNOCK_DELAY"]?.toIntOrNull(),
             messageType = stanzas.enum<MessageType>("MSG_TYPE"),
             ports = stanzas.decoded("ACCESS"),
             timeoutSeconds = stanzas["TIMEOUT"]?.toIntOrNull(),
@@ -71,7 +66,6 @@ class ParseQrConfigUseCase @Inject constructor() {
     private fun Map<String, String>.boolean(name: String): Boolean? =
         get(name)?.let { it.trim() == "1" }
 
-    
     private fun Map<String, String>.keyId(name: String): GpgKeyId? =
         get(name)?.toULongOrNull(16)?.toLong()?.let(::GpgKeyId)
 }
@@ -98,11 +92,9 @@ class SetQrExportPassphraseUseCase @Inject constructor(private val qrs: SealedQr
         }
 }
 
-
 class SealQrContentUseCase @Inject constructor(private val qrs: SealedQrRepository) {
     suspend operator fun invoke(content: String): String? = qrs.seal(content)
 }
-
 
 class OpenSealedQrUseCase @Inject constructor(private val qrs: SealedQrRepository) {
     suspend operator fun invoke(

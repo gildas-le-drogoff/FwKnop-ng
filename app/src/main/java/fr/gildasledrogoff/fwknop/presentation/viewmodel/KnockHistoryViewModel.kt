@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -11,11 +15,7 @@ import fr.gildasledrogoff.fwknop.domain.usecase.SetKnockHistoryRetentionUseCase
 import fr.gildasledrogoff.fwknop.presentation.state.KnockHistoryEvent
 import fr.gildasledrogoff.fwknop.presentation.state.KnockHistoryState
 import fr.gildasledrogoff.fwknop.presentation.state.KnockHistoryWipe
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -34,7 +34,13 @@ class KnockHistoryViewModel @Inject constructor(
             combine(observeHistory(), observeSettings()) { entries, settings ->
                 entries to settings.knockHistoryRetention
             }.collect { (entries, retention) ->
-                _state.update { it.copy(isLoading = false, entries = entries, retention = retention) }
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        entries = entries,
+                        retention = retention
+                    )
+                }
             }
         }
     }
@@ -48,7 +54,7 @@ class KnockHistoryViewModel @Inject constructor(
         }
     }
 
-    // Turning the journal off erases it: confirm first unless there is nothing to lose.
+
     private fun selectRetention(retention: KnockHistoryRetention) {
         if (retention == KnockHistoryRetention.OFF && _state.value.entries.isNotEmpty()) {
             _state.update { it.copy(pendingWipe = KnockHistoryWipe.Disable) }

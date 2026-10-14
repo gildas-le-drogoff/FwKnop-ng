@@ -1,23 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain
-import fr.gildasledrogoff.fwknop.domain.error.ConfigError
-import fr.gildasledrogoff.fwknop.domain.model.AccessDraft
-import fr.gildasledrogoff.fwknop.domain.model.AccessRule
-import fr.gildasledrogoff.fwknop.domain.model.ConfigDraft
-import fr.gildasledrogoff.fwknop.domain.model.CryptoDraft
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.ExternalAppDraft
-import fr.gildasledrogoff.fwknop.domain.model.ExternalAppType
-import fr.gildasledrogoff.fwknop.domain.model.MessageType
-import fr.gildasledrogoff.fwknop.domain.model.PortAccess
-import fr.gildasledrogoff.fwknop.domain.model.ServerDraft
-import fr.gildasledrogoff.fwknop.domain.model.ServerPort
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpDraft
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMode
-import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
-import fr.gildasledrogoff.fwknop.domain.model.toDraft
-import fr.gildasledrogoff.fwknop.domain.usecase.ValidateConfigUseCase
 import com.google.common.truth.Truth.assertThat
+import fr.gildasledrogoff.fwknop.domain.error.ConfigError
+import fr.gildasledrogoff.fwknop.domain.model.*
 import org.junit.Test
+import fr.gildasledrogoff.fwknop.domain.usecase.ValidateConfigUseCase
+
 class ValidateConfigUseCaseTest {
     private val validate = ValidateConfigUseCase()
     private val valid = ConfigDraft(
@@ -45,6 +36,19 @@ class ValidateConfigUseCaseTest {
     fun `invalid server port falls back to the fwknop default`() {
         val draft = valid.copy(server = valid.server.copy(port = "99999"))
         assertThat((validate(draft) as DomainResult.Success).data.server.port).isEqualTo(ServerPort.Fixed(62201))
+    }
+    @Test
+    fun `switching protocol swaps the default port but keeps a custom one`() {
+        val http = valid.server.withProtocol(Protocol.HTTP)
+        assertThat(http.port).isEqualTo("80")
+        assertThat(http.withProtocol(Protocol.TCP).port).isEqualTo("62201")
+        assertThat(valid.server.copy(port = "8080").withProtocol(Protocol.HTTP).port).isEqualTo("8080")
+        assertThat(valid.server.copy(randomPort = true).withProtocol(Protocol.HTTP).randomPort).isFalse()
+    }
+    @Test
+    fun `http is never sent to a random port`() {
+        val draft = valid.copy(server = valid.server.copy(protocol = Protocol.HTTP, port = "", randomPort = true))
+        assertThat((validate(draft) as DomainResult.Success).data.server.port).isEqualTo(ServerPort.Fixed(80))
     }
     @Test
     fun `ports must look like proto slash number`() {
@@ -76,6 +80,11 @@ class ValidateConfigUseCaseTest {
     @Test
     fun `allowed ip must be an address`() {
         val source = SourceIpDraft(SourceIpMode.ALLOW, "not-an-ip")
+        assertThat(errorOf(valid.copy(sourceIp = source))).isEqualTo(ConfigError.AllowIpInvalid)
+    }
+    @Test
+    fun `allowed ip must be ipv4 since the spa message cannot carry ipv6`() {
+        val source = SourceIpDraft(SourceIpMode.ALLOW, "2001:db8::4")
         assertThat(errorOf(valid.copy(sourceIp = source))).isEqualTo(ConfigError.AllowIpInvalid)
     }
     @Test

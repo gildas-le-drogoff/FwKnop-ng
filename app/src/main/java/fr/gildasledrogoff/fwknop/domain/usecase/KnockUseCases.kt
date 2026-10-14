@@ -1,31 +1,23 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.usecase
 
 import fr.gildasledrogoff.fwknop.domain.error.GpgError
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.Encryption
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogEvent
-import fr.gildasledrogoff.fwknop.domain.model.KnockObserver
-import fr.gildasledrogoff.fwknop.domain.model.KnockOutcome
-import fr.gildasledrogoff.fwknop.domain.model.KnockStep
-import fr.gildasledrogoff.fwknop.domain.model.KnockPrompt
-import fr.gildasledrogoff.fwknop.domain.model.KnockRequest
-import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.SourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
-import fr.gildasledrogoff.fwknop.domain.model.flatMap
-import fr.gildasledrogoff.fwknop.domain.model.map
-import fr.gildasledrogoff.fwknop.domain.model.mapError
+import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.domain.repository.GpgRepository
 import fr.gildasledrogoff.fwknop.domain.repository.KnockHistoryRepository
 import fr.gildasledrogoff.fwknop.domain.repository.SpaPacketRepository
 import fr.gildasledrogoff.fwknop.domain.repository.SpaTransportRepository
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 import kotlin.random.Random
 
 class GetRequiredPromptsUseCase @Inject constructor() {
     operator fun invoke(config: SpaConfig): List<KnockPrompt> = buildList {
+        if (config.method != KnockMethod.Spa) return@buildList
         val encryption = config.crypto.encryption
         if (encryption is Encryption.Rijndael && encryption.key.value.isEmpty()) add(KnockPrompt.KEY)
         if (config.sourceIp is SourceIp.Prompt) add(KnockPrompt.SOURCE_IP)
@@ -64,7 +56,6 @@ class BuildSpaPacketUseCase @Inject constructor(
         sourceIp: String,
         serverIp: String,
     ): DomainResult<String, KnockError> {
-        
         if (keys.recipient.value == 0L || keys.signer.value == 0L) {
             return DomainResult.Failure(KnockError.GpgKeysMissing)
         }
@@ -90,9 +81,9 @@ class SendKnockUseCase @Inject constructor(
     ): DomainResult<KnockOutcome, KnockError> {
         var source: ResolvedSourceIp? = null
         val result = send(request, observer) { source = it }
-        // A pending GPG prompt is not an outcome: the knock is retried once the user answers it.
+
         val awaitsUser = result is DomainResult.Failure &&
-            (result.error as? KnockError.Gpg)?.error is GpgError.InteractionRequired
+                (result.error as? KnockError.Gpg)?.error is GpgError.InteractionRequired
         if (!awaitsUser) history.record(KnockLogEvent.of(request.config, source, result))
         return result
     }
@@ -102,18 +93,59 @@ class SendKnockUseCase @Inject constructor(
         observer: KnockObserver,
         onRoute: (ResolvedSourceIp) -> Unit,
     ): DomainResult<KnockOutcome, KnockError> {
-        val server = request.config.server
-        return resolveRoute(request, observer).flatMap { route ->
+
+        val session = transport.openSession()
+        return resolveRoute(request, observer, session).flatMap { route ->
             onRoute(route.source)
-            observer.onStep(KnockStep.RouteSelected(route))
-            buildPacket(request, route.source.address, route.serverIp)
-                .flatMap { packet ->
-                    observer.onStep(KnockStep.PacketBuilt(packet.toByteArray(Charsets.UTF_8).size))
-                    val target = server.toTarget(route.serverIp, random)
-                    observer.onStep(KnockStep.Sending(target))
-                    transport.sendPacket(packet, target)
-                }
-                .map { KnockOutcome(request, route.source) }
+            observer.onStep(
+                KnockStep.RouteSelected(route, transport.bypassesVpn(route.serverIp, session))
+            )
+            when (val method = request.config.method) {
+                KnockMethod.Spa -> sendSpa(request, route, observer, session)
+                is KnockMethod.PortSequence -> knockSequence(
+                    request,
+                    method,
+                    route.serverIp,
+                    observer,
+                    session,
+                )
+            }.map { KnockOutcome(request, route.source) }
         }
+    }
+
+    private suspend fun sendSpa(
+        request: KnockRequest,
+        route: KnockRoute,
+        observer: KnockObserver,
+        session: NetworkSession,
+    ): DomainResult<Unit, KnockError> =
+        buildPacket(request, route.source.address, route.serverIp).flatMap { packet ->
+            observer.onStep(KnockStep.PacketBuilt(packet.toByteArray(Charsets.UTF_8).size))
+            val target = request.config.server.toTarget(route.serverIp, random)
+            observer.onStep(KnockStep.Sending(target))
+            transport.sendPacket(packet, target, session)
+        }
+
+    private suspend fun knockSequence(
+        request: KnockRequest,
+        method: KnockMethod.PortSequence,
+        serverIp: String,
+        observer: KnockObserver,
+        session: NetworkSession,
+    ): DomainResult<Unit, KnockError> {
+        method.ports.forEachIndexed { index, port ->
+            if (index > 0) delay(method.delayMs.toLong())
+            val target = KnockTarget(serverIp, request.config.server.host, port.port, port.protocol)
+            observer.onStep(KnockStep.Sending(target))
+            val knocked = transport.knockPort(target, session)
+            if (knocked is DomainResult.Failure) return knocked
+        }
+
+        delay(SEQUENCE_SETTLE_MS)
+        return DomainResult.Success(Unit)
+    }
+
+    private companion object {
+        const val SEQUENCE_SETTLE_MS = 1_000L
     }
 }

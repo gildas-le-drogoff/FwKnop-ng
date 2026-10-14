@@ -3,7 +3,6 @@
 # the APK, but which classes they cover was guessed from the code, not recorded from a real startup.
 # No generated profile is committed yet: run ./gradlew :app:generateBaselineProfile on an API 33+
 # device (output in src/release/generated/baselineProfiles), then remove the rules it makes redundant.
-
 # Application, Hilt graph and startup
 HSPLfr/gildasledrogoff/fwknop/Hilt_*;->**(**)**
 Lfr/gildasledrogoff/fwknop/Hilt_*;
@@ -17,7 +16,6 @@ HSPLfr/gildasledrogoff/fwknop/di/**;->**(**)**
 Lfr/gildasledrogoff/fwknop/di/**;
 HSPLfr/gildasledrogoff/fwknop/utils/**;->**(**)**
 Lfr/gildasledrogoff/fwknop/utils/**;
-
 # Activity, lock gate, theme and shared components
 HSPLfr/gildasledrogoff/fwknop/presentation/MainActivity*;->**(**)**
 HSPLfr/gildasledrogoff/fwknop/presentation/Hilt_*;->**(**)**
@@ -37,7 +35,6 @@ HSPLfr/gildasledrogoff/fwknop/presentation/service/AutoLock*;->**(**)**
 Lfr/gildasledrogoff/fwknop/presentation/service/AutoLock*;
 HSPLfr/gildasledrogoff/fwknop/presentation/viewmodel/LockGateViewModel*;->**(**)**
 Lfr/gildasledrogoff/fwknop/presentation/viewmodel/LockGateViewModel*;
-
 # Config list: the screen opened to knock
 HSPLfr/gildasledrogoff/fwknop/presentation/ui/screens/configlist/**;->**(**)**
 Lfr/gildasledrogoff/fwknop/presentation/ui/screens/configlist/**;
@@ -53,7 +50,6 @@ HSPLfr/gildasledrogoff/fwknop/presentation/viewmodel/BackupViewModel*;->**(**)**
 Lfr/gildasledrogoff/fwknop/presentation/viewmodel/BackupViewModel*;
 HSPLfr/gildasledrogoff/fwknop/presentation/viewmodel/NfcEraseViewModel*;->**(**)**
 Lfr/gildasledrogoff/fwknop/presentation/viewmodel/NfcEraseViewModel*;
-
 # Vault opening and config loading
 HSPLfr/gildasledrogoff/fwknop/data/local/**;->**(**)**
 Lfr/gildasledrogoff/fwknop/data/local/**;
@@ -73,7 +69,6 @@ HSPLfr/gildasledrogoff/fwknop/domain/usecase/SettingsUseCases*;->**(**)**
 Lfr/gildasledrogoff/fwknop/domain/usecase/SettingsUseCases*;
 HSPLfr/gildasledrogoff/fwknop/domain/usecase/VaultUseCases*;->**(**)**
 Lfr/gildasledrogoff/fwknop/domain/usecase/VaultUseCases*;
-
 # Knock path, run right after startup
 HSPLfr/gildasledrogoff/fwknop/domain/usecase/KnockUseCases*;->**(**)**
 Lfr/gildasledrogoff/fwknop/domain/usecase/KnockUseCases*;

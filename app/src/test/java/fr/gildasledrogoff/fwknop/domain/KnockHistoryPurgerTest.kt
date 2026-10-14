@@ -1,36 +1,35 @@
-package fr.gildasledrogoff.fwknop.domain
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
+package fr.gildasledrogoff.fwknop.domain
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.domain.model.KnockHistoryRetention
 import fr.gildasledrogoff.fwknop.domain.usecase.KnockHistoryPurger
 import fr.gildasledrogoff.fwknop.fakes.FakeKnockHistoryRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeSettingsRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeVaultRepository
-import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-
 @OptIn(ExperimentalCoroutinesApi::class)
 class KnockHistoryPurgerTest {
     private val vault = FakeVaultRepository()
     private val settings = FakeSettingsRepository()
     private val history = FakeKnockHistoryRepository()
-
     private fun TestScope.start() {
         KnockHistoryPurger(vault, settings, history).start(backgroundScope)
         runCurrent()
     }
-
     @Test
     fun nothingIsPurgedWhileLocked() = runTest {
         start()
         advanceTimeBy(KnockHistoryPurger.INTERVAL * 3)
         assertThat(history.purges).isEqualTo(0)
     }
-
     @Test
     fun unlockingPurgesThenEveryIntervalUntilLocked() = runTest {
         start()
@@ -44,7 +43,6 @@ class KnockHistoryPurgerTest {
         advanceTimeBy(KnockHistoryPurger.INTERVAL * 3)
         assertThat(history.purges).isEqualTo(2)
     }
-
     @Test
     fun aRetentionChangePurgesImmediately() = runTest {
         start()
@@ -54,7 +52,6 @@ class KnockHistoryPurgerTest {
         runCurrent()
         assertThat(history.purges).isEqualTo(2)
     }
-
     @Test
     fun unrelatedSettingsChangesDoNotPurge() = runTest {
         start()

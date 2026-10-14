@@ -1,33 +1,34 @@
 Categories:
   - Connectivity
   - Security
-License: GPL-2.0-or-later
+License: AGPL-3.0-or-later
 AuthorName: Gildas Le Drogoff
 AuthorWebSite: https://github.com/gildas-le-drogoff/FwKnop-ng/
 WebSite: https://github.com/gildas-le-drogoff/FwKnop-ng/
 SourceCode: https://github.com/gildas-le-drogoff/FwKnop-ng
 IssueTracker: https://github.com/gildas-le-drogoff/FwKnop-ng/issues
-Changelog: 
+Changelog:
   https://github.com/gildas-le-drogoff/FwKnop-ng/tree/HEAD/fastlane/metadata/android/en-US/changelogs
 
 AutoName: FwKnop-ng
 
 RepoType: git
 Repo: https://github.com/gildas-le-drogoff/FwKnop-ng.git
-Binaries: 
+Binaries:
   https://github.com/gildas-le-drogoff/FwKnop-ng/releases/download/v%v/FwKnop-ng-%v.apk
 
 Builds:
-  - versionName: 2.0.1
-    versionCode: 37
-    commit: v2.0.1
+  - versionName: 2.1.0
+    versionCode: 38
+    commit: 7293d0ae66a3be8f6e161775f7f5defcea86f0a4
     subdir: app
     gradle:
       - yes
 
-AllowedAPKSigningKeys: 7066ac35e46752fd523b945724c9b9e5184d4793fba407933e83c1f776d0beec
+AllowedAPKSigningKeys:
+  7066ac35e46752fd523b945724c9b9e5184d4793fba407933e83c1f776d0beec
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 2.0.1
-CurrentVersionCode: 37
+CurrentVersion: 2.1.0
+CurrentVersionCode: 38

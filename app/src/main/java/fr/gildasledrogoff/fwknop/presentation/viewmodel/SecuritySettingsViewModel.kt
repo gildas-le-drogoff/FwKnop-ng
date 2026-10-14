@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -10,19 +14,9 @@ import fr.gildasledrogoff.fwknop.domain.usecase.CanEnableAppLockUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ObserveVaultStatusUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.RotateVaultKeysUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.SetAppLockUseCase
-import fr.gildasledrogoff.fwknop.presentation.state.AuthPurpose
-import fr.gildasledrogoff.fwknop.presentation.state.AuthResult
-import fr.gildasledrogoff.fwknop.presentation.state.SecuritySettingsEffect
-import fr.gildasledrogoff.fwknop.presentation.state.SecuritySettingsEvent
-import fr.gildasledrogoff.fwknop.presentation.state.SecuritySettingsState
-import fr.gildasledrogoff.fwknop.presentation.state.toUiError
+import fr.gildasledrogoff.fwknop.presentation.state.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

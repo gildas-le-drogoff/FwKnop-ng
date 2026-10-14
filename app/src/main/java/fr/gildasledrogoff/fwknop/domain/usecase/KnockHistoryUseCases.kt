@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.usecase
 
 import fr.gildasledrogoff.fwknop.domain.model.KnockHistoryRetention
@@ -16,7 +20,7 @@ class ClearKnockHistoryUseCase @Inject constructor(private val repository: Knock
     suspend operator fun invoke() = repository.clear()
 }
 
-/** The purge follows on its own: [KnockHistoryPurger] watches the retention setting. */
+
 class SetKnockHistoryRetentionUseCase @Inject constructor(private val settings: SettingsRepository) {
     suspend operator fun invoke(retention: KnockHistoryRetention) {
         val current = settings.settings.first()

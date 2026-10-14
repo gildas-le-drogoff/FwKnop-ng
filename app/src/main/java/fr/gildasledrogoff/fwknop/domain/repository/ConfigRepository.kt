@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.repository
 
 import fr.gildasledrogoff.fwknop.domain.error.ConfigError
@@ -16,6 +20,5 @@ interface ConfigRepository {
     suspend fun deleteConfig(nickname: Nickname): ConfigResult<Unit>
     suspend fun getAll(): ConfigResult<List<SpaConfig>>
     suspend fun replaceAll(configs: List<SpaConfig>): ConfigResult<Unit>
-
     suspend fun saveAll(configs: List<SpaConfig>): ConfigResult<Unit>
 }

@@ -1,10 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.utils.helpers
 
-import android.nfc.FormatException
-import android.nfc.NdefMessage
-import android.nfc.NdefRecord
-import android.nfc.Tag
-import android.nfc.TagLostException
+import android.nfc.*
 import android.nfc.tech.Ndef
 import android.nfc.tech.NdefFormatable
 import fr.gildasledrogoff.fwknop.domain.model.NfcTagDigest
@@ -13,16 +13,9 @@ import java.io.IOException
 import javax.inject.Inject
 
 sealed interface FwknopTagContent {
-    
     data object Foreign : FwknopTagContent
-
-    
     data object Legacy : FwknopTagContent
-
-    
     data object Unsupported : FwknopTagContent
-
-    
     data class Found(val digests: List<NfcTagDigest>) : FwknopTagContent
 }
 
@@ -43,12 +36,10 @@ object FwknopNdef {
     private fun isLegacyRecord(record: NdefRecord): Boolean =
         record.id.contentEquals(LEGACY_RECORD_ID.toByteArray())
 
-    
     fun digest(record: NdefRecord): NfcTagDigest? =
         record.takeIf { it.id.contentEquals(RECORD_ID.toByteArray()) && it.payload.size == NfcTagDigest.SIZE }
             ?.let { NfcTagDigest(it.payload) }
 
-    
     fun read(tag: Tag): FwknopTagContent {
         val ndef = Ndef.get(tag)
         val records = ndef?.cachedNdefMessage?.records.orEmpty().filter(::isFwknopRecord)
@@ -64,8 +55,6 @@ object FwknopNdef {
 }
 
 enum class NfcWriteResult { WRITTEN, UNSUPPORTED, READ_ONLY, TOO_SMALL, LOST, FAILED }
-
-
 class NfcTagWriter @Inject constructor() {
     suspend fun write(
         tag: Tag,
@@ -84,10 +73,7 @@ class NfcTagWriter @Inject constructor() {
         NfcWriteResult.FAILED
     }
 
-    
     suspend fun erase(tag: Tag): NfcWriteResult = write(tag) { emptyList() }
-
-    
     fun wipe(tag: Tag): NfcWriteResult = try {
         Ndef.get(tag)?.use {
             it.connect()
@@ -105,7 +91,6 @@ class NfcTagWriter @Inject constructor() {
         NfcWriteResult.FAILED
     }
 
-    
     private suspend fun writeNdef(
         ndef: Ndef,
         compose: suspend (List<NfcTagDigest>) -> List<NfcTagDigest>,
@@ -131,8 +116,8 @@ class NfcTagWriter @Inject constructor() {
         return NfcWriteResult.WRITTEN
     }
 
-    
     private fun message(records: List<NdefRecord>): NdefMessage = NdefMessage(
-        records.ifEmpty { listOf(NdefRecord(NdefRecord.TNF_EMPTY, null, null, null)) }.toTypedArray()
+        records.ifEmpty { listOf(NdefRecord(NdefRecord.TNF_EMPTY, null, null, null)) }
+            .toTypedArray()
     )
 }

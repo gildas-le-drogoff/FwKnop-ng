@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.utils.helpers
 
 import android.app.Activity
@@ -7,10 +11,8 @@ import android.os.Bundle
 import android.view.WindowManager
 
 object SecureWindowPolicy : Application.ActivityLifecycleCallbacks {
-    
     private const val EXTRA_SCREENSHOTS = "screenshots"
     private var screenshotsAllowed = false
-
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         if (allowsScreenshots(activity)) return
         activity.window.setFlags(

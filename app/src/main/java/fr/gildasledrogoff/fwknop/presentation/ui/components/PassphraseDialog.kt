@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
@@ -6,18 +10,12 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.res.stringResource
 import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.domain.model.BackupPassphrase
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
-
 
 @Immutable
 data class PassphraseSpec(
@@ -40,7 +38,8 @@ fun PassphraseDialog(spec: PassphraseSpec, onSubmit: (CharArray) -> Unit, onDism
         title = { Text(spec.title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing)) {
-                val mismatch = spec.creating && confirmation.isNotEmpty() && passphrase != confirmation
+                val mismatch =
+                    spec.creating && confirmation.isNotEmpty() && passphrase != confirmation
                 PassphraseHint(spec, mismatch)
                 SecretTextField(
                     passphrase,
@@ -84,7 +83,12 @@ private fun PassphraseHint(spec: PassphraseSpec, mismatch: Boolean) {
 private fun PassphraseDialogPreview() {
     FwknopTheme {
         PassphraseDialog(
-            PassphraseSpec("Encrypt the backup", "At least 2 characters.", "Export", creating = true),
+            PassphraseSpec(
+                "Encrypt the backup",
+                "At least 2 characters.",
+                "Export",
+                creating = true
+            ),
             {},
             {})
     }

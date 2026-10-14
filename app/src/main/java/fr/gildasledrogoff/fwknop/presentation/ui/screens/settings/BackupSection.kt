@@ -1,7 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.settings
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -14,8 +16,8 @@ import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.presentation.state.BackupEvent
 import fr.gildasledrogoff.fwknop.presentation.state.BackupState
 import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
+import fr.gildasledrogoff.fwknop.presentation.ui.components.ButtonRow
 import fr.gildasledrogoff.fwknop.presentation.ui.components.SectionCard
-import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 
 @Composable
@@ -26,16 +28,14 @@ fun BackupSection(state: BackupState, onEvent: (BackupEvent) -> Unit) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing)) {
+        ButtonRow {
             OutlinedButton(
                 onClick = { onEvent(BackupEvent.ExportAllRequested) },
                 enabled = !state.busy,
-                modifier = Modifier.weight(1f),
             ) { Text(stringResource(R.string.action_backup_export)) }
             OutlinedButton(
                 onClick = { onEvent(BackupEvent.ImportRequested) },
                 enabled = !state.busy,
-                modifier = Modifier.weight(1f),
             ) { Text(stringResource(R.string.action_backup_import)) }
         }
         if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())

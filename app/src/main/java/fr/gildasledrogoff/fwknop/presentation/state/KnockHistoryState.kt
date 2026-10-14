@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.state
 
 import androidx.compose.runtime.Immutable
@@ -9,7 +13,7 @@ data class KnockHistoryState(
     val isLoading: Boolean = true,
     val entries: List<KnockLogEntry> = emptyList(),
     val retention: KnockHistoryRetention = KnockHistoryRetention.DAYS_30,
-    /** Set while the "clear" or "turn off" confirmation is shown. */
+
     val pendingWipe: KnockHistoryWipe? = null,
 )
 

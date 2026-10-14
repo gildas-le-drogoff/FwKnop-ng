@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -10,17 +14,9 @@ import fr.gildasledrogoff.fwknop.domain.model.VaultStatus
 import fr.gildasledrogoff.fwknop.domain.usecase.ObserveVaultStatusUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ResetVaultUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.UnlockVaultUseCase
-import fr.gildasledrogoff.fwknop.presentation.state.AuthResult
-import fr.gildasledrogoff.fwknop.presentation.state.LockGateEffect
-import fr.gildasledrogoff.fwknop.presentation.state.LockGateEvent
-import fr.gildasledrogoff.fwknop.presentation.state.LockGateState
-import fr.gildasledrogoff.fwknop.presentation.state.toUiError
+import fr.gildasledrogoff.fwknop.presentation.state.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -91,7 +87,6 @@ class LockGateViewModel @Inject constructor(
             val result = resetVault() as? DomainResult.Failure
             when {
                 result != null -> _state.value = LockGateState.Locked(result.error.toUiError())
-                
                 observeVault().value.lockEnabled -> requestAuth()
                 else -> unlock(afterAuth = false)
             }

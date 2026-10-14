@@ -1,5 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation
 import app.cash.turbine.test
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.domain.error.VaultError
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.usecase.ObserveVaultStatusUseCase
@@ -11,7 +16,6 @@ import fr.gildasledrogoff.fwknop.presentation.state.LockGateEffect
 import fr.gildasledrogoff.fwknop.presentation.state.LockGateEvent
 import fr.gildasledrogoff.fwknop.presentation.state.LockGateState
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.LockGateViewModel
-import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
