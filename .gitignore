@@ -190,6 +190,7 @@ output.json
 parts/
 pip-delete-this-directory.txt
 pip-log.txt
+play-upload.properties
 poetry.toml
 profile_default/
 proguard/

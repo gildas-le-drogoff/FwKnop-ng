@@ -105,7 +105,9 @@ The app has no analytics or tracking. Besides the SPA packet sent to your `fwkno
 
 ## Contributing
 
-Bug reports and pull requests are welcome on the [issue tracker](https://github.com/gildas-le-drogoff/FwKnop-ng/issues).
+Bug reports and pull requests are welcome on the [issue tracker](https://github.com/gildas-le-drogoff/FwKnop-ng/issues). See the [contribution guide](.github/CONTRIBUTING.md).
+
+To report a security vulnerability, follow the [security policy](.github/SECURITY.md) instead of opening a public issue.
 
 ## License
 

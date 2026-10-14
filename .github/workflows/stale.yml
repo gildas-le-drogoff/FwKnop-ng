@@ -1,0 +1,32 @@
+name: Close stale issues
+
+on:
+  # Daily
+  schedule:
+    - cron: '0 0 * * *'
+  # Manual trigger
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  stale:
+    runs-on: 'ubuntu-24.04'
+    steps:
+      - uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          # Only issues waiting for an answer from the reporter.
+          only-labels: 'question'
+          stale-issue-label: 'stale'
+          stale-issue-message: |
+            This issue has been waiting for more information for 14 days and is being marked as stale. Please provide the missing information or answer the open questions. If you solved the problem in the meantime, leave a note for future readers and close the issue.
+            Without further activity, it will be closed in 7 days.
+          close-issue-message: |
+            This issue has been automatically closed due to inactivity. Feel free to open a new one if the problem persists.
+          days-before-stale: 14
+          days-before-close: 7
+          # Never touch pull requests.
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
