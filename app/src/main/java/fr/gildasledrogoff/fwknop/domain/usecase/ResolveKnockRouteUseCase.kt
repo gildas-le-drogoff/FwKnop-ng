@@ -2,8 +2,10 @@ package fr.gildasledrogoff.fwknop.domain.usecase
 
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
+import fr.gildasledrogoff.fwknop.domain.model.KnockObserver
 import fr.gildasledrogoff.fwknop.domain.model.KnockRequest
 import fr.gildasledrogoff.fwknop.domain.model.KnockRoute
+import fr.gildasledrogoff.fwknop.domain.model.KnockStep
 import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
 import fr.gildasledrogoff.fwknop.domain.model.SourceIp
 import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
@@ -18,29 +20,45 @@ class ResolveKnockRouteUseCase @Inject constructor(
     private val publicIp: PublicIpRepository,
     private val transport: SpaTransportRepository,
 ) {
-    suspend operator fun invoke(request: KnockRequest): DomainResult<KnockRoute, KnockError> {
+    suspend operator fun invoke(
+        request: KnockRequest,
+        observer: KnockObserver = KnockObserver.None,
+    ): DomainResult<KnockRoute, KnockError> {
         val host = request.config.server.host
         val declared = when (val source = request.config.sourceIp) {
-            SourceIp.Resolve -> return resolveFromServer(host)
+            SourceIp.Resolve -> return resolveFromServer(host, observer)
             SourceIp.Source -> source(SourceIp.ANY_ADDRESS, SourceIpMethod.PacketSource)
             is SourceIp.Fixed -> source(source.address, SourceIpMethod.Fixed)
             SourceIp.Prompt -> request.overrides.sourceIp?.let { source(it, SourceIpMethod.Prompted) }
                 ?: DomainResult.Failure(KnockError.SourceIpMissing)
         }
         return declared.flatMap(::requireIp).flatMap { source ->
-            transport.resolveHost(host, source.address).map { KnockRoute(source, it) }
+            observer.onStep(KnockStep.SourceResolved(source))
+            transport.resolveHost(host, source.address).map { serverIp ->
+                observer.onStep(KnockStep.ServerResolved(host, listOf(serverIp)))
+                KnockRoute(source, serverIp)
+            }
         }
     }
 
     
-    private suspend fun resolveFromServer(host: String): DomainResult<KnockRoute, KnockError> =
-        transport.resolveHostFamilies(host).flatMap { firstResolved(it) }
+    private suspend fun resolveFromServer(host: String, observer: KnockObserver): DomainResult<KnockRoute, KnockError> =
+        transport.resolveHostFamilies(host).flatMap { serverIps ->
+            observer.onStep(KnockStep.ServerResolved(host, serverIps))
+            firstResolved(serverIps, observer)
+        }
 
-    private suspend fun firstResolved(serverIps: List<String>): DomainResult<KnockRoute, KnockError> {
+    private suspend fun firstResolved(
+        serverIps: List<String>,
+        observer: KnockObserver,
+    ): DomainResult<KnockRoute, KnockError> {
         val failures = mutableListOf<KnockError>()
         for (serverIp in serverIps) {
             when (val source = publicIp.resolvePublicIp(serverIp)) {
-                is DomainResult.Success -> return DomainResult.Success(KnockRoute(source.data, serverIp))
+                is DomainResult.Success -> {
+                    observer.onStep(KnockStep.SourceResolved(source.data))
+                    return DomainResult.Success(KnockRoute(source.data, serverIp))
+                }
                 is DomainResult.Failure -> failures += source.error
             }
         }

@@ -21,6 +21,13 @@ import fr.gildasledrogoff.fwknop.domain.usecase.ParseQrClientIpUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ParseQrConfigUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.SaveConfigUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.SaveSettingsUseCase
+import fr.gildasledrogoff.fwknop.domain.usecase.GetExternalAppDelayUseCase
+import fr.gildasledrogoff.fwknop.data.local.preferences.SettingsPreferences
+import fr.gildasledrogoff.fwknop.data.local.preferences.toAppSettings
+import fr.gildasledrogoff.fwknop.data.local.preferences.write
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.mutablePreferencesOf
+import kotlin.time.Duration.Companion.seconds
 import fr.gildasledrogoff.fwknop.domain.usecase.ScheduleKnockTimerUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ValidateConfigUseCase
 import fr.gildasledrogoff.fwknop.fakes.FakeConfigRepository
@@ -63,6 +70,28 @@ class SupportUseCasesTest {
         val good = save(AppSettings(ipLookupUrl = " https://api.ipify.org/path "))
         assertThat(good).isInstanceOf(DomainResult.Success::class.java)
         assertThat(repository.state.value.ipLookupUrl).isEqualTo("https://api.ipify.org/path")
+    }
+    @Test
+    fun `external app delay is kept within 0 to 5 seconds`() = runTest {
+        val repository = FakeSettingsRepository()
+        val save = SaveSettingsUseCase(repository)
+        val delay = GetExternalAppDelayUseCase(repository)
+        assertThat(delay()).isEqualTo(0.seconds)
+        save(AppSettings(externalAppDelaySeconds = 9))
+        assertThat(repository.state.value.externalAppDelaySeconds).isEqualTo(5)
+        save(AppSettings(externalAppDelaySeconds = -1))
+        assertThat(repository.state.value.externalAppDelaySeconds).isEqualTo(0)
+        save(AppSettings(externalAppDelaySeconds = 2))
+        assertThat(delay()).isEqualTo(2.seconds)
+    }
+    @Test
+    fun `external app delay survives the preferences round trip`() {
+        val prefs = mutablePreferencesOf()
+        prefs.write(AppSettings(externalAppDelaySeconds = 4))
+        assertThat(prefs.toAppSettings().externalAppDelaySeconds).isEqualTo(4)
+        assertThat(emptyPreferences().toAppSettings().externalAppDelaySeconds).isEqualTo(0)
+        prefs[SettingsPreferences.EXTERNAL_APP_DELAY] = 42
+        assertThat(prefs.toAppSettings().externalAppDelaySeconds).isEqualTo(5)
     }
     @Test
     fun `renaming keeps a single entry and refuses taken nicknames`() = runTest {

@@ -8,9 +8,12 @@ import androidx.compose.ui.graphics.luminance
 
 @Composable
 @ReadOnlyComposable
-fun configAccent(nickname: String): Color {
+fun configAccent(nickname: String): Color = configAccent(nickname, LocalDarkTheme.current)
+
+/** Darkened (light theme) or lightened (dark theme) until it contrasts at least 3:1 with the cards. */
+internal fun configAccent(nickname: String, dark: Boolean): Color {
     val hue = Math.floorMod(nickname.hashCode() * HUE_SPREAD, 360).toFloat()
-    return if (LocalDarkTheme.current) {
+    return if (dark) {
         accent(hue, saturation = 0.60f, lightness = 0.68f, step = LIGHTNESS_STEP) { it >= DARK_MIN_LUMINANCE }
     } else {
         accent(hue, saturation = 0.65f, lightness = 0.38f, step = -LIGHTNESS_STEP) { it <= LIGHT_MAX_LUMINANCE }

@@ -1,5 +1,6 @@
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.configlist
 
+import androidx.activity.compose.ReportDrawnWhen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,7 +16,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.unit.dp
 import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.domain.model.MessageType
 import fr.gildasledrogoff.fwknop.domain.model.Protocol
@@ -26,6 +32,7 @@ import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
 import fr.gildasledrogoff.fwknop.presentation.ui.components.ConfirmDialog
 import fr.gildasledrogoff.fwknop.presentation.ui.components.ConfirmSpec
 import fr.gildasledrogoff.fwknop.presentation.ui.components.EmptyState
+import fr.gildasledrogoff.fwknop.presentation.ui.components.LargeFontPreviews
 import fr.gildasledrogoff.fwknop.presentation.ui.components.NicknameDialog
 import fr.gildasledrogoff.fwknop.presentation.ui.components.NicknameSpec
 import fr.gildasledrogoff.fwknop.presentation.ui.components.ShieldLockIllustration
@@ -40,9 +47,22 @@ fun ConfigListContent(
     knock: KnockActivity = KnockActivity(),
     onDuplicate: (source: String, nickname: String) -> Unit = { _, _ -> },
 ) {
-    Box(modifier.fillMaxSize()) {
+    // Fully drawn once the configs are listed: the cold start metric that matters before a knock.
+    ReportDrawnWhen { !state.isLoading }
+    val loading = stringResource(R.string.a11y_loading_configs)
+    Box(
+        modifier
+            .fillMaxSize()
+            // Lets UiAutomator (baseline profile, macrobenchmark) find the tags as resource ids.
+            .semantics { testTagsAsResourceId = true }
+            .then(if (state.isLoading) Modifier else Modifier.testTag(CONFIG_LIST_TAG)),
+    ) {
         when {
-            state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+            state.isLoading -> CircularProgressIndicator(
+                Modifier
+                    .align(Alignment.Center)
+                    .semantics { contentDescription = loading },
+            )
             state.configs.isEmpty() -> EmptyState(
                 title = stringResource(R.string.empty_title),
                 body = stringResource(R.string.empty_body),
@@ -67,7 +87,14 @@ private fun ConfigGrid(
     var pendingDuplicate by rememberSaveable { mutableStateOf<String?>(null) }
     LazyVerticalGrid(
         columns = GridCells.Adaptive(dimens.cardMinWidth),
-        contentPadding = PaddingValues(dimens.screenPadding),
+        modifier = Modifier.testTag(CONFIG_GRID_TAG),
+        // Room below the last card so the "New config" button never covers its knock button.
+        contentPadding = PaddingValues(
+            start = dimens.screenPadding,
+            top = dimens.screenPadding,
+            end = dimens.screenPadding,
+            bottom = dimens.screenPadding + FAB_CLEARANCE,
+        ),
         horizontalArrangement = Arrangement.spacedBy(dimens.itemSpacing),
         verticalArrangement = Arrangement.spacedBy(dimens.itemSpacing),
     ) {
@@ -119,6 +146,10 @@ private fun DeleteConfirmDialog(nickname: String, onConfirm: () -> Unit, onDone:
     ConfirmDialog(spec, onConfirm = { onConfirm(); onDone() }, onDismiss = onDone)
 }
 
+private val FAB_CLEARANCE = 72.dp
+private const val CONFIG_LIST_TAG = "config_list"
+private const val CONFIG_GRID_TAG = "config_grid"
+
 internal val previewSummaries = listOf(
     ConfigSummary(
         "home",
@@ -161,4 +192,12 @@ private fun ConfigListContentPreview() {
 @Composable
 private fun ConfigListEmptyPreview() {
     FwknopTheme { ConfigListContent(ConfigListState(isLoading = false), previewActions) }
+}
+
+@LargeFontPreviews
+@Composable
+private fun ConfigListLargeFontPreview() {
+    FwknopTheme {
+        ConfigListContent(ConfigListState(isLoading = false, configs = previewSummaries), previewActions)
+    }
 }

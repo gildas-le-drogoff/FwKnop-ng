@@ -19,6 +19,9 @@ data object SettingsRoute
 data object HelpRoute
 
 @Serializable
+data object KnockHistoryRoute
+
+@Serializable
 data class NfcWriteRoute(val nickname: String) {
     companion object {
         const val ARG_NICKNAME = "nickname"
@@ -28,3 +31,10 @@ data class NfcWriteRoute(val nickname: String) {
 
 @Serializable
 data class QrExportRoute(val nicknames: List<String>)
+
+@Serializable
+data class DiagnosticRoute(val nickname: String) {
+    companion object {
+        const val ARG_NICKNAME = "nickname"
+    }
+}

@@ -15,6 +15,8 @@ import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
 import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
 import fr.gildasledrogoff.fwknop.domain.model.GpgKeyRole
 import fr.gildasledrogoff.fwknop.domain.model.InteractionId
+import fr.gildasledrogoff.fwknop.domain.model.KnockLogEntry
+import fr.gildasledrogoff.fwknop.domain.model.KnockLogEvent
 import fr.gildasledrogoff.fwknop.domain.model.KnockTarget
 import fr.gildasledrogoff.fwknop.domain.model.KnockTimerPlan
 import fr.gildasledrogoff.fwknop.domain.model.NfcTagDigest
@@ -36,6 +38,7 @@ import fr.gildasledrogoff.fwknop.domain.model.VaultStatus
 import fr.gildasledrogoff.fwknop.domain.repository.ConfigRepository
 import fr.gildasledrogoff.fwknop.domain.repository.ConfigResult
 import fr.gildasledrogoff.fwknop.domain.repository.GpgRepository
+import fr.gildasledrogoff.fwknop.domain.repository.KnockHistoryRepository
 import fr.gildasledrogoff.fwknop.domain.repository.KnockTimerScheduler
 import fr.gildasledrogoff.fwknop.domain.repository.NfcTagRepository
 import fr.gildasledrogoff.fwknop.domain.repository.PublicIpRepository
@@ -51,6 +54,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import java.time.Instant
 import java.util.Base64
 fun sampleConfig(
     nickname: String = "home",
@@ -256,4 +260,19 @@ class FakeRuntimePermissions(
             notifications = if (permission == RuntimePermissions.NOTIFICATIONS) status else current.notifications,
         )
     }
+}
+class FakeKnockHistoryRepository : KnockHistoryRepository {
+    val recorded = mutableListOf<KnockLogEvent>()
+    var purges = 0
+        private set
+    override fun observeHistory(): Flow<List<KnockLogEntry>> = MutableStateFlow(
+        recorded.mapIndexed { i, event -> KnockLogEntry(i.toLong(), Instant.EPOCH, event) }.reversed()
+    )
+    override suspend fun record(event: KnockLogEvent) {
+        recorded += event
+    }
+    override suspend fun purgeExpired() {
+        purges++
+    }
+    override suspend fun clear() = recorded.clear()
 }

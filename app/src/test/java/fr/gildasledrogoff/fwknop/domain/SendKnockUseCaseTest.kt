@@ -6,6 +6,13 @@ import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.Encryption
 import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
 import fr.gildasledrogoff.fwknop.domain.model.InteractionId
+import fr.gildasledrogoff.fwknop.domain.model.AddressFamily
+import fr.gildasledrogoff.fwknop.domain.model.KnockLogOutcome
+import fr.gildasledrogoff.fwknop.domain.model.KnockObserver
+import fr.gildasledrogoff.fwknop.domain.model.KnockRoute
+import fr.gildasledrogoff.fwknop.domain.model.KnockStep
+import fr.gildasledrogoff.fwknop.domain.model.KnockTarget
+import fr.gildasledrogoff.fwknop.domain.model.Protocol
 import fr.gildasledrogoff.fwknop.domain.model.KnockOverrides
 import fr.gildasledrogoff.fwknop.domain.model.KnockRequest
 import fr.gildasledrogoff.fwknop.domain.model.NatTarget
@@ -17,6 +24,7 @@ import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
 import fr.gildasledrogoff.fwknop.domain.usecase.BuildSpaPacketUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ResolveKnockRouteUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.SendKnockUseCase
+import fr.gildasledrogoff.fwknop.fakes.FakeKnockHistoryRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeGpgRepository
 import fr.gildasledrogoff.fwknop.fakes.FakePublicIpRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeSpaPacketRepository
@@ -31,11 +39,13 @@ class SendKnockUseCaseTest {
     private val packets = FakeSpaPacketRepository()
     private val transport = FakeSpaTransportRepository(serverIp = "192.0.2.10")
     private val gpg = FakeGpgRepository()
+    private val history = FakeKnockHistoryRepository()
     private val sendKnock = SendKnockUseCase(
         ResolveKnockRouteUseCase(publicIp, transport),
         BuildSpaPacketUseCase(packets, gpg),
         transport,
         Random(seed = 1),
+        history,
     )
     @Test
     fun `sends the generated packet to the resolved server`() = runTest {
@@ -126,5 +136,88 @@ class SendKnockUseCaseTest {
         val expected = KnockError.Gpg(GpgError.InteractionRequired(InteractionId(7)))
         assertThat(result).isEqualTo(DomainResult.Failure(expected))
         assertThat(transport.sent).isEmpty()
+    }
+    @Test
+    fun `a sent knock is recorded with its source`() = runTest {
+        sendKnock(KnockRequest(sampleConfig()))
+        val event = history.recorded.single()
+        assertThat(event.outcome).isEqualTo(KnockLogOutcome.Sent)
+        assertThat(event.source?.address).isEqualTo("198.51.100.4")
+    }
+    @Test
+    fun `a failed send keeps the resolved source`() = runTest {
+        transport.sendError = KnockError.Transport(java.io.IOException("unreachable"))
+        sendKnock(KnockRequest(sampleConfig()))
+        val event = history.recorded.single()
+        assertThat(event.outcome).isEqualTo(KnockLogOutcome.Failed("TRANSPORT", "unreachable"))
+        assertThat(event.source?.address).isEqualTo("198.51.100.4")
+    }
+    @Test
+    fun `a failure before routing is recorded without source`() = runTest {
+        publicIp.default = DomainResult.Failure(KnockError.SourceIpUnresolved("v4"))
+        sendKnock(KnockRequest(sampleConfig(sourceIp = SourceIp.Resolve)))
+        val event = history.recorded.single()
+        assertThat(event.outcome).isEqualTo(KnockLogOutcome.Failed("SOURCE_IP_UNRESOLVED", "v4"))
+        assertThat(event.source).isNull()
+    }
+    @Test
+    fun `a pending gpg interaction is not recorded`() = runTest {
+        gpg.encryptResult = DomainResult.Failure(GpgError.InteractionRequired(InteractionId(7)))
+        sendKnock(KnockRequest(sampleConfig(encryption = Encryption.Gpg(GpgKeyId(1), GpgKeyId(2)))))
+        assertThat(history.recorded).isEmpty()
+    }
+    private val steps = mutableListOf<KnockStep>()
+    private val observer = KnockObserver { steps += it }
+    @Test
+    fun `observer sees each step of a fixed source knock in order`() = runTest {
+        val result = sendKnock(KnockRequest(sampleConfig()), observer)
+        val source = ResolvedSourceIp("198.51.100.4", SourceIpMethod.Fixed)
+        assertThat(steps).containsExactly(
+            KnockStep.SourceResolved(source),
+            KnockStep.ServerResolved("knock.example.org", listOf("192.0.2.10")),
+            KnockStep.RouteSelected(KnockRoute(source, "192.0.2.10")),
+            KnockStep.PacketBuilt("packet-1".length),
+            KnockStep.Sending(KnockTarget("192.0.2.10", "knock.example.org", 62201, Protocol.UDP)),
+        ).inOrder()
+        assertThat(result).isInstanceOf(DomainResult.Success::class.java)
+    }
+    @Test
+    fun `observer sees every server address then the source of the family that answered`() = runTest {
+        transport.serverFamilies = listOf("2001:db8::10", "192.0.2.10")
+        publicIp.results = mapOf("2001:db8::10" to DomainResult.Failure(KnockError.SourceIpUnresolved("v6")))
+        sendKnock(KnockRequest(sampleConfig(sourceIp = SourceIp.Resolve)), observer)
+        val source = ResolvedSourceIp("203.0.113.9", SourceIpMethod.Stun("stun.example"))
+        assertThat(steps.take(3)).containsExactly(
+            KnockStep.ServerResolved("knock.example.org", listOf("2001:db8::10", "192.0.2.10")),
+            KnockStep.SourceResolved(source),
+            KnockStep.RouteSelected(KnockRoute(source, "192.0.2.10")),
+        ).inOrder()
+        assertThat((steps[2] as KnockStep.RouteSelected).family).isEqualTo(AddressFamily.IPV4)
+    }
+    @Test
+    fun `observer stops at the failing step`() = runTest {
+        transport.serverFamilies = listOf("2001:db8::10")
+        publicIp.default = DomainResult.Failure(KnockError.SourceIpUnresolved("v6"))
+        sendKnock(KnockRequest(sampleConfig(sourceIp = SourceIp.Resolve)), observer)
+        assertThat(steps).containsExactly(KnockStep.ServerResolved("knock.example.org", listOf("2001:db8::10")))
+    }
+    @Test
+    fun `a failed send is still announced with its target`() = runTest {
+        transport.sendError = KnockError.Transport(java.io.IOException("unreachable"))
+        val result = sendKnock(KnockRequest(sampleConfig()), observer)
+        assertThat(result).isInstanceOf(DomainResult.Failure::class.java)
+        assertThat(steps.last()).isInstanceOf(KnockStep.Sending::class.java)
+    }
+    @Test
+    fun `observing does not change the knock`() = runTest {
+        val plain = sendKnock(KnockRequest(sampleConfig()))
+        val observed = sendKnock(KnockRequest(sampleConfig()), observer)
+        assertThat(observed).isEqualTo(plain)
+        assertThat(transport.sent.map { it.first }).containsExactly("packet-1", "packet-2").inOrder()
+    }
+    @Test
+    fun `address family follows the server address`() {
+        assertThat(AddressFamily.of("192.0.2.10")).isEqualTo(AddressFamily.IPV4)
+        assertThat(AddressFamily.of("2001:db8::10")).isEqualTo(AddressFamily.IPV6)
     }
 }

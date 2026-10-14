@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "fwknop"
 include(":app")
+include(":baselineprofile")

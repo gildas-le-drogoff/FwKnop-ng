@@ -32,6 +32,7 @@ import fr.gildasledrogoff.fwknop.utils.helpers.RuntimePermissions
 fun KnockHost(
     viewModel: KnockViewModel,
     onSent: (KnockEffect.Sent) -> Unit,
+    onPortChecked: (KnockEffect.PortChecked) -> Unit = {},
     onAborted: () -> Unit = {},
     
     onEraseTag: (() -> Unit)? = null,
@@ -51,6 +52,7 @@ fun KnockHost(
                 viewModel.intentSender(effect.id)?.let { launchInteraction(effect.id, it) }
 
             is KnockEffect.Sent -> onSent(effect)
+            is KnockEffect.PortChecked -> onPortChecked(effect)
             KnockEffect.Aborted -> onAborted()
         }
     }

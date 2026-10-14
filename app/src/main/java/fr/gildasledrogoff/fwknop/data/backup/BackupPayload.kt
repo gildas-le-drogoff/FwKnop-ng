@@ -28,6 +28,7 @@ internal data class BackupSettings(
     val stunLookupEnabled: Boolean = AppSettings().stunLookupEnabled,
     val nfcKnockEnabled: Boolean = AppSettings().nfcKnockEnabled,
     val notificationsEnabled: Boolean = AppSettings().notificationsEnabled,
+    val portCheckEnabled: Boolean = AppSettings().portCheckEnabled,
     val ipLookupUrl: String = AppSettings().ipLookupUrl,
     val autoLockDelay: String = AppSettings().autoLockDelay.name,
 )
@@ -66,6 +67,7 @@ internal fun Backup.toPayload() = BackupPayload(
             stunLookupEnabled = it.stunLookupEnabled,
             nfcKnockEnabled = it.nfcKnockEnabled,
             notificationsEnabled = it.notificationsEnabled,
+            portCheckEnabled = it.portCheckEnabled,
             ipLookupUrl = it.ipLookupUrl,
             autoLockDelay = it.autoLockDelay.name,
         )
@@ -81,6 +83,7 @@ internal fun BackupPayload.toDomain() = Backup(
             stunLookupEnabled = it.stunLookupEnabled,
             nfcKnockEnabled = it.nfcKnockEnabled,
             notificationsEnabled = it.notificationsEnabled,
+            portCheckEnabled = it.portCheckEnabled,
             ipLookupUrl = it.ipLookupUrl,
             autoLockDelay = AutoLockDelay.entries.firstOrNull { delay -> delay.name == it.autoLockDelay }
                 ?: AppSettings().autoLockDelay,

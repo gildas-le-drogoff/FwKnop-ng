@@ -10,6 +10,7 @@ import fr.gildasledrogoff.fwknop.data.datasource.spa.SpaEntropy
 import fr.gildasledrogoff.fwknop.data.datasource.spa.SpaUsernameProvider
 import fr.gildasledrogoff.fwknop.data.repository.BackupRepositoryImpl
 import fr.gildasledrogoff.fwknop.data.repository.GpgRepositoryImpl
+import fr.gildasledrogoff.fwknop.data.repository.PortProbeRepositoryImpl
 import fr.gildasledrogoff.fwknop.data.repository.PublicIpRepositoryImpl
 import fr.gildasledrogoff.fwknop.data.repository.SettingsRepositoryImpl
 import fr.gildasledrogoff.fwknop.data.repository.SpaPacketRepositoryImpl
@@ -17,6 +18,7 @@ import fr.gildasledrogoff.fwknop.data.repository.SpaTransportRepositoryImpl
 import fr.gildasledrogoff.fwknop.domain.repository.BackupRepository
 import fr.gildasledrogoff.fwknop.domain.repository.GpgRepository
 import fr.gildasledrogoff.fwknop.domain.repository.KnockTimerScheduler
+import fr.gildasledrogoff.fwknop.domain.repository.PortProbeRepository
 import fr.gildasledrogoff.fwknop.domain.repository.PublicIpRepository
 import fr.gildasledrogoff.fwknop.domain.repository.SettingsRepository
 import fr.gildasledrogoff.fwknop.domain.repository.SpaPacketRepository
@@ -42,6 +44,8 @@ interface BindingsModule {
     fun bindSpaPacketRepository(impl: SpaPacketRepositoryImpl): SpaPacketRepository
     @Binds
     fun bindSpaTransportRepository(impl: SpaTransportRepositoryImpl): SpaTransportRepository
+    @Binds
+    fun bindPortProbeRepository(impl: PortProbeRepositoryImpl): PortProbeRepository
     @Binds
     fun bindGpgRepository(impl: GpgRepositoryImpl): GpgRepository
     @Binds

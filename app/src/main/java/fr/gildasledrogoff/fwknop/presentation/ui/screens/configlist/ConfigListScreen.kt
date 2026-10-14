@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.gildasledrogoff.fwknop.R
+import fr.gildasledrogoff.fwknop.domain.model.PortCheck
 import fr.gildasledrogoff.fwknop.presentation.state.BackupEvent
 import fr.gildasledrogoff.fwknop.presentation.state.ConfigListEvent
 import fr.gildasledrogoff.fwknop.presentation.state.ConfigListState
@@ -65,7 +66,9 @@ data class ConfigListNavigation(
     val onEdit: (String) -> Unit,
     val onWriteNfc: (String) -> Unit,
     val onExportQr: (String) -> Unit,
+    val onDiagnose: (String) -> Unit,
     val onSettings: () -> Unit,
+    val onHistory: () -> Unit,
     val onHelp: () -> Unit,
 )
 
@@ -86,6 +89,7 @@ fun ConfigListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var lastSent by remember { mutableStateOf<KnockEffect.Sent?>(null) }
     var justSent by remember { mutableStateOf<KnockEffect.Sent?>(null) }
+    var portChecked by remember { mutableStateOf<KnockEffect.PortChecked?>(null) }
     val haptics = LocalHapticFeedback.current
     StartupEffects(state, navigation.onHelp)
     SecurityHost(securityViewModel, snackbarHostState)
@@ -93,13 +97,14 @@ fun ConfigListScreen(
         lastSent = it
         justSent = it
         haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-    }) {
+    }, onPortChecked = { portChecked = it }) {
         knockViewModel.onEvent(KnockEvent.Cancel)
         nfcEraseViewModel.offer(NfcEraseReason.FWKNOP)
     }
     NfcKnockReader(state.nfcKnockEnabled, knockViewModel, nfcEraseViewModel)
     BackupHost(backupViewModel, snackbarHostState)
     lastSent?.let { SentSnackbar(it, snackbarHostState) { lastSent = null } }
+    portChecked?.let { PortCheckSnackbar(it, snackbarHostState) { portChecked = null } }
     justSent?.let { sent -> LaunchedEffect(sent) { delay(SUCCESS_MS); justSent = null } }
     val knock = KnockActivity(
         sending = (knockState as? KnockState.Sending)?.nickname,
@@ -111,6 +116,7 @@ fun ConfigListScreen(
         onDuplicate = {},
         onWriteNfc = navigation.onWriteNfc,
         onExportQr = navigation.onExportQr,
+        onDiagnose = navigation.onDiagnose,
         onExportFile = { backupViewModel.onEvent(BackupEvent.ExportConfigRequested(it)) },
         onDelete = { viewModel.onEvent(ConfigListEvent.DeleteConfig(it)) },
     )
@@ -184,6 +190,9 @@ private fun ConfigListTopBar(
             scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
         actions = {
+            IconButton(onClick = navigation.onHistory) {
+                FwknopIcon(R.drawable.ic_history_rounded, stringResource(R.string.title_history))
+            }
             IconButton(onClick = navigation.onHelp) {
                 FwknopIcon(R.drawable.ic_help_rounded, stringResource(R.string.title_help))
             }
@@ -217,6 +226,26 @@ private fun SentSnackbar(sent: KnockEffect.Sent, hostState: SnackbarHostState, o
             SentNotice.KEEP_OPEN_UNAVAILABLE -> hostState.showSnackbar(message, duration = SnackbarDuration.Long)
         }
         if (result == SnackbarResult.ActionPerformed) openAppSettings(context)
+        onShown()
+    }
+}
+
+@Composable
+private fun PortCheckSnackbar(
+    checked: KnockEffect.PortChecked,
+    hostState: SnackbarHostState,
+    onShown: () -> Unit,
+) {
+    val message = when (val check = checked.check) {
+        is PortCheck.Reachable -> stringResource(R.string.port_check_reachable, checked.nickname)
+        is PortCheck.Closed -> stringResource(
+            R.string.port_check_closed,
+            checked.nickname,
+            check.ports.joinToString(", ") { "tcp/$it" },
+        )
+    }
+    LaunchedEffect(checked) {
+        hostState.showSnackbar(message, duration = SnackbarDuration.Long)
         onShown()
     }
 }

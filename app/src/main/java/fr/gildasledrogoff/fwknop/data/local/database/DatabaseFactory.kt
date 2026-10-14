@@ -14,7 +14,7 @@ class DatabaseFactory @Inject constructor(
         val database =
             Room.databaseBuilder(context, FwknopDatabase::class.java, FwknopDatabase.NAME)
                 .openHelperFactory(SupportOpenHelperFactory(passphrase))
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
         try {
             database.openHelper.writableDatabase

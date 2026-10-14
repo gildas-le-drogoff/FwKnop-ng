@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.room)
+    alias(libs.plugins.baselineprofile)
 }
 
 val keystoreProperties = Properties().apply {
@@ -93,6 +94,23 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
+baselineProfile {
+    // Generated on demand (./gradlew :app:generateBaselineProfile), then committed under src/release.
+    automaticGenerationDuringBuild = false
+    dexLayoutOptimization = true
+}
+
+androidComponents {
+    // The build types created by the baseline profile plugin are cloned from release: without a release
+    // keystore, sign them with the debug key so the macrobenchmarks can install them.
+    onVariants(selector().all()) { variant ->
+        val benchmarkType = variant.buildType == "benchmarkRelease" || variant.buildType == "nonMinifiedRelease"
+        if (benchmarkType && keystoreProperties.isEmpty()) {
+            variant.signingConfig.setConfig(android.signingConfigs.getByName("debug"))
+        }
+    }
+}
+
 dependencyLocking {
     lockAllConfigurations()
 }
@@ -108,6 +126,8 @@ dependencies {
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.profileinstaller)
+    baselineProfile(project(":baselineprofile"))
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)

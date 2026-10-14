@@ -49,6 +49,8 @@ class SettingsViewModel @Inject constructor(
                     form = AppSettings(
                         helpShown = it.form.helpShown,
                         lockSuggestionDismissed = it.form.lockSuggestionDismissed,
+                        // Set on the history screen, not here.
+                        knockHistoryRetention = it.form.knockHistoryRetention,
                     )
                 )
             }

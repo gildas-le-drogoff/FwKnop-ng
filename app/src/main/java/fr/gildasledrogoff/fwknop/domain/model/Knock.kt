@@ -14,6 +14,11 @@ data class KnockRequest(
 )
 
 data class KnockOutcome(val request: KnockRequest, val source: ResolvedSourceIp)
+
+sealed interface PortCheck {
+    data class Reachable(val ports: List<Int>) : PortCheck
+    data class Closed(val ports: List<Int>) : PortCheck
+}
 enum class KnockPrompt { KEY, SOURCE_IP }
 data class NatTarget(val address: String, val port: Int, val local: Boolean)
 data class SpaPacketParams(

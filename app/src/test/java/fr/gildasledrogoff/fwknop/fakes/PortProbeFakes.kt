@@ -1,0 +1,14 @@
+package fr.gildasledrogoff.fwknop.fakes
+
+import fr.gildasledrogoff.fwknop.domain.repository.PortProbeRepository
+
+/** [reachable] gets the port and how many times it has been probed so far, this one included. */
+class FakePortProbeRepository(
+    private val reachable: (port: Int, attempt: Int) -> Boolean = { _, _ -> false },
+) : PortProbeRepository {
+    val probes = mutableListOf<Pair<String, Int>>()
+    override suspend fun isTcpReachable(address: String, port: Int): Boolean {
+        probes += address to port
+        return reachable(port, probes.count { it.second == port })
+    }
+}

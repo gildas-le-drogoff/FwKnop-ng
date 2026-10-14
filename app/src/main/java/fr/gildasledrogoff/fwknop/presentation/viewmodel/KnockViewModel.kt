@@ -22,6 +22,7 @@ import fr.gildasledrogoff.fwknop.domain.model.isIpAddress
 import fr.gildasledrogoff.fwknop.domain.model.map
 import fr.gildasledrogoff.fwknop.domain.model.mapError
 import fr.gildasledrogoff.fwknop.domain.usecase.GetConfigUseCase
+import fr.gildasledrogoff.fwknop.domain.usecase.GetExternalAppDelayUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.GetNfcKnockConfigUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.GetRequiredPromptsUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.NeedsTimerNotificationUseCase
@@ -29,6 +30,7 @@ import fr.gildasledrogoff.fwknop.domain.usecase.ObserveVaultStatusUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ParseQrClientIpUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ScheduleKnockTimerUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.SendKnockUseCase
+import fr.gildasledrogoff.fwknop.domain.usecase.VerifyPortAccessUseCase
 import fr.gildasledrogoff.fwknop.presentation.state.AuthResult
 import fr.gildasledrogoff.fwknop.presentation.state.KnockEffect
 import fr.gildasledrogoff.fwknop.presentation.state.KnockEvent
@@ -42,6 +44,7 @@ import fr.gildasledrogoff.fwknop.utils.helpers.PermissionStatus
 import fr.gildasledrogoff.fwknop.utils.helpers.RuntimePermissions
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -62,6 +65,8 @@ class KnockViewModel @Inject constructor(
     private val interactions: InteractionRegistry,
     private val runtimePermissions: RuntimePermissions,
     private val observeVault: ObserveVaultStatusUseCase,
+    private val externalAppDelay: GetExternalAppDelayUseCase,
+    private val verifyPorts: VerifyPortAccessUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow<KnockState>(KnockState.Idle)
     val state: StateFlow<KnockState> = _state.asStateFlow()
@@ -260,10 +265,19 @@ class KnockViewModel @Inject constructor(
         val config = outcome.request.config
         val notice = scheduleTimer(outcome).toNotice()
         reset()
+        _effects.send(KnockEffect.Sent(config.nickname.value, outcome.source, notice))
+        viewModelScope.launch { checkPorts(outcome) }
         if (config.externalApp != ExternalApp.None) {
+            // Some firewalls apply the rule a little after the packet arrives.
+            delay(externalAppDelay())
             _effects.send(KnockEffect.LaunchApp(config.externalApp, config.nickname.value))
         }
-        _effects.send(KnockEffect.Sent(config.nickname.value, outcome.source, notice))
+    }
+
+    // Runs beside the app launch so the probe never delays it.
+    private suspend fun checkPorts(outcome: KnockOutcome) {
+        val check = verifyPorts(outcome) ?: return
+        _effects.send(KnockEffect.PortChecked(outcome.request.config.nickname.value, check))
     }
 
     private suspend fun onFailure(error: KnockError) {

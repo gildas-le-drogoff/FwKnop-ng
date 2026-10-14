@@ -16,7 +16,9 @@ FwKnop-ng sends an encrypted, authenticated SPA packet that makes a `fwknopd` se
 - **Transports**: UDP, TCP and HTTP
 - **Access modes**: access, NAT access, local NAT and client-defined timeouts
 - **Source IP resolution**: STUN or a configurable HTTPS lookup URL
-- **Keep-open**: re-sends SPA packets before the firewall rule expires
+- **Keep-open**: re-sends SPA packets before the firewall rule expires or after a network change
+- **Automatic knock** (off by default): knocks when leaving a trusted Wi-Fi network
+- **Diagnostics**: configuration test, optional TCP check of the opened ports, local knock history
 - **Post-knock actions**: launch an SSH client, an OpenVPN profile or a WireGuard tunnel
 - **Encrypted storage**: configurations protected by Android Keystore, Tink and SQLCipher
 - **App lock**: biometrics or device credential
@@ -75,6 +77,8 @@ keyPassword=...
 ./gradlew connectedAndroidTest # instrumented tests
 ```
 
+To generate a baseline profile (API 33+ device or emulator): `./gradlew :app:generateBaselineProfile`.
+
 Dependencies are locked; after changing a dependency, refresh the lockfiles with:
 
 ```sh
@@ -83,13 +87,13 @@ Dependencies are locked; after changing a dependency, refresh the lockfiles with
 
 ## Architecture
 
-Single-module app following a clean-architecture layout:
+The app module follows a clean-architecture layout; a separate `baselineprofile` module only holds the profile generator and startup benchmark.
 
 ```
 app/src/main/java/fr/gildasledrogoff/fwknop/
 ├── domain/        # models, repository interfaces, use cases, errors
-├── data/          # SPA encoding, transports, Room/SQLCipher, Keystore vault, backup
-├── presentation/  # Jetpack Compose UI, navigation, keep-open service
+├── data/          # SPA encoding, transports, Room/SQLCipher, Keystore vault, backup, Wi-Fi state
+├── presentation/  # Jetpack Compose UI, navigation, keep-open and automatic knock services
 ├── di/            # Hilt modules
 └── utils/
 ```
@@ -102,6 +106,8 @@ The app has no analytics or tracking. Besides the SPA packet sent to your `fwkno
 
 - STUN (`stun.cloudflare.com`, `stun.l.google.com`)
 - HTTPS lookup URL (default `https://ifconfig.me/ip`, user configurable)
+
+The location permissions (`ACCESS_*_LOCATION`) are only needed by the automatic knock: Android hides the Wi-Fi network name from apps without them. They are requested from its settings only, no position is ever read, and trusted network names stay on the device. The automatic knock service relies on system connectivity callbacks — no wake lock, no polling.
 
 ## Contributing
 

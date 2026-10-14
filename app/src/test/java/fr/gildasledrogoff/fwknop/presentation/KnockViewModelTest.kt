@@ -15,6 +15,7 @@ import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
 import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
 import fr.gildasledrogoff.fwknop.domain.usecase.BuildSpaPacketUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.GetConfigUseCase
+import fr.gildasledrogoff.fwknop.domain.usecase.GetExternalAppDelayUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.GetNfcKnockConfigUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.GetRequiredPromptsUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.NeedsTimerNotificationUseCase
@@ -23,10 +24,14 @@ import fr.gildasledrogoff.fwknop.domain.usecase.ParseQrClientIpUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ResolveKnockRouteUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ScheduleKnockTimerUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.SendKnockUseCase
+import fr.gildasledrogoff.fwknop.fakes.FakeKnockHistoryRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeConfigRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeGpgRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeKnockTimerScheduler
 import fr.gildasledrogoff.fwknop.fakes.FakeNfcTagRepository
+import fr.gildasledrogoff.fwknop.fakes.FakePortProbeRepository
+import fr.gildasledrogoff.fwknop.domain.model.PortCheck
+import fr.gildasledrogoff.fwknop.domain.usecase.VerifyPortAccessUseCase
 import fr.gildasledrogoff.fwknop.fakes.FakeRuntimePermissions
 import fr.gildasledrogoff.fwknop.fakes.FakePublicIpRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeSettingsRepository
@@ -70,6 +75,7 @@ class KnockViewModelTest {
     private val permissions = FakeRuntimePermissions()
     private val scheduler = FakeKnockTimerScheduler()
     private var repository = FakeConfigRepository()
+    private val portProbe = FakePortProbeRepository { _, _ -> true }
     private fun viewModel(vararg configs: SpaConfig): KnockViewModel {
         repository.configs.value = configs.toList()
         val send = SendKnockUseCase(
@@ -77,6 +83,7 @@ class KnockViewModelTest {
             BuildSpaPacketUseCase(packets, FakeGpgRepository()),
             transport,
             Random(seed = 1),
+            FakeKnockHistoryRepository(),
         )
         return KnockViewModel(
             GetConfigUseCase(repository),
@@ -89,6 +96,8 @@ class KnockViewModelTest {
             InteractionRegistry(),
             permissions,
             ObserveVaultStatusUseCase(vault),
+            externalAppDelay = GetExternalAppDelayUseCase(settings),
+            verifyPorts = VerifyPortAccessUseCase(settings, transport, portProbe),
         )
     }
     private fun KnockViewModel.scan(digests: List<NfcTagDigest>, auth: AuthResult = AuthResult.Success) {
@@ -159,6 +168,25 @@ class KnockViewModelTest {
         assertThat(scheduler.plans).isEmpty()
     }
     @Test
+    fun `the port check result follows the sent notice when enabled`() = runTest {
+        settings.state.value = settings.state.value.copy(portCheckEnabled = true)
+        val vm = viewModel(sampleConfig())
+        vm.effects.test {
+            vm.onEvent(KnockEvent.Knock("home"))
+            assertThat(awaitItem()).isEqualTo(KnockEffect.Sent("home", FIXED_SOURCE))
+            assertThat(awaitItem()).isEqualTo(KnockEffect.PortChecked("home", PortCheck.Reachable(listOf(22))))
+        }
+    }
+    @Test
+    fun `no port check traffic while the option is off`() = runTest {
+        val vm = viewModel(sampleConfig())
+        vm.effects.test {
+            vm.onEvent(KnockEvent.Knock("home"))
+            assertThat(awaitItem()).isEqualTo(KnockEffect.Sent("home", FIXED_SOURCE))
+        }
+        assertThat(portProbe.probes).isEmpty()
+    }
+    @Test
     fun `a failed send can be retried with the same request`() = runTest {
         transport.sendError = KnockError.Transport(java.io.IOException("unreachable"))
         val vm = viewModel(sampleConfig(encryption = Encryption.Rijndael(SecretKey("", false))))
@@ -198,16 +226,41 @@ class KnockViewModelTest {
         )
     }
     @Test
-    fun `knock without prompts sends and emits app launch then sent`() = runTest {
+    fun `knock without prompts sends and emits sent then app launch`() = runTest {
         val config = sampleConfig().copy(externalApp = ExternalApp.SshUri("me@host"))
         val vm = viewModel(config)
         vm.effects.test {
             vm.onEvent(KnockEvent.Knock("home"))
-            assertThat(awaitItem()).isEqualTo(KnockEffect.LaunchApp(ExternalApp.SshUri("me@host"), "home"))
             assertThat(awaitItem()).isEqualTo(KnockEffect.Sent("home", FIXED_SOURCE))
+            assertThat(awaitItem()).isEqualTo(KnockEffect.LaunchApp(ExternalApp.SshUri("me@host"), "home"))
         }
         assertThat(transport.sent).hasSize(1)
         assertThat(vm.state.value).isEqualTo(KnockState.Idle)
+    }
+    @Test
+    fun `the external app waits for the configured delay`() = runTest {
+        settings.state.value = settings.state.value.copy(externalAppDelaySeconds = 3)
+        val config = sampleConfig().copy(externalApp = ExternalApp.SshUri("me@host"))
+        val vm = viewModel(config)
+        vm.effects.test {
+            val start = testScheduler.currentTime
+            vm.onEvent(KnockEvent.Knock("home"))
+            assertThat(awaitItem()).isInstanceOf(KnockEffect.Sent::class.java)
+            assertThat(testScheduler.currentTime - start).isEqualTo(0)
+            assertThat(awaitItem()).isEqualTo(KnockEffect.LaunchApp(ExternalApp.SshUri("me@host"), "home"))
+            assertThat(testScheduler.currentTime - start).isEqualTo(3_000)
+        }
+    }
+    @Test
+    fun `no delay without an external app`() = runTest {
+        settings.state.value = settings.state.value.copy(externalAppDelaySeconds = 5)
+        val vm = viewModel(sampleConfig())
+        vm.effects.test {
+            vm.onEvent(KnockEvent.Knock("home"))
+            assertThat(awaitItem()).isEqualTo(KnockEffect.Sent("home", FIXED_SOURCE))
+            expectNoEvents()
+        }
+        assertThat(testScheduler.currentTime).isEqualTo(0)
     }
     @Test
     fun `missing key and prompted ip are asked in order`() = runTest {

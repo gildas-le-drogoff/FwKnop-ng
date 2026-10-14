@@ -44,7 +44,13 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -60,9 +66,11 @@ import fr.gildasledrogoff.fwknop.presentation.ui.components.CollectEffects
 import fr.gildasledrogoff.fwknop.presentation.ui.components.EmptyState
 import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
 import fr.gildasledrogoff.fwknop.presentation.ui.components.LabeledSwitch
+import fr.gildasledrogoff.fwknop.presentation.ui.components.LargeFontPreviews
 import fr.gildasledrogoff.fwknop.presentation.ui.components.PassphraseDialog
 import fr.gildasledrogoff.fwknop.presentation.ui.components.PassphraseSpec
 import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberUserAuthenticator
+import fr.gildasledrogoff.fwknop.presentation.ui.components.scaledMaxLines
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.QrExportViewModel
@@ -196,12 +204,14 @@ private fun QrExportBody(
             .verticalScroll(rememberScrollState())
             .padding(dimens.screenPadding),
     ) {
-        QrImage(state.qr, Modifier.fillMaxWidth(dimens.contentWidthFraction))
+        QrImage(state.qr, state.qrDescription(), Modifier.fillMaxWidth(dimens.contentWidthFraction))
         if (state.pageCount > 1) PageSelector(state.page, state.pageCount, actions.onPage)
         Text(
             text = state.nickname,
             style = MaterialTheme.typography.headlineSmall,
-            maxLines = 1,
+            maxLines = scaledMaxLines(1),
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.semantics { heading() },
         )
         LabeledSwitch(
             label = stringResource(R.string.qr_export_encrypt),
@@ -249,9 +259,15 @@ private fun PageSelector(page: Int, pageCount: Int, onPage: (Int) -> Unit) {
                 stringResource(R.string.action_previous_qr)
             )
         }
+        // "2 / 3" is read as "2 slash 3": spell it out, and announce it when the page changes.
+        val pageDescription = stringResource(R.string.a11y_qr_page, page + 1, pageCount)
         Text(
             text = stringResource(R.string.qr_export_page, page + 1, pageCount),
             style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.semantics {
+                contentDescription = pageDescription
+                liveRegion = LiveRegionMode.Polite
+            },
         )
         IconButton(onClick = { onPage(1) }, enabled = page < pageCount - 1) {
             FwknopIcon(R.drawable.ic_chevron_right_rounded, stringResource(R.string.action_next_qr))
@@ -260,22 +276,30 @@ private fun PageSelector(page: Int, pageCount: Int, onPage: (Int) -> Unit) {
 }
 
 @Composable
-private fun QrImage(qr: ImageBitmap?, modifier: Modifier = Modifier) {
+private fun QrImage(qr: ImageBitmap?, description: String, modifier: Modifier = Modifier) {
     
     Surface(color = Color.White, contentColor = Color.Black, shape = MaterialTheme.shapes.medium, modifier = modifier) {
         if (qr != null) {
             Image(
                 bitmap = qr,
-                contentDescription = stringResource(R.string.title_qr_export),
+                contentDescription = description,
                 modifier = Modifier.fillMaxWidth(),
             )
         } else {
+            val generating = stringResource(R.string.a11y_qr_generating)
             Box(Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest))
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                .semantics { contentDescription = generating })
         }
     }
+}
+
+@Composable
+private fun QrExportState.Ready.qrDescription(): String = when {
+    pageCount > 1 -> stringResource(R.string.a11y_qr_image_paged, nickname, page + 1, pageCount)
+    else -> stringResource(R.string.a11y_qr_image, nickname)
 }
 
 private fun sharePng(context: Context, uri: Uri) {
@@ -294,6 +318,17 @@ private fun QrExportContentPreview() {
     FwknopTheme {
         QrExportContent(
             QrExportState.Ready("home", qr = null, page = 1, pageCount = 3, encrypted = true),
+            QrExportActions({}, {}, {}, {}, {})
+        )
+    }
+}
+
+@LargeFontPreviews
+@Composable
+private fun QrExportLargeFontPreview() {
+    FwknopTheme {
+        QrExportContent(
+            QrExportState.Ready("home-office-nat", qr = null, page = 0, pageCount = 2, encrypted = true),
             QrExportActions({}, {}, {}, {}, {})
         )
     }

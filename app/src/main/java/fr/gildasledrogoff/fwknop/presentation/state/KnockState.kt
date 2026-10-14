@@ -5,6 +5,7 @@ import androidx.compose.runtime.Immutable
 import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
 import fr.gildasledrogoff.fwknop.domain.model.InteractionId
 import fr.gildasledrogoff.fwknop.domain.model.NfcTagDigest
+import fr.gildasledrogoff.fwknop.domain.model.PortCheck
 import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
 
 @Immutable
@@ -64,6 +65,7 @@ sealed interface KnockEvent {
 sealed interface KnockEffect {
     data object Authenticate : KnockEffect
     data class Sent(val nickname: String, val source: ResolvedSourceIp, val notice: SentNotice? = null) : KnockEffect
+    data class PortChecked(val nickname: String, val check: PortCheck) : KnockEffect
     data class LaunchApp(val app: ExternalApp, val nickname: String) : KnockEffect
     data class LaunchInteraction(val id: InteractionId) : KnockEffect
     data object Aborted : KnockEffect

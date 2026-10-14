@@ -35,6 +35,11 @@ interface SpaTransportRepository {
     suspend fun sendPacket(packet: String, target: KnockTarget): DomainResult<Unit, KnockError>
 }
 
+interface PortProbeRepository {
+    /** Opens then closes a TCP connection over the same network path as the knock. */
+    suspend fun isTcpReachable(address: String, port: Int): Boolean
+}
+
 interface GpgRepository {
     suspend fun encrypt(
         plaintext: String,

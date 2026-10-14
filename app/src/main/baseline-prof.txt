@@ -1,0 +1,97 @@
+# Hand-written placeholder, not measured. These are wildcard rules in the human-readable profile
+# format: AGP expands them against the dex and compiles them into the binary baseline.prof shipped in
+# the APK, but which classes they cover was guessed from the code, not recorded from a real startup.
+# No generated profile is committed yet: run ./gradlew :app:generateBaselineProfile on an API 33+
+# device (output in src/release/generated/baselineProfiles), then remove the rules it makes redundant.
+
+# Application, Hilt graph and startup
+HSPLfr/gildasledrogoff/fwknop/Hilt_*;->**(**)**
+Lfr/gildasledrogoff/fwknop/Hilt_*;
+HSPLfr/gildasledrogoff/fwknop/Dagger*;->**(**)**
+Lfr/gildasledrogoff/fwknop/Dagger*;
+HSPLfr/gildasledrogoff/fwknop/FwknopApp*;->**(**)**
+Lfr/gildasledrogoff/fwknop/FwknopApp*;
+HSPLfr/gildasledrogoff/fwknop/AppStartup*;->**(**)**
+Lfr/gildasledrogoff/fwknop/AppStartup*;
+HSPLfr/gildasledrogoff/fwknop/di/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/di/**;
+HSPLfr/gildasledrogoff/fwknop/utils/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/utils/**;
+
+# Activity, lock gate, theme and shared components
+HSPLfr/gildasledrogoff/fwknop/presentation/MainActivity*;->**(**)**
+HSPLfr/gildasledrogoff/fwknop/presentation/Hilt_*;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/Hilt_*;
+Lfr/gildasledrogoff/fwknop/presentation/MainActivity*;
+HSPLfr/gildasledrogoff/fwknop/presentation/ui/theme/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/ui/theme/**;
+HSPLfr/gildasledrogoff/fwknop/presentation/ui/components/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/ui/components/**;
+HSPLfr/gildasledrogoff/fwknop/presentation/ui/navigation/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/ui/navigation/**;
+HSPLfr/gildasledrogoff/fwknop/presentation/ui/screens/lock/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/ui/screens/lock/**;
+HSPLfr/gildasledrogoff/fwknop/presentation/state/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/state/**;
+HSPLfr/gildasledrogoff/fwknop/presentation/service/AutoLock*;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/service/AutoLock*;
+HSPLfr/gildasledrogoff/fwknop/presentation/viewmodel/LockGateViewModel*;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/viewmodel/LockGateViewModel*;
+
+# Config list: the screen opened to knock
+HSPLfr/gildasledrogoff/fwknop/presentation/ui/screens/configlist/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/ui/screens/configlist/**;
+HSPLfr/gildasledrogoff/fwknop/presentation/ui/screens/knock/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/ui/screens/knock/**;
+HSPLfr/gildasledrogoff/fwknop/presentation/viewmodel/ConfigListViewModel*;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/viewmodel/ConfigListViewModel*;
+HSPLfr/gildasledrogoff/fwknop/presentation/viewmodel/KnockViewModel*;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/viewmodel/KnockViewModel*;
+HSPLfr/gildasledrogoff/fwknop/presentation/viewmodel/SecuritySettingsViewModel*;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/viewmodel/SecuritySettingsViewModel*;
+HSPLfr/gildasledrogoff/fwknop/presentation/viewmodel/BackupViewModel*;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/viewmodel/BackupViewModel*;
+HSPLfr/gildasledrogoff/fwknop/presentation/viewmodel/NfcEraseViewModel*;->**(**)**
+Lfr/gildasledrogoff/fwknop/presentation/viewmodel/NfcEraseViewModel*;
+
+# Vault opening and config loading
+HSPLfr/gildasledrogoff/fwknop/data/local/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/data/local/**;
+HSPLfr/gildasledrogoff/fwknop/data/mapper/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/data/mapper/**;
+HSPLfr/gildasledrogoff/fwknop/data/repository/ConfigRepositoryImpl*;->**(**)**
+Lfr/gildasledrogoff/fwknop/data/repository/ConfigRepositoryImpl*;
+HSPLfr/gildasledrogoff/fwknop/data/repository/SettingsRepositoryImpl*;->**(**)**
+Lfr/gildasledrogoff/fwknop/data/repository/SettingsRepositoryImpl*;
+HSPLfr/gildasledrogoff/fwknop/data/repository/VaultRepositoryImpl*;->**(**)**
+Lfr/gildasledrogoff/fwknop/data/repository/VaultRepositoryImpl*;
+HSPLfr/gildasledrogoff/fwknop/domain/model/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/domain/model/**;
+HSPLfr/gildasledrogoff/fwknop/domain/usecase/ConfigUseCases*;->**(**)**
+Lfr/gildasledrogoff/fwknop/domain/usecase/ConfigUseCases*;
+HSPLfr/gildasledrogoff/fwknop/domain/usecase/SettingsUseCases*;->**(**)**
+Lfr/gildasledrogoff/fwknop/domain/usecase/SettingsUseCases*;
+HSPLfr/gildasledrogoff/fwknop/domain/usecase/VaultUseCases*;->**(**)**
+Lfr/gildasledrogoff/fwknop/domain/usecase/VaultUseCases*;
+
+# Knock path, run right after startup
+HSPLfr/gildasledrogoff/fwknop/domain/usecase/KnockUseCases*;->**(**)**
+Lfr/gildasledrogoff/fwknop/domain/usecase/KnockUseCases*;
+HSPLfr/gildasledrogoff/fwknop/domain/usecase/KnockSupportUseCases*;->**(**)**
+Lfr/gildasledrogoff/fwknop/domain/usecase/KnockSupportUseCases*;
+HSPLfr/gildasledrogoff/fwknop/domain/usecase/ResolveKnockRouteUseCase*;->**(**)**
+Lfr/gildasledrogoff/fwknop/domain/usecase/ResolveKnockRouteUseCase*;
+HSPLfr/gildasledrogoff/fwknop/domain/usecase/SpaPacketParamsBuilder*;->**(**)**
+Lfr/gildasledrogoff/fwknop/domain/usecase/SpaPacketParamsBuilder*;
+HSPLfr/gildasledrogoff/fwknop/data/datasource/spa/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/data/datasource/spa/**;
+HSPLfr/gildasledrogoff/fwknop/data/datasource/stun/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/data/datasource/stun/**;
+HSPLfr/gildasledrogoff/fwknop/data/remote/api/**;->**(**)**
+Lfr/gildasledrogoff/fwknop/data/remote/api/**;
+HSPLfr/gildasledrogoff/fwknop/data/repository/Spa*;->**(**)**
+Lfr/gildasledrogoff/fwknop/data/repository/Spa*;
+HSPLfr/gildasledrogoff/fwknop/data/repository/PublicIpRepositoryImpl*;->**(**)**
+Lfr/gildasledrogoff/fwknop/data/repository/PublicIpRepositoryImpl*;
+HSPLfr/gildasledrogoff/fwknop/data/repository/SourceIpProbes*;->**(**)**
+Lfr/gildasledrogoff/fwknop/data/repository/SourceIpProbes*;

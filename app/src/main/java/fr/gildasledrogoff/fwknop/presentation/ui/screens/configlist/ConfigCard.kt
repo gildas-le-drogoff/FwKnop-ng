@@ -51,6 +51,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -58,7 +63,9 @@ import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.presentation.state.ConfigSummary
 import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
 import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
+import fr.gildasledrogoff.fwknop.presentation.ui.components.LargeFontPreviews
 import fr.gildasledrogoff.fwknop.presentation.ui.components.labelRes
+import fr.gildasledrogoff.fwknop.presentation.ui.components.scaledMaxLines
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.configAccent
@@ -72,6 +79,7 @@ data class ConfigCardActions(
     val onExportQr: (String) -> Unit,
     val onExportFile: (String) -> Unit,
     val onDelete: (String) -> Unit,
+    val onDiagnose: (String) -> Unit = {},
 )
 
 enum class KnockVisual { IDLE, SENDING, SENT }
@@ -95,9 +103,18 @@ fun ConfigCard(
 ) {
     val dimens = DimensTheme.dimens
     val accent = configAccent(summary.nickname)
+    val editLabel = stringResource(R.string.a11y_edit_config)
     ElevatedCard(
         onClick = { actions.onEdit(summary.nickname) },
-        modifier = modifier.fillMaxWidth()
+        // TalkBack: "double tap to edit" rather than a bare "double tap to activate".
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics {
+                onClick(label = editLabel) {
+                    actions.onEdit(summary.nickname)
+                    true
+                }
+            },
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(dimens.itemSpacing),
@@ -139,14 +156,16 @@ private fun ConfigCardHeader(summary: ConfigSummary, accent: Color, actions: Con
             Text(
                 text = summary.nickname,
                 style = MaterialTheme.typography.titleLarge,
-                maxLines = 1,
+                maxLines = scaledMaxLines(1),
                 overflow = TextOverflow.Ellipsis,
+                // Lets TalkBack users jump from card to card by heading.
+                modifier = Modifier.semantics { heading() },
             )
             Text(
                 text = summary.endpoint,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
+                maxLines = scaledMaxLines(1),
                 overflow = TextOverflow.Ellipsis,
             )
         }
@@ -160,15 +179,19 @@ private fun ConfigTags(summary: ConfigSummary) {
         horizontalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing),
         verticalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing),
     ) {
-        Tag(summary.protocol.name)
+        // Bare "UDP" or "tcp/22" mean little when read out: TalkBack gets the field name too.
+        val protocol = summary.protocol.name
+        Tag(protocol, stringResource(R.string.a11y_tag_protocol, protocol))
         Tag(stringResource(summary.messageType.labelRes()))
-        if (summary.accessDetail.isNotEmpty()) Tag(summary.accessDetail)
+        if (summary.accessDetail.isNotEmpty()) {
+            Tag(summary.accessDetail, stringResource(R.string.a11y_tag_access, summary.accessDetail))
+        }
         if (summary.launchesApp) Tag(stringResource(R.string.tag_launches_app))
     }
 }
 
 @Composable
-private fun Tag(text: String) {
+private fun Tag(text: String, description: String? = null) {
     Surface(
         color = MaterialTheme.colorScheme.secondaryContainer,
         shape = MaterialTheme.shapes.small
@@ -176,20 +199,33 @@ private fun Tag(text: String) {
         Text(
             text = text,
             style = MaterialTheme.typography.labelMedium,
-            maxLines = 1,
+            maxLines = scaledMaxLines(1),
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = DimensTheme.dimens.itemSpacing / 2),
+            modifier = Modifier
+                .padding(horizontal = DimensTheme.dimens.itemSpacing / 2)
+                .then(if (description != null) Modifier.semantics { contentDescription = description } else Modifier),
         )
     }
 }
 
 @Composable
 private fun KnockButton(nickname: String, status: KnockVisual, onKnock: (String) -> Unit) {
+    // Every card has a "Knock" button: TalkBack must say which config it knocks, and its progress.
+    val description = stringResource(R.string.a11y_knock_config, nickname)
+    val progress = when (status) {
+        KnockVisual.IDLE -> null
+        KnockVisual.SENDING -> stringResource(R.string.a11y_knock_sending)
+        KnockVisual.SENT -> stringResource(R.string.a11y_knock_sent)
+    }
     Button(
         onClick = { onKnock(nickname) },
         shape = MaterialTheme.shapes.small,
         modifier = Modifier
             .fillMaxWidth()
+            .semantics {
+                contentDescription = description
+                progress?.let { stateDescription = it }
+            }
             .knockRipples(status, MaterialTheme.colorScheme.primary),
     ) {
         KnockIcon(sent = status == KnockVisual.SENT)
@@ -286,6 +322,10 @@ private fun ConfigCardMenu(nickname: String, actions: ConfigCardActions) {
                 ) { close(); actions.onWriteNfc(nickname) }
             }
             MenuItem(
+                R.string.action_diagnose,
+                R.drawable.ic_bolt_rounded
+            ) { close(); actions.onDiagnose(nickname) }
+            MenuItem(
                 R.string.action_delete,
                 R.drawable.ic_delete_rounded
             ) { close(); actions.onDelete(nickname) }
@@ -321,4 +361,10 @@ private fun ConfigCardPreview() {
 @Composable
 private fun ConfigCardSentPreview() {
     FwknopTheme(darkTheme = true) { ConfigCard(previewSummaries[1], previewActions, knock = KnockVisual.SENT) }
+}
+
+@LargeFontPreviews
+@Composable
+private fun ConfigCardLargeFontPreview() {
+    FwknopTheme { ConfigCard(previewSummaries[1], previewActions) }
 }

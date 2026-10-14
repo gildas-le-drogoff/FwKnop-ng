@@ -21,10 +21,12 @@ import fr.gildasledrogoff.fwknop.data.local.security.SealedNfcTagKeyStore
 import fr.gildasledrogoff.fwknop.data.local.security.SealedPassphraseStore
 import fr.gildasledrogoff.fwknop.data.local.security.VaultMetadataStore
 import fr.gildasledrogoff.fwknop.data.repository.ConfigRepositoryImpl
+import fr.gildasledrogoff.fwknop.data.repository.KnockHistoryRepositoryImpl
 import fr.gildasledrogoff.fwknop.data.repository.NfcTagRepositoryImpl
 import fr.gildasledrogoff.fwknop.data.repository.SealedQrRepositoryImpl
 import fr.gildasledrogoff.fwknop.data.repository.VaultRepositoryImpl
 import fr.gildasledrogoff.fwknop.domain.repository.ConfigRepository
+import fr.gildasledrogoff.fwknop.domain.repository.KnockHistoryRepository
 import fr.gildasledrogoff.fwknop.domain.repository.NfcTagRepository
 import fr.gildasledrogoff.fwknop.domain.repository.SealedQrRepository
 import fr.gildasledrogoff.fwknop.domain.repository.VaultRepository
@@ -56,4 +58,6 @@ interface VaultModule {
     fun bindSealedNfcTagKeyStore(impl: PrefsSealedNfcTagKeyStore): SealedNfcTagKeyStore
     @Binds
     fun bindNfcTagRepository(impl: NfcTagRepositoryImpl): NfcTagRepository
+    @Binds
+    fun bindKnockHistoryRepository(impl: KnockHistoryRepositoryImpl): KnockHistoryRepository
 }

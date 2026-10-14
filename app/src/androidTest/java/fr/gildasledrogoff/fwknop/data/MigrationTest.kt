@@ -7,6 +7,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.data.local.database.FwknopDatabase
 import fr.gildasledrogoff.fwknop.data.local.database.MIGRATION_1_2
+import fr.gildasledrogoff.fwknop.data.local.database.MIGRATION_2_3
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,6 +30,15 @@ class MigrationTest {
                 }
                 assertThat(modes).containsExactly("gpg", 1, "plain", 0)
             }
+        }
+    }
+
+    @Test
+    fun v2ConfigsSurviveTheKnockLogTableCreation() {
+        helper.createDatabase(DB, 2).use { db -> insertV1(db, "plain", gpgKey = 0) }
+        helper.runMigrationsAndValidate(DB, 3, true, MIGRATION_2_3).use { db ->
+            db.query("SELECT COUNT(*) FROM configs").use { assertThat(it.moveToFirst() && it.getInt(0) == 1).isTrue() }
+            db.query("SELECT COUNT(*) FROM knock_log").use { assertThat(it.moveToFirst() && it.getInt(0) == 0).isTrue() }
         }
     }
 

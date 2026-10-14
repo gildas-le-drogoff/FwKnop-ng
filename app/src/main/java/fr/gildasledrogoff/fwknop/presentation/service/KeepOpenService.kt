@@ -4,7 +4,12 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -15,7 +20,6 @@ import fr.gildasledrogoff.fwknop.domain.usecase.SendKnockUseCase
 import fr.gildasledrogoff.fwknop.utils.helpers.DebugLog
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -28,6 +32,15 @@ class KeepOpenService : LifecycleService() {
     @Inject
     lateinit var sendKnock: SendKnockUseCase
     private val jobs = mutableMapOf<Int, Job>()
+    private val schedules = mutableMapOf<Int, ReknockSchedule>()
+    private var networkSettle: Job? = null
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        watchNetwork()
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         val sessionId = intent?.getIntExtra(EXTRA_SESSION, 0) ?: 0
@@ -50,30 +63,78 @@ class KeepOpenService : LifecycleService() {
         }
         ServiceCompat.startForeground(this, sessionId, notification, type)
         jobs[sessionId]?.cancel()
-        jobs[sessionId] = lifecycleScope.launch { reknockLoop(sessionId, request, seconds) }
+        val schedule = ReknockSchedule(
+            intervalMs = (seconds - REKNOCK_MARGIN_S).coerceAtLeast(MIN_INTERVAL_S) * MILLIS,
+            retryMs = NETWORK_RETRY_MS,
+        )
+        schedules[sessionId] = schedule
+        jobs[sessionId] = lifecycleScope.launch { reknockLoop(sessionId, request, schedule, seconds) }
     }
 
-    private suspend fun reknockLoop(sessionId: Int, request: KnockRequest, seconds: Int) {
+    private suspend fun reknockLoop(
+        sessionId: Int,
+        request: KnockRequest,
+        schedule: ReknockSchedule,
+        seconds: Int,
+    ) {
         val nickname = request.config.nickname.value
-        while (lifecycleScope.isActive) {
-            delay((seconds - REKNOCK_MARGIN_S).coerceAtLeast(MIN_INTERVAL_S) * MILLIS)
-            val result = sendKnock(request)
-            if (result is DomainResult.Failure) {
-                DebugLog.event("keep-open re-knock failed: ${result.error::class.simpleName}")
-                notifications.keepOpenFailed(nickname)
-                stopSession(sessionId)
-                return
+        schedule.run {
+            when (val result = sendKnock(request)) {
+                is DomainResult.Failure -> {
+                    DebugLog.event("keep-open re-knock failed: ${result.error::class.simpleName}")
+                    false
+                }
+
+                is DomainResult.Success -> {
+                    notifications.notify(
+                        sessionId,
+                        notifications.keepOpen(nickname, seconds, stopIntent(sessionId))
+                    )
+                    true
+                }
             }
-            notifications.notify(
-                sessionId,
-                notifications.keepOpen(nickname, seconds, stopIntent(sessionId))
-            )
         }
+        notifications.keepOpenFailed(nickname)
         stopSession(sessionId)
+    }
+
+    // A new network means a new source IP: the opened rule no longer matches it.
+    private fun watchNetwork() {
+        val connectivity = getSystemService(ConnectivityManager::class.java) ?: return
+        val active = connectivity.activeNetwork
+        val detector = NetworkChangeDetector(
+            active,
+            active?.let(connectivity::getNetworkCapabilities)?.physicalTransports().orEmpty(),
+        )
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
+                if (detector.onCapabilitiesChanged(network, capabilities.physicalTransports())) onNetworkChanged()
+            }
+
+            override fun onLost(network: Network) = detector.onLost(network)
+        }
+        try {
+            // Main looper: callbacks then touch the session maps on the same thread as the service.
+            connectivity.registerDefaultNetworkCallback(callback, Handler(Looper.getMainLooper()))
+            networkCallback = callback
+        } catch (e: RuntimeException) {
+            DebugLog.failure("keep-open network callback", e)
+        }
+    }
+
+    private fun onNetworkChanged() {
+        networkSettle?.cancel()
+        networkSettle = lifecycleScope.launch {
+            delay(NETWORK_SETTLE_MS)
+            DebugLog.event("keep-open network changed")
+            schedules.filterKeys { sessions.get(it)?.followsNetwork == true }
+                .values.forEach(ReknockSchedule::onNetworkChanged)
+        }
     }
 
     private fun stopSession(sessionId: Int) {
         jobs.remove(sessionId)?.cancel()
+        schedules.remove(sessionId)
         sessions.remove(sessionId)
         notifications.cancel(sessionId)
         stopSessionIfIdle()
@@ -86,8 +147,11 @@ class KeepOpenService : LifecycleService() {
     }
 
     override fun onDestroy() {
+        networkCallback?.let { getSystemService(ConnectivityManager::class.java)?.unregisterNetworkCallback(it) }
+        networkCallback = null
         jobs.keys.forEach(sessions::remove)
         jobs.clear()
+        schedules.clear()
         super.onDestroy()
     }
 
@@ -106,9 +170,22 @@ class KeepOpenService : LifecycleService() {
         private const val REKNOCK_MARGIN_S = 10L
         private const val MIN_INTERVAL_S = 5L
         private const val MILLIS = 1_000L
+        private const val NETWORK_SETTLE_MS = 2_000L
+        private const val NETWORK_RETRY_MS = 5_000L
         fun startIntent(context: Context, sessionId: Int, seconds: Int): Intent =
             Intent(context, KeepOpenService::class.java)
                 .putExtra(EXTRA_SESSION, sessionId)
                 .putExtra(EXTRA_SECONDS, seconds)
     }
 }
+
+// Under a VPN the default network stays the VPN; its transports reveal a Wi-Fi / mobile switch beneath.
+private val PHYSICAL_TRANSPORTS = intArrayOf(
+    NetworkCapabilities.TRANSPORT_WIFI,
+    NetworkCapabilities.TRANSPORT_CELLULAR,
+    NetworkCapabilities.TRANSPORT_ETHERNET,
+    NetworkCapabilities.TRANSPORT_BLUETOOTH,
+)
+
+private fun NetworkCapabilities.physicalTransports(): Set<Int> =
+    PHYSICAL_TRANSPORTS.filter(::hasTransport).toSet()

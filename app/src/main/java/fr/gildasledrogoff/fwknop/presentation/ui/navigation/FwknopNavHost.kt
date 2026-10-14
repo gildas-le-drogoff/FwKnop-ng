@@ -13,7 +13,9 @@ import androidx.navigation.compose.rememberNavController
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.configedit.ConfigEditScreen
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.configlist.ConfigListNavigation
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.configlist.ConfigListScreen
+import fr.gildasledrogoff.fwknop.presentation.ui.screens.diagnostic.DiagnosticScreen
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.help.HelpScreen
+import fr.gildasledrogoff.fwknop.presentation.ui.screens.history.KnockHistoryScreen
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.nfc.NfcWriteScreen
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.qrexport.QrExportScreen
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.settings.SettingsScreen
@@ -41,8 +43,10 @@ fun FwknopNavHost(navController: NavHostController = rememberNavController()) {
         composable<ConfigEditRoute> { ConfigEditScreen(onBack = { navController.popBackStack() }) }
         composable<SettingsRoute> { SettingsScreen(onBack = { navController.popBackStack() }) }
         composable<HelpRoute> { HelpScreen(onBack = { navController.popBackStack() }) }
+        composable<KnockHistoryRoute> { KnockHistoryScreen(onBack = { navController.popBackStack() }) }
         composable<NfcWriteRoute> { NfcWriteScreen(onBack = { navController.popBackStack() }) }
         composable<QrExportRoute> { QrExportScreen(onBack = { navController.popBackStack() }) }
+        composable<DiagnosticRoute> { DiagnosticScreen(onBack = { navController.popBackStack() }) }
     }
 }
 
@@ -53,6 +57,8 @@ private fun NavHostController.listNavigation() = ConfigListNavigation(
     onEdit = { navigate(ConfigEditRoute(it)) },
     onWriteNfc = { navigate(NfcWriteRoute(it)) },
     onExportQr = { navigate(QrExportRoute(listOf(it))) },
+    onDiagnose = { navigate(DiagnosticRoute(it)) },
     onSettings = { navigate(SettingsRoute) },
+    onHistory = { navigate(KnockHistoryRoute) },
     onHelp = { navigate(HelpRoute) },
 )

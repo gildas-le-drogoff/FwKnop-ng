@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -28,7 +29,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,6 +59,7 @@ import fr.gildasledrogoff.fwknop.presentation.ui.theme.dynamicColorSupported
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.BackupViewModel
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.SecuritySettingsViewModel
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.SettingsViewModel
+import kotlin.math.roundToInt
 
 @Composable
 fun SettingsScreen(
@@ -73,6 +78,7 @@ fun SettingsScreen(
     SettingsScaffold(state, snackbarHostState, onBack) {
         SettingsContent(state.form, security, viewModel::onEvent, securityViewModel::onEvent) {
             BackupSection(backup, backupViewModel::onEvent)
+            AutoKnockHost()
         }
     }
     state.error?.let { ErrorDialog(it) { viewModel.onEvent(SettingsEvent.DismissError) } }
@@ -168,6 +174,37 @@ private fun SettingsForm(form: AppSettings, onChange: (AppSettings) -> Unit) {
         LabeledSwitch(stringResource(R.string.field_notification), form.notificationsEnabled, {
             onChange(form.copy(notificationsEnabled = it))
         })
+        LabeledSwitch(stringResource(R.string.field_port_check), form.portCheckEnabled, {
+            onChange(form.copy(portCheckEnabled = it))
+        })
+        ExternalAppDelayField(form.externalAppDelaySeconds) {
+            onChange(form.copy(externalAppDelaySeconds = it))
+        }
+    }
+}
+
+@Composable
+private fun ExternalAppDelayField(seconds: Int, onChange: (Int) -> Unit) {
+    val range = AppSettings.EXTERNAL_APP_DELAY_RANGE
+    val label = stringResource(R.string.field_external_app_delay)
+    val value = pluralStringResource(R.plurals.external_app_delay_value, seconds, seconds)
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+            Text(value, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        }
+        Slider(
+            value = seconds.toFloat(),
+            onValueChange = { onChange(it.roundToInt()) },
+            valueRange = range.first.toFloat()..range.last.toFloat(),
+            steps = range.last - range.first - 1,
+            modifier = Modifier.semantics { stateDescription = value },
+        )
+        Text(
+            stringResource(R.string.field_external_app_delay_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
