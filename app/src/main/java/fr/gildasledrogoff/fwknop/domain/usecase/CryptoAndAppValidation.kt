@@ -1,20 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.usecase
 
 import fr.gildasledrogoff.fwknop.domain.error.ConfigError
-import fr.gildasledrogoff.fwknop.domain.model.CryptoDraft
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
+import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult.Failure
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult.Success
-import fr.gildasledrogoff.fwknop.domain.model.Encryption
-import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
-import fr.gildasledrogoff.fwknop.domain.model.ExternalAppDraft
-import fr.gildasledrogoff.fwknop.domain.model.ExternalAppType
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.SpaCrypto
-import fr.gildasledrogoff.fwknop.domain.model.flatMap
-import fr.gildasledrogoff.fwknop.domain.model.hasBase64Chars
-import fr.gildasledrogoff.fwknop.domain.model.hasBase64Length
-import fr.gildasledrogoff.fwknop.domain.model.map
 
 internal fun CryptoDraft.toCrypto(): DomainResult<SpaCrypto, ConfigError> =
     toHmac().flatMap { hmac ->

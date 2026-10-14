@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
 <!-- Declares the app locales: enables the per-app language picker on Android 13+. -->
 <locale-config xmlns:android="http://schemas.android.com/apk/res/android">
-    <locale android:name="en" />
-    <locale android:name="fr" />
+  <locale android:name="en" />
+  <locale android:name="fr" />
 </locale-config>

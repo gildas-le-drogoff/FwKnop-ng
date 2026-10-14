@@ -1,22 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.lock
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,18 +14,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.gildasledrogoff.fwknop.R
-import fr.gildasledrogoff.fwknop.presentation.state.AuthPurpose
-import fr.gildasledrogoff.fwknop.presentation.state.AuthResult
-import fr.gildasledrogoff.fwknop.presentation.state.LockGateEvent
-import fr.gildasledrogoff.fwknop.presentation.state.LockGateState
-import fr.gildasledrogoff.fwknop.presentation.state.UiError
-import fr.gildasledrogoff.fwknop.presentation.state.text
-import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.CollectEffects
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ConfirmDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ConfirmSpec
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ShieldLockIllustration
-import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberUserAuthenticator
+import fr.gildasledrogoff.fwknop.presentation.state.*
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.networkBackdrop
@@ -77,9 +57,11 @@ fun LockScreenContent(state: LockGateState, actions: LockActions) {
         containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) { padding ->
-        Box(Modifier
-            .fillMaxSize()
-            .padding(padding), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(padding), contentAlignment = Alignment.Center
+        ) {
             when (state) {
                 is LockGateState.Locked -> LockedBody(state.error, actions.onUnlock)
                 LockGateState.Invalidated -> InvalidatedBody(actions.onReset)

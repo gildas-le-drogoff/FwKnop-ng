@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.service
 
 import android.Manifest
@@ -47,9 +51,7 @@ class KnockNotifications @Inject constructor(@param:ApplicationContext private v
         notify(nickname.hashCode(), notification)
     }
 
-    
     fun canNotify(): Boolean = hasPermission() && manager.areNotificationsEnabled()
-
     fun notify(id: Int, notification: Notification) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
@@ -58,8 +60,8 @@ class KnockNotifications @Inject constructor(@param:ApplicationContext private v
     }
 
     private fun hasPermission(): Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
-        PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
 
     fun cancel(id: Int) = manager.cancel(id)
     private fun baseBuilder(nickname: String, seconds: Int): NotificationCompat.Builder {

@@ -1,21 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data
-import fr.gildasledrogoff.fwknop.data.local.models.ConfigEntity
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.data.mapper.toDomain
 import fr.gildasledrogoff.fwknop.data.mapper.toEntity
-import fr.gildasledrogoff.fwknop.domain.model.AccessRule
-import fr.gildasledrogoff.fwknop.domain.model.Encryption
-import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
-import fr.gildasledrogoff.fwknop.domain.model.PortAccess
-import fr.gildasledrogoff.fwknop.domain.model.Protocol
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.ServerPort
-import fr.gildasledrogoff.fwknop.domain.model.SourceIp
+import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.fakes.sampleConfig
-import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-class ConfigMapperTest {
-    private val legacyRow = ConfigEntity(
         nickName = "router", accessIp = "Prompt IP", ports = "tcp/22", serverIp = "192.0.2.1",
         serverPort = "random", serverTimeout = "45", key = "", keyBase64 = false, hmac = "",
         natIp = "127.0.0.1", natPort = "2222", serverCmd = "", hmacBase64 = false,
@@ -31,6 +24,15 @@ class ConfigMapperTest {
         assertThat(config.access).isEqualTo(AccessRule.LocalNatAccess(PortAccess("tcp/22", 45, true), 2222))
         assertThat(config.crypto.hmac).isNull()
         assertThat(config.externalApp).isEqualTo(ExternalApp.OpenVpn("Home"))
+    }
+    @Test
+    fun `http saved with the spa defaults keeps sending to port 80`() {
+        listOf("62201", "random", "").forEach { port ->
+            val config = legacyRow.copy(protocol = "http", serverPort = port).toDomain()
+            assertThat(config.server.port).isEqualTo(ServerPort.Fixed(ServerPort.HTTP_DEFAULT))
+        }
+        assertThat(legacyRow.copy(protocol = "http", serverPort = "8080").toDomain().server.port)
+            .isEqualTo(ServerPort.Fixed(8080))
     }
     @Test
     fun `unknown digest falls back to sha256`() {
@@ -60,14 +62,12 @@ class ConfigMapperTest {
         val ssh = sampleConfig().copy(externalApp = ExternalApp.SshUri("me@host:22"))
         assertThat(ssh.toEntity().sshCmd).isEqualTo("me@host:22")
     }
-
     @Test
     fun `wireguard tunnel round trips through its prefix`() {
         val wg = sampleConfig().copy(externalApp = ExternalApp.WireGuard("home", "s3cret"))
         assertThat(wg.toEntity().sshCmd).isEqualTo("wg:home\ns3cret")
         assertThat(wg.toEntity().toDomain()).isEqualTo(wg)
     }
-
     @Test
     fun `wireguard entries saved without a key load with an empty one`() {
         val legacy = sampleConfig().toEntity().copy(sshCmd = "wg:home")

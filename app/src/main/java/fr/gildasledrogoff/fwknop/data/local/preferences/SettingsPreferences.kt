@@ -1,15 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.local.preferences
 
-import androidx.datastore.preferences.core.MutablePreferences
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
-import fr.gildasledrogoff.fwknop.domain.model.AppSettings
-import fr.gildasledrogoff.fwknop.domain.model.AutoLockDelay
-import fr.gildasledrogoff.fwknop.domain.model.KnockHistoryRetention
-import fr.gildasledrogoff.fwknop.domain.model.ThemeMode
+import androidx.datastore.preferences.core.*
+import fr.gildasledrogoff.fwknop.domain.model.*
 
 object SettingsPreferences {
     const val LEGACY_FILE = "MyPreferences"
@@ -27,6 +23,7 @@ object SettingsPreferences {
     val DYNAMIC_COLOR = booleanPreferencesKey("DynamicColor")
     val EXTERNAL_APP_DELAY = intPreferencesKey("ExternalAppDelaySeconds")
     val KNOCK_HISTORY_RETENTION = stringPreferencesKey("KnockHistoryRetention")
+    val VPN_ROUTING = stringPreferencesKey("VpnRouting")
     val PERMISSIONS_PROMPTED = stringSetPreferencesKey("PermissionsPrompted")
     val PERMISSIONS_REFUSED_FOR_GOOD = stringSetPreferencesKey("PermissionsRefusedForGood")
 }
@@ -39,7 +36,8 @@ fun Preferences.toAppSettings(): AppSettings {
         nfcKnockEnabled = this[SettingsPreferences.NFC_ENABLED] ?: defaults.nfcKnockEnabled,
         notificationsEnabled = this[SettingsPreferences.NOTIFICATION_ENABLED]
             ?: defaults.notificationsEnabled,
-        portCheckEnabled = this[SettingsPreferences.PORT_CHECK_ENABLED] ?: defaults.portCheckEnabled,
+        portCheckEnabled = this[SettingsPreferences.PORT_CHECK_ENABLED]
+            ?: defaults.portCheckEnabled,
         ipLookupUrl = this[SettingsPreferences.IP_SOURCE] ?: defaults.ipLookupUrl,
         helpShown = this[SettingsPreferences.HELP_SHOWN] ?: defaults.helpShown,
         lockSuggestionDismissed = this[SettingsPreferences.LOCK_SUGGESTION_DISMISSED]
@@ -55,6 +53,8 @@ fun Preferences.toAppSettings(): AppSettings {
         externalAppDelaySeconds = this[SettingsPreferences.EXTERNAL_APP_DELAY]
             ?.coerceIn(AppSettings.EXTERNAL_APP_DELAY_RANGE)
             ?: defaults.externalAppDelaySeconds,
+        vpnRouting = VpnRouting.entries.firstOrNull { it.name == this[SettingsPreferences.VPN_ROUTING] }
+            ?: defaults.vpnRouting,
     )
 }
 
@@ -70,4 +70,5 @@ fun MutablePreferences.write(settings: AppSettings) {
     this[SettingsPreferences.DYNAMIC_COLOR] = settings.dynamicColor
     this[SettingsPreferences.EXTERNAL_APP_DELAY] = settings.externalAppDelaySeconds
     this[SettingsPreferences.KNOCK_HISTORY_RETENTION] = settings.knockHistoryRetention.name
+    this[SettingsPreferences.VPN_ROUTING] = settings.vpnRouting.name
 }

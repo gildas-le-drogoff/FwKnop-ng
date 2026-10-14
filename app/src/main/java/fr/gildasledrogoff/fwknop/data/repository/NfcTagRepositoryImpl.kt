@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.repository
 
 import com.google.crypto.tink.Aead
@@ -11,23 +15,34 @@ import fr.gildasledrogoff.fwknop.domain.model.Nickname
 import fr.gildasledrogoff.fwknop.domain.repository.NfcTagRepository
 import fr.gildasledrogoff.fwknop.utils.dispatcher.DispatcherProvider
 import kotlinx.coroutines.withContext
-import java.util.Base64
+import java.util.*
 import javax.inject.Inject
-
 
 class NfcTagRepositoryImpl @Inject constructor(
     private val session: VaultSession,
     private val keys: NfcTagKeys,
     private val dispatchers: DispatcherProvider,
 ) : NfcTagRepository {
-    override suspend fun digest(nickname: Nickname): NfcTagDigest = withKey({ keys.obtain(it) }) { key ->
-        NfcTagDigest(NfcTagDigester.digest(key, nickname.value))
-    }
+    override suspend fun digest(nickname: Nickname): NfcTagDigest =
+        withKey({ keys.obtain(it) }) { key ->
+            NfcTagDigest(NfcTagDigester.digest(key, nickname.value))
+        }
 
-    override suspend fun match(digests: List<NfcTagDigest>, candidates: List<Nickname>): List<Nickname?> =
+    override suspend fun match(
+        digests: List<NfcTagDigest>,
+        candidates: List<Nickname>
+    ): List<Nickname?> =
         withKey({ keys.read(it) }) { key ->
             digests.map { digest ->
-                key?.let { candidates.firstOrNull { NfcTagDigester.matches(key, digest.bytes, it.value) } }
+                key?.let {
+                    candidates.firstOrNull {
+                        NfcTagDigester.matches(
+                            key,
+                            digest.bytes,
+                            it.value
+                        )
+                    }
+                }
             }
         }
 
@@ -38,7 +53,14 @@ class NfcTagRepositoryImpl @Inject constructor(
     override suspend fun importKey(key: NfcTagKey) {
         val bytes = Base64.getDecoder().decode(key.base64)
         try {
-            withContext(dispatchers.io) { session.writing { vault -> keys.write(vault.keyset.aead(), bytes) } }
+            withContext(dispatchers.io) {
+                session.writing { vault ->
+                    keys.write(
+                        vault.keyset.aead(),
+                        bytes
+                    )
+                }
+            }
         } finally {
             bytes.fill(0)
         }
@@ -48,7 +70,8 @@ class NfcTagRepositoryImpl @Inject constructor(
         load: (Aead) -> K,
         use: (K) -> T,
     ): T {
-        val key = withContext(dispatchers.io) { session.writing { vault -> load(vault.keyset.aead()) } }
+        val key =
+            withContext(dispatchers.io) { session.writing { vault -> load(vault.keyset.aead()) } }
         return try {
             withContext(dispatchers.default) { use(key) }
         } finally {

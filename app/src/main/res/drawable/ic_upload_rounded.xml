@@ -1,17 +1,22 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="960"
-    android:viewportHeight="960">
-  <group
-      android:pivotX="480"
-      android:pivotY="395.5"
-      android:rotation="180">
+<!--
+SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<vector
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="24dp"
+  android:height="24dp"
+  android:viewportWidth="960"
+  android:viewportHeight="960"
+>
+  <group android:pivotX="480" android:pivotY="395.5" android:rotation="180">
     <path
-        android:fillColor="@android:color/white"
-        android:pathData="M480,627Q472,627 465,624.5Q458,622 452,616L308,472Q296,460 296.5,444Q297,428 308,416Q320,404 336.5,403.5Q353,403 365,415L440,490L440,204Q440,187 451.5,175.5Q463,164 480,164Q497,164 508.5,175.5Q520,187 520,204L520,490L595,415Q607,403 623.5,403.5Q640,404 652,416Q663,428 663.5,444Q664,460 652,472L508,616Q502,622 495,624.5Q488,627 480,627Z"/>
+      android:fillColor="@android:color/white"
+      android:pathData="M480,627Q472,627 465,624.5Q458,622 452,616L308,472Q296,460 296.5,444Q297,428 308,416Q320,404 336.5,403.5Q353,403 365,415L440,490L440,204Q440,187 451.5,175.5Q463,164 480,164Q497,164 508.5,175.5Q520,187 520,204L520,490L595,415Q607,403 623.5,403.5Q640,404 652,416Q663,428 663.5,444Q664,460 652,472L508,616Q502,622 495,624.5Q488,627 480,627Z"
+    />
   </group>
   <path
-      android:fillColor="@android:color/white"
-      android:pathData="M240,800Q207,800 183.5,776.5Q160,753 160,720L160,640Q160,623 171.5,611.5Q183,600 200,600Q217,600 228.5,611.5Q240,623 240,640L240,720Q240,720 240,720Q240,720 240,720L720,720Q720,720 720,720Q720,720 720,720L720,640Q720,623 731.5,611.5Q743,600 760,600Q777,600 788.5,611.5Q800,623 800,640L800,720Q800,753 776.5,776.5Q753,800 720,800L240,800Z"/>
+    android:fillColor="@android:color/white"
+    android:pathData="M240,800Q207,800 183.5,776.5Q160,753 160,720L160,640Q160,623 171.5,611.5Q183,600 200,600Q217,600 228.5,611.5Q240,623 240,640L240,720Q240,720 240,720Q240,720 240,720L720,720Q720,720 720,720Q720,720 720,720L720,640Q720,623 731.5,611.5Q743,600 760,600Q777,600 788.5,611.5Q800,623 800,640L800,720Q800,753 776.5,776.5Q753,800 720,800L240,800Z"
+  />
 </vector>

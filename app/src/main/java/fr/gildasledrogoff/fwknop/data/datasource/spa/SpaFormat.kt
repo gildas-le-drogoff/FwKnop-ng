@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.datasource.spa
 
-import java.util.Base64
+import java.util.*
 
 internal object SpaFormat {
-    const val PROTOCOL_VERSION = "2.0.2"
+    const val PROTOCOL_VERSION = "2.1.0"
     const val FIELD_SEPARATOR = ":"
     const val RANDOM_VALUE_LENGTH = 16
     const val SALT_LENGTH = 8
@@ -15,8 +19,6 @@ internal object SpaFormat {
     const val RIJNDAEL_PREFIX_LENGTH = 10
     const val GPG_PREFIX = "hQ"
     val ENCODED_LENGTH = 36..1500
-
-    
     const val MAX_PACKET_LENGTH = 1500
 }
 

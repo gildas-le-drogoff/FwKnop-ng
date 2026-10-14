@@ -1,116 +1,44 @@
 name: Bug report
-description: Report a bug/issue with FwKnop-ng
-labels: bug
+description: Report a problem with FwKnop-ng
+labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        **Security vulnerabilities must not be reported here.** See the [security policy](https://github.com/gildas-le-drogoff/FwKnop-ng/security/policy).
-
+        Thanks for reporting a bug! Please do **not** report security issues here —
+        use a private security advisory (see the link on the issue chooser).
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Settings → About, or the versionName/versionCode.
+      placeholder: "1.0 (1)"
+    validations:
+      required: true
+  - type: input
+    id: android
+    attributes:
+      label: Android version and device
+      placeholder: "Android 14, Pixel 6"
+    validations:
+      required: true
   - type: textarea
-    id: steps-to-reproduce
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
     attributes:
       label: Steps to reproduce
       placeholder: |
-        Example:
-          1. First step
-          2. Second step
-          3. Issue here
-    validations:
-      required: true
-
+        1. …
+        2. …
   - type: textarea
-    id: expected-behavior
+    id: logs
     attributes:
-      label: Expected behavior
-      description: Explain what should happen.
-      placeholder: |
-        Example:
-          "The port should be opened on the server…"
-    validations:
-      required: true
-
-  - type: textarea
-    id: actual-behavior
-    attributes:
-      label: Actual behavior
-      description: Explain what actually happens.
-      placeholder: |
-        Example:
-          "fwknopd logs an HMAC verification failure…"
-    validations:
-      required: true
-
-  - type: textarea
-    id: spa-configuration
-    attributes:
-      label: SPA configuration
-      description: Encryption (Rijndael or GPG), HMAC digest, transport (UDP, TCP or HTTP), access mode and source IP resolution. **Never paste your keys.**
-      placeholder: |
-        Example: "Rijndael + HMAC-SHA256, UDP 62201, access mode, source IP resolved with STUN"
-    validations:
-      required: true
-
-  - type: input
-    id: server-version
-    attributes:
-      label: fwknopd server version and OS
-      description: Output of `fwknopd --version` on the server.
-      placeholder: |
-        Example: "fwknopd 2.6.11 on Debian 13"
-    validations:
-      required: true
-
-  - type: input
-    id: app-version
-    attributes:
-      label: FwKnop-ng version
-      description: You can find it in the Help screen or from Android settings for the app. We expect a version number here, “Latest” is not a valid answer.
-      placeholder: |
-        Example: "2.0.1"
-    validations:
-      required: true
-
-  - type: input
-    id: android-version
-    attributes:
-      label: Android version
-      description: You can find it in your Android settings. If you use a custom ROM, please write it here.
-      placeholder: |
-        Example: "Android 15"
-    validations:
-      required: true
-
-  - type: input
-    id: device
-    attributes:
-      label: Device
-      description: Your device and model.
-      placeholder: |
-        Example: "Google Pixel 8"
-    validations:
-      required: true
-
-  - type: textarea
-    id: other-details
-    attributes:
-      label: Other details
-      placeholder: |
-        Additional details and attachments: relevant `fwknopd` server logs, `adb logcat` output, network context (Wi-Fi, mobile data, VPN, NAT)… Redact your IP addresses and keys.
-
-  - type: checkboxes
-    id: acknowledgements
-    attributes:
-      label: Acknowledgements
-      description: Your issue will be closed if you don’t read this carefully.
-      options:
-        - label: I have searched the existing issues and this is a new ticket, **NOT** a duplicate or related to another open OR closed issue.
-          required: true
-        - label: I have updated the app to the **[latest version](https://github.com/gildas-le-drogoff/FwKnop-ng/releases)** and I can reproduce the issue in this version.
-          required: true
-        - label: I checked that the same configuration works (or fails the same way) with the official `fwknop` command-line client, when possible.
-          required: false
-        - label: I wrote my request in English or French, and any screenshot I attached is also in English or French.
-          required: true
-        - label: I understand that this app is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, so I may not get a positive reply to my request, if any at all.
-          required: true
+      label: Logs (optional)
+      description: "`adb logcat -d | rg (FaceDetection)` output, with any private data redacted."
+      render: shell

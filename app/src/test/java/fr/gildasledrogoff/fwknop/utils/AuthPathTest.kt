@@ -1,8 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.utils
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.utils.helpers.AuthCapabilities
 import fr.gildasledrogoff.fwknop.utils.helpers.AuthPath
 import fr.gildasledrogoff.fwknop.utils.helpers.chooseAuthPath
-import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 class AuthPathTest {
     @Test

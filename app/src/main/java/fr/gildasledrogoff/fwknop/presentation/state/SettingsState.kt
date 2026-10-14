@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.state
 
 import androidx.compose.runtime.Immutable
@@ -32,36 +36,24 @@ sealed interface NfcWriteState {
     data class Failed(val error: UiError) : NfcWriteState
 }
 
-
 enum class NfcEraseReason(val wholeTag: Boolean) {
-    
     FOREIGN(true),
-
-    
     LEGACY(false),
-
-    
     FWKNOP(false),
 }
 
 sealed interface NfcEraseState {
     data object Idle : NfcEraseState
-
-    
     data class Confirm(val reason: NfcEraseReason) : NfcEraseState
-
-    
     data class Waiting(val wholeTag: Boolean) : NfcEraseState
     data object Erased : NfcEraseState
     data class Failed(val error: UiError) : NfcEraseState
 }
 
-
 @Immutable
 data class NfcWriteNotices(
     val nfcKnockDisabled: Boolean = false,
     val localNetworkMissing: Boolean = false,
-    
     val localNetworkPermanentlyDenied: Boolean = false,
     val lockDisabled: Boolean = false,
 )

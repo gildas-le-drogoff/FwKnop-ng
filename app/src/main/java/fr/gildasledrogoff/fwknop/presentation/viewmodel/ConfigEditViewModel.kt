@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.viewmodel
 
 import android.content.IntentSender
@@ -7,36 +11,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.gildasledrogoff.fwknop.domain.error.BackupError
 import fr.gildasledrogoff.fwknop.domain.error.GpgError
-import fr.gildasledrogoff.fwknop.domain.model.BackupPassphrase
-import fr.gildasledrogoff.fwknop.domain.model.ConfigDraft
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyRole
-import fr.gildasledrogoff.fwknop.domain.model.InteractionId
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.SealedQr
-import fr.gildasledrogoff.fwknop.domain.model.toDraft
-import fr.gildasledrogoff.fwknop.domain.model.withQrConfig
-import fr.gildasledrogoff.fwknop.domain.model.withQrKeys
-import fr.gildasledrogoff.fwknop.domain.usecase.GetConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.OpenSealedQrUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ParseQrConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.SaveConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.SelectGpgKeyUseCase
-import fr.gildasledrogoff.fwknop.presentation.state.ConfigEditEffect
-import fr.gildasledrogoff.fwknop.presentation.state.ConfigEditEvent
-import fr.gildasledrogoff.fwknop.presentation.state.ConfigEditState
-import fr.gildasledrogoff.fwknop.presentation.state.SealedQrPrompt
-import fr.gildasledrogoff.fwknop.presentation.state.toUiError
+import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.domain.usecase.*
+import fr.gildasledrogoff.fwknop.presentation.state.*
 import fr.gildasledrogoff.fwknop.presentation.ui.navigation.ConfigEditRoute
 import fr.gildasledrogoff.fwknop.utils.helpers.InteractionRegistry
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -52,14 +33,19 @@ class ConfigEditViewModel @Inject constructor(
 ) : ViewModel() {
     private val original: Nickname? =
         savedStateHandle.get<String>(ConfigEditRoute.ARG_NICKNAME)?.let(::Nickname)
-    private val _state =
-        MutableStateFlow(ConfigEditState(isNew = original == null, isLoading = original != null))
+    private val newKind: ConfigKind = savedStateHandle.get<String>(ConfigEditRoute.ARG_KIND)
+        ?.let { name -> ConfigKind.entries.firstOrNull { it.name == name } } ?: ConfigKind.FWKNOP
+    private val _state = MutableStateFlow(
+        ConfigEditState(
+            isNew = original == null,
+            isLoading = original != null,
+            draft = ConfigDraft(kind = newKind),
+        )
+    )
     val state: StateFlow<ConfigEditState> = _state.asStateFlow()
     private val _effects = Channel<ConfigEditEffect>(Channel.BUFFERED)
     val effects: Flow<ConfigEditEffect> = _effects.receiveAsFlow()
     private val pendingKeyRoles = mutableMapOf<InteractionId, GpgKeyRole>()
-
-    
     private var pendingSealedQr: String? = null
 
     init {
@@ -75,6 +61,7 @@ class ConfigEditViewModel @Inject constructor(
             is ConfigEditEvent.SourceIpChanged -> updateDraft { it.copy(sourceIp = event.value) }
             is ConfigEditEvent.CryptoChanged -> updateDraft { it.copy(crypto = event.value) }
             is ConfigEditEvent.ExternalAppChanged -> updateDraft { it.copy(externalApp = event.value) }
+            is ConfigEditEvent.WakeOnLanChanged -> updateDraft { it.copy(wakeOnLan = event.value) }
             is ConfigEditEvent.QrScanned -> onQrScanned(event.content)
             is ConfigEditEvent.QrImportSelected -> applyPendingQr(event.fullConfig)
             ConfigEditEvent.QrImportDismissed -> _state.update { it.copy(pendingQr = null) }
@@ -140,7 +127,6 @@ class ConfigEditViewModel @Inject constructor(
         }
     }
 
-    
     private fun onSealedQrFailure(error: BackupError) {
         if (error == BackupError.WrongPassphrase) {
             _state.update { it.copy(sealedQr = SealedQrPrompt(wrongPassphrase = true)) }

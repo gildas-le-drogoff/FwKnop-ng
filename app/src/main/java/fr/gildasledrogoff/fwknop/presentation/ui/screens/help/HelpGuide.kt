@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.help
 
 import androidx.annotation.DrawableRes
@@ -5,11 +9,7 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,19 +35,42 @@ private data class HelpTopic(
 )
 
 private val helpTopics = listOf(
-    HelpTopic(R.string.help_topic_basics_title, R.string.help_topic_basics_body, R.drawable.ic_shield_rounded),
-    HelpTopic(R.string.help_topic_config_title, R.string.help_topic_config_body, R.drawable.ic_key_rounded),
-    HelpTopic(R.string.help_topic_source_ip_title, R.string.help_topic_source_ip_body, R.drawable.ic_dns_rounded),
-    HelpTopic(R.string.help_topic_after_title, R.string.help_topic_after_body, R.drawable.ic_bolt_rounded),
-    HelpTopic(R.string.help_topic_nfc_title, R.string.help_topic_nfc_body, R.drawable.ic_nfc_rounded),
-    HelpTopic(R.string.help_topic_security_title, R.string.help_topic_security_body, R.drawable.ic_lock_rounded),
+    HelpTopic(
+        R.string.help_topic_basics_title,
+        R.string.help_topic_basics_body,
+        R.drawable.ic_shield_rounded
+    ),
+    HelpTopic(
+        R.string.help_topic_config_title,
+        R.string.help_topic_config_body,
+        R.drawable.ic_key_rounded
+    ),
+    HelpTopic(
+        R.string.help_topic_source_ip_title,
+        R.string.help_topic_source_ip_body,
+        R.drawable.ic_dns_rounded
+    ),
+    HelpTopic(
+        R.string.help_topic_after_title,
+        R.string.help_topic_after_body,
+        R.drawable.ic_bolt_rounded
+    ),
+    HelpTopic(
+        R.string.help_topic_nfc_title,
+        R.string.help_topic_nfc_body,
+        R.drawable.ic_nfc_rounded
+    ),
+    HelpTopic(
+        R.string.help_topic_security_title,
+        R.string.help_topic_security_body,
+        R.drawable.ic_lock_rounded
+    ),
     HelpTopic(
         R.string.help_topic_troubleshooting_title,
         R.string.help_topic_troubleshooting_body,
         R.drawable.ic_error_rounded
     ),
 )
-
 private const val NONE = -1
 
 @Composable
@@ -78,7 +101,6 @@ private fun HelpTopicCard(topic: HelpTopic, expanded: Boolean, onToggle: () -> U
         onClick = onToggle,
         shape = MaterialTheme.shapes.large,
         color = container,
-        
         contentColor = if (expanded) colors.onSecondaryContainer else colors.onSurface,
         modifier = Modifier.fillMaxWidth(),
     ) {

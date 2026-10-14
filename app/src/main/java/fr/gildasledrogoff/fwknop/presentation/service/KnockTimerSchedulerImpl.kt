@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.service
 
 import android.content.Context
@@ -32,7 +36,6 @@ class KnockTimerSchedulerImpl @Inject constructor(
     private val sessions: KeepOpenSessionStore,
 ) : KnockTimerScheduler {
     override fun canNotify(): Boolean = notifications.canNotify()
-
     override fun schedule(plan: KnockTimerPlan): Boolean = when (plan) {
         is KnockTimerPlan.Countdown -> {
             notifications.showCountdown(plan.nickname.value, plan.seconds)
@@ -42,8 +45,6 @@ class KnockTimerSchedulerImpl @Inject constructor(
         is KnockTimerPlan.KeepOpen -> startKeepOpen(plan)
     }
 
-    
-    
     private fun startKeepOpen(plan: KnockTimerPlan.KeepOpen): Boolean {
         val sessionId = sessions.put(plan.request)
         return try {

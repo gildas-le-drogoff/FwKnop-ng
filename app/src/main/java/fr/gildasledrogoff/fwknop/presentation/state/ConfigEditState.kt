@@ -1,18 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.state
 
 import android.content.Intent
 import androidx.compose.runtime.Immutable
-import fr.gildasledrogoff.fwknop.domain.model.AccessDraft
-import fr.gildasledrogoff.fwknop.domain.model.ConfigDraft
-import fr.gildasledrogoff.fwknop.domain.model.CryptoDraft
-import fr.gildasledrogoff.fwknop.domain.model.ExternalAppDraft
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyRole
-import fr.gildasledrogoff.fwknop.domain.model.InteractionId
-import fr.gildasledrogoff.fwknop.domain.model.ParsedQr
-import fr.gildasledrogoff.fwknop.domain.model.ServerDraft
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpDraft
-
-@Immutable
+import fr.gildasledrogoff.fwknop.domain.model.*
 data class ConfigEditState(
     val isNew: Boolean = true,
     val isLoading: Boolean = false,
@@ -22,10 +16,8 @@ data class ConfigEditState(
     val error: UiError? = null,
 )
 
-
 @Immutable
 data class SealedQrPrompt(val wrongPassphrase: Boolean = false)
-
 sealed interface ConfigEditEvent {
     data class NicknameChanged(val value: String) : ConfigEditEvent
     data class ServerChanged(val value: ServerDraft) : ConfigEditEvent
@@ -33,6 +25,7 @@ sealed interface ConfigEditEvent {
     data class SourceIpChanged(val value: SourceIpDraft) : ConfigEditEvent
     data class CryptoChanged(val value: CryptoDraft) : ConfigEditEvent
     data class ExternalAppChanged(val value: ExternalAppDraft) : ConfigEditEvent
+    data class WakeOnLanChanged(val value: WakeOnLanDraft) : ConfigEditEvent
     data class QrScanned(val content: String) : ConfigEditEvent
     data class QrImportSelected(val fullConfig: Boolean) : ConfigEditEvent
     data object QrImportDismissed : ConfigEditEvent

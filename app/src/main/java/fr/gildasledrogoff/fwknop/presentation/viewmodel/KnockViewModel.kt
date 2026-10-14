@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.viewmodel
 
 import android.content.IntentSender
@@ -7,37 +11,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.gildasledrogoff.fwknop.domain.error.ConfigError
 import fr.gildasledrogoff.fwknop.domain.error.GpgError
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
-import fr.gildasledrogoff.fwknop.domain.model.InteractionId
-import fr.gildasledrogoff.fwknop.domain.model.KnockOutcome
-import fr.gildasledrogoff.fwknop.domain.model.KnockOverrides
-import fr.gildasledrogoff.fwknop.domain.model.KnockPrompt
-import fr.gildasledrogoff.fwknop.domain.model.KnockRequest
-import fr.gildasledrogoff.fwknop.domain.model.KnockTimerOutcome
-import fr.gildasledrogoff.fwknop.domain.model.NfcTagDigest
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
-import fr.gildasledrogoff.fwknop.domain.model.isIpAddress
-import fr.gildasledrogoff.fwknop.domain.model.map
-import fr.gildasledrogoff.fwknop.domain.model.mapError
-import fr.gildasledrogoff.fwknop.domain.usecase.GetConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.GetExternalAppDelayUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.GetNfcKnockConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.GetRequiredPromptsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.NeedsTimerNotificationUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ObserveVaultStatusUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ParseQrClientIpUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ScheduleKnockTimerUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.SendKnockUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.VerifyPortAccessUseCase
-import fr.gildasledrogoff.fwknop.presentation.state.AuthResult
-import fr.gildasledrogoff.fwknop.presentation.state.KnockEffect
-import fr.gildasledrogoff.fwknop.presentation.state.KnockEvent
-import fr.gildasledrogoff.fwknop.presentation.state.KnockPermission
-import fr.gildasledrogoff.fwknop.presentation.state.KnockState
-import fr.gildasledrogoff.fwknop.presentation.state.SentNotice
-import fr.gildasledrogoff.fwknop.presentation.state.toUiError
+import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.domain.usecase.*
+import fr.gildasledrogoff.fwknop.presentation.state.*
 import fr.gildasledrogoff.fwknop.utils.helpers.InteractionRegistry
 import fr.gildasledrogoff.fwknop.utils.helpers.LocalNetworkAccess
 import fr.gildasledrogoff.fwknop.utils.helpers.PermissionStatus
@@ -45,11 +21,7 @@ import fr.gildasledrogoff.fwknop.utils.helpers.RuntimePermissions
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -83,6 +55,7 @@ class KnockViewModel @Inject constructor(
             is KnockEvent.Knock -> load {
                 getConfig(Nickname(event.nickname)).mapError(::toKnockError).map(::listOf)
             }
+
             is KnockEvent.KnockFromNfc -> knockFromNfc(event.digests)
             is KnockEvent.NfcAuthCompleted -> onNfcAuthCompleted(event.result)
             is KnockEvent.ConfigChosen -> onConfigChosen(event.nickname)
@@ -98,7 +71,6 @@ class KnockViewModel @Inject constructor(
         }
     }
 
-    
     private fun knockFromNfc(digests: List<NfcTagDigest>) {
         if (_state.value != KnockState.Idle) return
         if (!observeVault().value.lockEnabled) {
@@ -114,11 +86,11 @@ class KnockViewModel @Inject constructor(
         val digests = nfcDigests ?: return
         nfcDigests = null
         when (result) {
-            
             AuthResult.Success -> load(alwaysChoose = true) { getNfcConfig(digests) }
             AuthResult.Cancelled -> _state.value = KnockState.Idle
-            
-            AuthResult.Unavailable -> _state.value = KnockState.Failed(KnockError.NfcLockRequired.toUiError())
+            AuthResult.Unavailable -> _state.value =
+                KnockState.Failed(KnockError.NfcLockRequired.toUiError())
+
             is AuthResult.Error -> _state.value = KnockState.Failed(result.toUiError())
         }
     }
@@ -129,8 +101,10 @@ class KnockViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             when (val result = fetch()) {
-                is DomainResult.Success -> result.data.singleOrNull()?.takeUnless { alwaysChoose }?.let(::start)
+                is DomainResult.Success -> result.data.singleOrNull()?.takeUnless { alwaysChoose }
+                    ?.let(::start)
                     ?: offerChoice(result.data)
+
                 is DomainResult.Failure -> _state.value = KnockState.Failed(
                     result.error.toUiError(),
                     tagErasable = result.error == KnockError.NfcTagUnknown,
@@ -167,11 +141,10 @@ class KnockViewModel @Inject constructor(
         }
     }
 
-    
     private suspend fun offerTimerNotifications(nickname: String) {
         val config = request?.config ?: return
         val ask = runtimePermissions.snapshot.value.canPrompt(RuntimePermissions.NOTIFICATIONS) &&
-            needsTimerNotification(config)
+                needsTimerNotification(config)
         if (ask) {
             _state.value = KnockState.ExplainPermission(nickname, KnockPermission.NOTIFICATIONS)
         } else {
@@ -187,7 +160,11 @@ class KnockViewModel @Inject constructor(
 
     private fun onPermissionResult(event: KnockEvent.PermissionResult) {
         val current = _state.value as? KnockState.AwaitingPermission ?: return
-        runtimePermissions.onPromptResult(current.permission.manifestName, event.granted, event.permanentlyDenied)
+        runtimePermissions.onPromptResult(
+            current.permission.manifestName,
+            event.granted,
+            event.permanentlyDenied
+        )
         val nickname = request?.config?.nickname?.value ?: return
         val blocked = current.permission == KnockPermission.LOCAL_NETWORK && !event.granted
         if (blocked) failLocalNetwork() else startSending(nickname)
@@ -216,7 +193,8 @@ class KnockViewModel @Inject constructor(
     }
 
     private fun failLocalNetwork() {
-        _state.value = KnockState.Failed(KnockError.LocalNetworkBlocked.toUiError(), fixInAppSettings = true)
+        _state.value =
+            KnockState.Failed(KnockError.LocalNetworkBlocked.toUiError(), fixInAppSettings = true)
     }
 
     private fun startSending(nickname: String) {
@@ -243,7 +221,7 @@ class KnockViewModel @Inject constructor(
 
     private fun submitSourceIp(ip: String) {
         val current = _state.value as? KnockState.PromptSourceIp ?: return
-        if (ip.trim().isIpAddress()) {
+        if (ip.trim().isIpv4Address()) {
             override { it.copy(sourceIp = ip.trim()) }
         } else {
             _state.value = current.copy(invalid = true, qrUnrecognized = false)
@@ -268,13 +246,13 @@ class KnockViewModel @Inject constructor(
         _effects.send(KnockEffect.Sent(config.nickname.value, outcome.source, notice))
         viewModelScope.launch { checkPorts(outcome) }
         if (config.externalApp != ExternalApp.None) {
-            // Some firewalls apply the rule a little after the packet arrives.
+
             delay(externalAppDelay())
             _effects.send(KnockEffect.LaunchApp(config.externalApp, config.nickname.value))
         }
     }
 
-    // Runs beside the app launch so the probe never delays it.
+
     private suspend fun checkPorts(outcome: KnockOutcome) {
         val check = verifyPorts(outcome) ?: return
         _effects.send(KnockEffect.PortChecked(outcome.request.config.nickname.value, check))
@@ -283,7 +261,6 @@ class KnockViewModel @Inject constructor(
     private suspend fun onFailure(error: KnockError) {
         val interaction =
             ((error as? KnockError.Gpg)?.error as? GpgError.InteractionRequired)?.interaction
-        
         request =
             request?.let { it.copy(overrides = it.overrides.copy(gpgInteraction = interaction)) }
         when {

@@ -1,1 +1,1 @@
-Port knocking client for fwknop (Single Packet Authorization)
+Port knocking client for FwKnop (Single Packet Authorization)

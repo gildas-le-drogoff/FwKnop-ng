@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.navigation
 
 import kotlinx.serialization.Serializable
@@ -5,10 +9,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object ConfigListRoute
 
+
 @Serializable
-data class ConfigEditRoute(val nickname: String? = null) {
+data class ConfigEditRoute(val nickname: String? = null, val kind: String? = null) {
     companion object {
         const val ARG_NICKNAME = "nickname"
+        const val ARG_KIND = "kind"
     }
 }
 
@@ -27,7 +33,6 @@ data class NfcWriteRoute(val nickname: String) {
         const val ARG_NICKNAME = "nickname"
     }
 }
-
 
 @Serializable
 data class QrExportRoute(val nicknames: List<String>)

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.local.security
 
 import com.google.crypto.tink.KeysetHandle
@@ -13,7 +17,6 @@ class VaultOpener @Inject constructor(
     private val database: DatabaseFileStore,
     private val passphrases: SealedPassphraseStore,
 ) {
-    
     fun open(lockNew: Boolean = false): KeysetHandle {
         val alias = metadata.read().masterKeyAlias ?: return create(lockNew)
         if (!keys.exists(alias)) throw VaultUnrecoverableException("master key missing")

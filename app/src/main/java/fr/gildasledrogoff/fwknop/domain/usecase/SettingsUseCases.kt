@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.usecase
 
 import fr.gildasledrogoff.fwknop.domain.error.SettingsError
@@ -43,7 +47,6 @@ class SaveSettingsUseCase @Inject constructor(private val repository: SettingsRe
 
     private fun isValidLookupUrl(url: String): Boolean {
         val scheme = url.substringBefore("://", missingDelimiterValue = "").lowercase()
-        
         if (scheme != "https") return false
         val host = url.substringAfter("://").substringBefore('/').substringBefore(':')
         return host.isDomainName() || host.isIpAddress()

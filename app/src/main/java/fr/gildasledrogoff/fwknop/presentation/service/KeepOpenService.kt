@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.service
 
 import android.app.PendingIntent
@@ -27,15 +31,16 @@ import javax.inject.Inject
 class KeepOpenService : LifecycleService() {
     @Inject
     lateinit var sessions: KeepOpenSessionStore
+
     @Inject
     lateinit var notifications: KnockNotifications
+
     @Inject
     lateinit var sendKnock: SendKnockUseCase
     private val jobs = mutableMapOf<Int, Job>()
     private val schedules = mutableMapOf<Int, ReknockSchedule>()
     private var networkSettle: Job? = null
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
-
     override fun onCreate() {
         super.onCreate()
         watchNetwork()
@@ -68,7 +73,8 @@ class KeepOpenService : LifecycleService() {
             retryMs = NETWORK_RETRY_MS,
         )
         schedules[sessionId] = schedule
-        jobs[sessionId] = lifecycleScope.launch { reknockLoop(sessionId, request, schedule, seconds) }
+        jobs[sessionId] =
+            lifecycleScope.launch { reknockLoop(sessionId, request, schedule, seconds) }
     }
 
     private suspend fun reknockLoop(
@@ -98,7 +104,7 @@ class KeepOpenService : LifecycleService() {
         stopSession(sessionId)
     }
 
-    // A new network means a new source IP: the opened rule no longer matches it.
+
     private fun watchNetwork() {
         val connectivity = getSystemService(ConnectivityManager::class.java) ?: return
         val active = connectivity.activeNetwork
@@ -107,14 +113,21 @@ class KeepOpenService : LifecycleService() {
             active?.let(connectivity::getNetworkCapabilities)?.physicalTransports().orEmpty(),
         )
         val callback = object : ConnectivityManager.NetworkCallback() {
-            override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-                if (detector.onCapabilitiesChanged(network, capabilities.physicalTransports())) onNetworkChanged()
+            override fun onCapabilitiesChanged(
+                network: Network,
+                capabilities: NetworkCapabilities
+            ) {
+                if (detector.onCapabilitiesChanged(
+                        network,
+                        capabilities.physicalTransports()
+                    )
+                ) onNetworkChanged()
             }
 
             override fun onLost(network: Network) = detector.onLost(network)
         }
         try {
-            // Main looper: callbacks then touch the session maps on the same thread as the service.
+
             connectivity.registerDefaultNetworkCallback(callback, Handler(Looper.getMainLooper()))
             networkCallback = callback
         } catch (e: RuntimeException) {
@@ -147,7 +160,11 @@ class KeepOpenService : LifecycleService() {
     }
 
     override fun onDestroy() {
-        networkCallback?.let { getSystemService(ConnectivityManager::class.java)?.unregisterNetworkCallback(it) }
+        networkCallback?.let {
+            getSystemService(ConnectivityManager::class.java)?.unregisterNetworkCallback(
+                it
+            )
+        }
         networkCallback = null
         jobs.keys.forEach(sessions::remove)
         jobs.clear()
@@ -179,7 +196,7 @@ class KeepOpenService : LifecycleService() {
     }
 }
 
-// Under a VPN the default network stays the VPN; its transports reveal a Wi-Fi / mobile switch beneath.
+
 private val PHYSICAL_TRANSPORTS = intArrayOf(
     NetworkCapabilities.TRANSPORT_WIFI,
     NetworkCapabilities.TRANSPORT_CELLULAR,

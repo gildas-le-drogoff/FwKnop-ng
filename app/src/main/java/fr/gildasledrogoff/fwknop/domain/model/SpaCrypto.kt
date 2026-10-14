@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.model
 
 data class SpaCrypto(
@@ -10,7 +14,6 @@ data class SpaCrypto(
 
 data class SecretKey(val value: String, val base64: Boolean)
 sealed interface Encryption {
-    
     data class Rijndael(
         val key: SecretKey,
         val dormantRecipient: GpgKeyId? = null,

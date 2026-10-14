@@ -1,33 +1,23 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.data.backup.BackupCipher
 import fr.gildasledrogoff.fwknop.data.backup.BackupConfig
 import fr.gildasledrogoff.fwknop.data.backup.BackupPayload
 import fr.gildasledrogoff.fwknop.data.backup.toDomain
 import fr.gildasledrogoff.fwknop.data.repository.BackupRepositoryImpl
 import fr.gildasledrogoff.fwknop.domain.error.BackupError
-import fr.gildasledrogoff.fwknop.domain.model.AccessRule
-import fr.gildasledrogoff.fwknop.domain.model.AppSettings
-import fr.gildasledrogoff.fwknop.domain.model.AutoLockDelay
-import fr.gildasledrogoff.fwknop.domain.model.Backup
-import fr.gildasledrogoff.fwknop.domain.model.BackupPassphrase
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.Encryption
-import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
-import fr.gildasledrogoff.fwknop.domain.model.NfcTagKey
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
-import fr.gildasledrogoff.fwknop.domain.model.PortAccess
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.SourceIp
+import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.fakes.sampleConfig
 import fr.gildasledrogoff.fwknop.utils.dispatcher.DispatcherProvider
-import com.google.common.truth.Truth.assertThat
-import java.nio.ByteBuffer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import java.util.Base64
-class BackupCipherTest {
-    private val cipher = BackupCipher(iterations = BackupCipher.MIN_ITERATIONS)
+import java.nio.ByteBuffer
+import java.util.*
     private val plaintext = "{\"configs\":[]}".toByteArray()
     @Test
     fun `sealed file opens with the same passphrase`() {
@@ -100,6 +90,7 @@ class BackupRepositoryTest {
                 notificationsEnabled = false,
                 ipLookupUrl = "https://ip.example.org",
                 autoLockDelay = AutoLockDelay.MINUTES_5,
+                vpnRouting = VpnRouting.OUTSIDE_VPN,
             ),
             configs = listOf(
                 sampleConfig("home"),

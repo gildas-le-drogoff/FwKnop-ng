@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.backup
 
 import fr.gildasledrogoff.fwknop.data.local.models.ConfigEntity
@@ -5,20 +9,14 @@ import fr.gildasledrogoff.fwknop.data.local.security.NfcTagKeys
 import fr.gildasledrogoff.fwknop.data.mapper.LegacyValues
 import fr.gildasledrogoff.fwknop.data.mapper.toDomain
 import fr.gildasledrogoff.fwknop.data.mapper.toEntity
-import fr.gildasledrogoff.fwknop.domain.model.AppSettings
-import fr.gildasledrogoff.fwknop.domain.model.AutoLockDelay
-import fr.gildasledrogoff.fwknop.domain.model.Backup
-import fr.gildasledrogoff.fwknop.domain.model.NfcTagKey
-import fr.gildasledrogoff.fwknop.domain.model.ServerPort
+import fr.gildasledrogoff.fwknop.domain.model.*
 import kotlinx.serialization.Serializable
-import java.util.Base64
+import java.util.*
 
 @Serializable
 internal data class BackupPayload(
-    
     val settings: BackupSettings? = null,
     val configs: List<BackupConfig> = emptyList(),
-    
     val nfcTagKey: String? = null,
 )
 
@@ -31,6 +29,7 @@ internal data class BackupSettings(
     val portCheckEnabled: Boolean = AppSettings().portCheckEnabled,
     val ipLookupUrl: String = AppSettings().ipLookupUrl,
     val autoLockDelay: String = AppSettings().autoLockDelay.name,
+    val vpnRouting: String = AppSettings().vpnRouting.name,
 )
 
 @Serializable
@@ -56,8 +55,10 @@ internal data class BackupConfig(
     val keepOpen: Boolean = false,
     val gpgSig: Long = 0,
     val gpgKey: Long = 0,
-    
     val useGpg: Boolean? = null,
+    val knockSequence: String = "",
+    val knockDelay: Int = KnockMethod.PortSequence.DEFAULT_DELAY_MS,
+    val wakeOnLan: String = "",
 )
 
 internal fun Backup.toPayload() = BackupPayload(
@@ -70,6 +71,7 @@ internal fun Backup.toPayload() = BackupPayload(
             portCheckEnabled = it.portCheckEnabled,
             ipLookupUrl = it.ipLookupUrl,
             autoLockDelay = it.autoLockDelay.name,
+            vpnRouting = it.vpnRouting.name,
         )
     },
     configs = configs.map { it.toEntity().toBackupConfig() },
@@ -87,6 +89,8 @@ internal fun BackupPayload.toDomain() = Backup(
             ipLookupUrl = it.ipLookupUrl,
             autoLockDelay = AutoLockDelay.entries.firstOrNull { delay -> delay.name == it.autoLockDelay }
                 ?: AppSettings().autoLockDelay,
+            vpnRouting = VpnRouting.entries.firstOrNull { routing -> routing.name == it.vpnRouting }
+                ?: AppSettings().vpnRouting,
         )
     },
     configs = configs.filter { it.nickName.isNotBlank() }.associateBy { it.nickName }.values
@@ -95,7 +99,9 @@ internal fun BackupPayload.toDomain() = Backup(
 )
 
 private fun isValidNfcTagKey(base64: String): Boolean =
-    runCatching { Base64.getDecoder().decode(base64).size == NfcTagKeys.KEY_BYTES }.getOrDefault(false)
+    runCatching { Base64.getDecoder().decode(base64).size == NfcTagKeys.KEY_BYTES }.getOrDefault(
+        false
+    )
 
 private fun ConfigEntity.toBackupConfig() = BackupConfig(
     nickName = nickName,
@@ -120,6 +126,9 @@ private fun ConfigEntity.toBackupConfig() = BackupConfig(
     gpgSig = gpgSig,
     gpgKey = gpgKey,
     useGpg = useGpg,
+    knockSequence = knockSequence,
+    knockDelay = knockDelay,
+    wakeOnLan = wakeOnLan,
 )
 
 private fun BackupConfig.toEntity() = ConfigEntity(
@@ -145,4 +154,7 @@ private fun BackupConfig.toEntity() = ConfigEntity(
     gpgSig = gpgSig,
     gpgKey = gpgKey,
     useGpg = useGpg ?: (gpgKey != 0L),
+    knockSequence = knockSequence,
+    knockDelay = knockDelay,
+    wakeOnLan = wakeOnLan,
 )

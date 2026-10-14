@@ -1,60 +1,32 @@
-package fr.gildasledrogoff.fwknop.domain
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
+package fr.gildasledrogoff.fwknop.domain
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.domain.error.AutoKnockError
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
-import fr.gildasledrogoff.fwknop.domain.model.AutoKnockSettings
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.Encryption
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.SourceIp
-import fr.gildasledrogoff.fwknop.domain.model.Ssids
-import fr.gildasledrogoff.fwknop.domain.model.VaultState
-import fr.gildasledrogoff.fwknop.domain.model.WifiPresence
-import fr.gildasledrogoff.fwknop.domain.model.WifiPresence.TRUSTED
-import fr.gildasledrogoff.fwknop.domain.model.WifiPresence.UNKNOWN
-import fr.gildasledrogoff.fwknop.domain.model.WifiPresence.UNTRUSTED
-import fr.gildasledrogoff.fwknop.domain.usecase.AutoKnockUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.BuildSpaPacketUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.DetectTrustedNetworkExitUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.GetRequiredPromptsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.IsAutoKnockableUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ResolveKnockRouteUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.SaveAutoKnockSettingsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.SendKnockUseCase
-import fr.gildasledrogoff.fwknop.fakes.FakeKnockHistoryRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeAutoKnockRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeConfigRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeGpgRepository
-import fr.gildasledrogoff.fwknop.fakes.FakePublicIpRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeSpaPacketRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeSpaTransportRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeVaultRepository
-import fr.gildasledrogoff.fwknop.fakes.sampleConfig
+import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.domain.model.WifiPresence.*
+import fr.gildasledrogoff.fwknop.domain.usecase.*
+import fr.gildasledrogoff.fwknop.fakes.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
-
-class SsidsTest {
-    @Test
     fun `strips the quotes Android puts around the name`() {
         assertThat(Ssids.normalize("\"Maison\"")).isEqualTo("Maison")
         assertThat(Ssids.normalize("Maison")).isEqualTo("Maison")
     }
-
     @Test
     fun `a hidden or empty name is unknown`() {
         assertThat(Ssids.normalize("<unknown ssid>")).isNull()
         assertThat(Ssids.normalize("\"\"")).isNull()
         assertThat(Ssids.normalize(null)).isNull()
     }
-
     @Test
     fun `presence prefers a trusted network over a hidden one`() {
         val trusted = setOf("Maison")
@@ -63,18 +35,15 @@ class SsidsTest {
         assertThat(Ssids.presence(listOf("Café"), trusted)).isEqualTo(UNTRUSTED)
         assertThat(Ssids.presence(emptyList(), trusted)).isEqualTo(UNTRUSTED)
     }
-
     @Test
     fun `network names are case sensitive`() {
         assertThat(Ssids.presence(listOf("maison"), setOf("Maison"))).isEqualTo(UNTRUSTED)
     }
 }
-
 class DetectTrustedNetworkExitUseCaseTest {
     private val detect = DetectTrustedNetworkExitUseCase()
     private val presence = MutableSharedFlow<WifiPresence>()
     private val settle = 5.seconds
-
     @Test
     fun `emits once the device stays away from the trusted networks`() = runTest {
         detect(presence, settle).test {
@@ -87,7 +56,6 @@ class DetectTrustedNetworkExitUseCaseTest {
             awaitItem()
         }
     }
-
     @Test
     fun `a short drop while roaming does not knock`() = runTest {
         detect(presence, settle).test {
@@ -100,7 +68,6 @@ class DetectTrustedNetworkExitUseCaseTest {
             expectNoEvents()
         }
     }
-
     @Test
     fun `starting away from the trusted networks does not knock`() = runTest {
         detect(presence, settle).test {
@@ -109,7 +76,6 @@ class DetectTrustedNetworkExitUseCaseTest {
             expectNoEvents()
         }
     }
-
     @Test
     fun `a hidden network name is not taken for a departure`() = runTest {
         detect(presence, settle).test {
@@ -120,7 +86,6 @@ class DetectTrustedNetworkExitUseCaseTest {
             expectNoEvents()
         }
     }
-
     @Test
     fun `knocks again on each new departure`() = runTest {
         detect(presence, settle).test {
@@ -134,7 +99,6 @@ class DetectTrustedNetworkExitUseCaseTest {
         }
     }
 }
-
 class AutoKnockUseCaseTest {
     private val configs = FakeConfigRepository(listOf(sampleConfig()))
     private val vault = FakeVaultRepository()
@@ -151,21 +115,18 @@ class AutoKnockUseCaseTest {
             FakeKnockHistoryRepository(),
         ),
     )
-
     @Test
     fun `sends the packet through the regular knock`() = runTest {
         val result = autoKnock(Nickname("home"))
         assertThat(result).isInstanceOf(DomainResult.Success::class.java)
         assertThat(transport.sent.single().second.address).isEqualTo("192.0.2.10")
     }
-
     @Test
     fun `opens the vault silently when the app lock is off`() = runTest {
         autoKnock(Nickname("home"))
         assertThat(vault.unlockCalls).isEqualTo(1)
         assertThat(vault.status.value.state).isEqualTo(VaultState.UNLOCKED)
     }
-
     @Test
     fun `never asks for authentication when the app lock is on`() = runTest {
         vault.statusFlow.value = vault.statusFlow.value.copy(lockEnabled = true)
@@ -174,19 +135,16 @@ class AutoKnockUseCaseTest {
         assertThat(vault.unlockCalls).isEqualTo(0)
         assertThat(transport.sent).isEmpty()
     }
-
     @Test
     fun `uses a vault the user already unlocked`() = runTest {
         vault.statusFlow.value = vault.statusFlow.value.copy(state = VaultState.UNLOCKED, lockEnabled = true)
         assertThat(autoKnock(Nickname("home"))).isInstanceOf(DomainResult.Success::class.java)
         assertThat(vault.unlockCalls).isEqualTo(0)
     }
-
     @Test
     fun `reports a deleted config`() = runTest {
         assertThat(autoKnock(Nickname("gone"))).isEqualTo(DomainResult.Failure(AutoKnockError.ConfigMissing))
     }
-
     @Test
     fun `refuses configs that need the user`() = runTest {
         configs.configs.value = listOf(
@@ -199,7 +157,6 @@ class AutoKnockUseCaseTest {
         }
         assertThat(transport.sent).isEmpty()
     }
-
     @Test
     fun `wraps knock failures`() = runTest {
         transport.sendError = KnockError.PacketGeneration
@@ -207,7 +164,6 @@ class AutoKnockUseCaseTest {
         assertThat(result).isEqualTo(DomainResult.Failure(AutoKnockError.Knock(KnockError.PacketGeneration)))
     }
 }
-
 class SaveAutoKnockSettingsUseCaseTest {
     @Test
     fun `stores bare network names`() = runTest {
@@ -217,7 +173,6 @@ class SaveAutoKnockSettingsUseCaseTest {
         )
         assertThat(repository.state.value.trustedSsids).containsExactly("Bureau", "Maison")
     }
-
     @Test
     fun `armed only with a config and a network`() {
         assertThat(AutoKnockSettings(enabled = true, nickname = "home").armed).isFalse()
@@ -226,4 +181,3 @@ class SaveAutoKnockSettingsUseCaseTest {
         assertThat(AutoKnockSettings(enabled = true, nickname = "home", trustedSsids = setOf("Maison")).armed).isTrue()
     }
 }
-

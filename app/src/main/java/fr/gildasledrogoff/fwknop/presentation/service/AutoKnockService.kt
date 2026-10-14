@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.service
 
 import android.content.Context
@@ -23,24 +27,24 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 
-/**
- * Watches the Wi-Fi connections while the automatic knock is armed and knocks, through the regular
- * SendKnockUseCase, when the device leaves the trusted networks. Started and stopped by [AutoKnockController].
- */
+
 @AndroidEntryPoint
 class AutoKnockService : LifecycleService() {
     @Inject
     lateinit var observeSettings: ObserveAutoKnockSettingsUseCase
+
     @Inject
     lateinit var wifi: WifiNetworkRepository
+
     @Inject
     lateinit var detectExit: DetectTrustedNetworkExitUseCase
+
     @Inject
     lateinit var autoKnock: AutoKnockUseCase
+
     @Inject
     lateinit var notifications: AutoKnockNotifications
     private var monitor: Job? = null
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -48,7 +52,12 @@ class AutoKnockService : LifecycleService() {
         } else {
             0
         }
-        ServiceCompat.startForeground(this, AutoKnockNotifications.MONITOR_ID, notifications.monitoring(), type)
+        ServiceCompat.startForeground(
+            this,
+            AutoKnockNotifications.MONITOR_ID,
+            notifications.monitoring(),
+            type
+        )
         if (monitor == null) monitor = lifecycleScope.launch { monitor() }
         return START_STICKY
     }
@@ -66,7 +75,7 @@ class AutoKnockService : LifecycleService() {
     }
 
     private suspend fun knock(nickname: Nickname) {
-        // Leaving the Wi-Fi: mobile data may take a few seconds to become the default network.
+
         if (!wifi.awaitInternet(INTERNET_TIMEOUT)) DebugLog.event("auto-knock: no validated network, trying anyway")
         when (val result = autoKnock(nickname)) {
             is DomainResult.Success -> notifications.sent(nickname.value)

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.model
 
 data class QrConfig(
@@ -6,6 +10,8 @@ data class QrConfig(
     val serverPort: Int? = null,
     val randomPort: Boolean? = null,
     val protocol: Protocol? = null,
+    val knockSequence: String? = null,
+    val knockDelayMs: Int? = null,
     val messageType: MessageType? = null,
     val ports: String? = null,
     val timeoutSeconds: Int? = null,
@@ -42,6 +48,10 @@ private fun SpaConfig.generalStanzas(): List<Pair<String, String>> = buildList {
         ServerPort.Random -> add("PORT_RANDOM" to "1")
     }
     if (server.protocol != Protocol.UDP) add("PROTO" to server.protocol.name)
+    (method as? KnockMethod.PortSequence)?.let {
+        add("KNOCK_SEQ" to it.ports.toSequenceText())
+        add("KNOCK_DELAY" to "${it.delayMs}")
+    }
 }
 
 private fun SpaConfig.accessStanzas(): List<Pair<String, String>> = buildList {
@@ -114,6 +124,7 @@ private fun SpaConfig.externalAppStanzas(): List<Pair<String, String>> = buildLi
             add("APP_WG" to app.tunnel)
             add("APP_WG_KEY" to app.remoteKey)
         }
+
         ExternalApp.None -> Unit
     }
 }

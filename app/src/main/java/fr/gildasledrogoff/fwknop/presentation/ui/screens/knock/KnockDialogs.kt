@@ -1,26 +1,19 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.knock
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,7 +30,6 @@ import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
 import fr.gildasledrogoff.fwknop.presentation.ui.components.SecretTextField
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
-
 
 @Composable
 fun ChooseConfigDialog(
@@ -62,7 +54,6 @@ fun ChooseConfigDialog(
                 }
             }
         },
-        
         confirmButton = { TextButton(onClick = onCancel) { Text(stringResource(R.string.nfc_do_nothing)) } },
         dismissButton = onErase?.let { erase -> { EraseTagButton(erase) } },
     )
@@ -139,12 +130,10 @@ private fun SourceIpPromptContent(ip: String, onChange: (String) -> Unit, @Strin
 
 @Composable
 private fun SourceIpPromptButtons(actions: SourceIpPromptActions) {
-    Row {
-        TextButton(onClick = actions.onScan) { Text(stringResource(R.string.action_scan_qr)) }
-        TextButton(onClick = actions.onCancel) { Text(stringResource(R.string.cancel)) }
-    }
-}
 
+    TextButton(onClick = actions.onScan) { Text(stringResource(R.string.action_scan_qr)) }
+    TextButton(onClick = actions.onCancel) { Text(stringResource(R.string.cancel)) }
+}
 
 @Composable
 fun SendingDialog(nickname: String, onCancel: () -> Unit) {
@@ -178,14 +167,45 @@ fun PermissionRationaleDialog(
             R.string.permission_local_network_body,
         )
     }
-    
     val declineLabel =
         if (prompt.permission == KnockPermission.NOTIFICATIONS) R.string.action_later else R.string.cancel
+    RationaleDialog(
+        icon,
+        title,
+        stringResource(body, prompt.nickname),
+        declineLabel,
+        onContinue,
+        onDecline
+    )
+}
+
+
+@Composable
+fun WakePermissionRationaleDialog(nickname: String, onContinue: () -> Unit, onDecline: () -> Unit) {
+    RationaleDialog(
+        R.drawable.ic_dns_rounded,
+        R.string.permission_local_network_title,
+        stringResource(R.string.permission_local_network_wake_body, nickname),
+        R.string.cancel,
+        onContinue,
+        onDecline,
+    )
+}
+
+@Composable
+private fun RationaleDialog(
+    @DrawableRes icon: Int,
+    @StringRes title: Int,
+    body: String,
+    @StringRes declineLabel: Int,
+    onContinue: () -> Unit,
+    onDecline: () -> Unit,
+) {
     AlertDialog(
         onDismissRequest = onDecline,
         icon = { FwknopIcon(icon, null) },
         title = { Text(stringResource(title)) },
-        text = { Text(stringResource(body, prompt.nickname)) },
+        text = { Text(body) },
         confirmButton = { TextButton(onClick = onContinue) { Text(stringResource(R.string.action_continue)) } },
         dismissButton = { TextButton(onClick = onDecline) { Text(stringResource(declineLabel)) } },
     )
@@ -235,6 +255,16 @@ private fun SendingDialogPreview() {
 @Composable
 private fun PermissionRationaleDialogPreview() {
     FwknopTheme {
-        PermissionRationaleDialog(KnockState.ExplainPermission("home", KnockPermission.LOCAL_NETWORK), {}, {})
+        PermissionRationaleDialog(
+            KnockState.ExplainPermission(
+                "home",
+                KnockPermission.LOCAL_NETWORK
+            ), {}, {})
     }
+}
+
+@AdaptivePreviews
+@Composable
+private fun WakePermissionRationaleDialogPreview() {
+    FwknopTheme { WakePermissionRationaleDialog("home", {}, {}) }
 }

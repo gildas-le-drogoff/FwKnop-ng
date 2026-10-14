@@ -1,16 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.mapper
 
 import fr.gildasledrogoff.fwknop.data.local.models.ConfigEntity
-import fr.gildasledrogoff.fwknop.domain.model.AccessRule
-import fr.gildasledrogoff.fwknop.domain.model.DigestAlgorithm
-import fr.gildasledrogoff.fwknop.domain.model.Encryption
-import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
-import fr.gildasledrogoff.fwknop.domain.model.PortAccess
-import fr.gildasledrogoff.fwknop.domain.model.Protocol
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.SpaCrypto
-import fr.gildasledrogoff.fwknop.domain.model.portAccess
+import fr.gildasledrogoff.fwknop.domain.model.*
 
 internal data class AccessColumns(
     val ports: String = "",
@@ -116,7 +111,6 @@ internal fun ConfigEntity.toExternalApp(): ExternalApp = when {
         )
     )
 
-    
     sshCmd.startsWith(LegacyValues.WG_PREFIX) -> sshCmd.removePrefix(LegacyValues.WG_PREFIX).let {
         ExternalApp.WireGuard(
             it.substringBefore(LegacyValues.WG_KEY_SEPARATOR),

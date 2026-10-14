@@ -1,29 +1,16 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.knock
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import fr.gildasledrogoff.fwknop.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.gildasledrogoff.fwknop.presentation.state.AuthPurpose
-import fr.gildasledrogoff.fwknop.presentation.state.KnockEffect
-import fr.gildasledrogoff.fwknop.presentation.state.KnockEvent
-import fr.gildasledrogoff.fwknop.presentation.state.KnockPermission
-import fr.gildasledrogoff.fwknop.presentation.state.KnockState
-import fr.gildasledrogoff.fwknop.presentation.state.UiError
-import fr.gildasledrogoff.fwknop.presentation.ui.components.CollectEffects
-import fr.gildasledrogoff.fwknop.presentation.ui.components.DialogAction
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ErrorDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.openAppSettings
-import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberExternalAppLauncher
-import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberInteractionLauncher
-import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberPermissionRequest
-import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberQrScanner
-import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberUserAuthenticator
+import fr.gildasledrogoff.fwknop.R
+import fr.gildasledrogoff.fwknop.presentation.state.*
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.KnockViewModel
 import fr.gildasledrogoff.fwknop.utils.helpers.LocalNetworkAccess
 import fr.gildasledrogoff.fwknop.utils.helpers.RuntimePermissions
@@ -34,7 +21,6 @@ fun KnockHost(
     onSent: (KnockEffect.Sent) -> Unit,
     onPortChecked: (KnockEffect.PortChecked) -> Unit = {},
     onAborted: () -> Unit = {},
-    
     onEraseTag: (() -> Unit)? = null,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -43,7 +29,8 @@ fun KnockHost(
     val launchInteraction = rememberInteractionLauncher { id, completed, data ->
         viewModel.onEvent(KnockEvent.InteractionFinished(id, completed, data))
     }
-    val authenticator = rememberUserAuthenticator { viewModel.onEvent(KnockEvent.NfcAuthCompleted(it)) }
+    val authenticator =
+        rememberUserAuthenticator { viewModel.onEvent(KnockEvent.NfcAuthCompleted(it)) }
     CollectEffects(viewModel.effects) { effect ->
         when (effect) {
             KnockEffect.Authenticate -> authenticator.launch(AuthPurpose.NFC_KNOCK)
@@ -61,7 +48,11 @@ fun KnockHost(
 }
 
 @Composable
-private fun KnockDialogs(state: KnockState, onEvent: (KnockEvent) -> Unit, onEraseTag: (() -> Unit)?) {
+private fun KnockDialogs(
+    state: KnockState,
+    onEvent: (KnockEvent) -> Unit,
+    onEraseTag: (() -> Unit)?
+) {
     val scanQr = rememberQrScanner { onEvent(KnockEvent.SourceIpScanned(it)) }
     val requestPermission = rememberKnockPermissionRequests(onEvent)
     val cancel = { onEvent(KnockEvent.Cancel) }
@@ -94,12 +85,11 @@ private fun KnockDialogs(state: KnockState, onEvent: (KnockEvent) -> Unit, onEra
             onContinue = { requestPermission(state.permission) },
             onDecline = { onEvent(KnockEvent.PermissionDeclined) },
         )
+
         is KnockState.Sending -> SendingDialog(state.nickname, cancel)
         is KnockState.Failed -> FailedDialog(state, onEvent, onEraseTag)
     }
 }
-
-
 
 @Composable
 private fun rememberKnockPermissionRequests(onEvent: (KnockEvent) -> Unit): (KnockPermission) -> Unit {
@@ -107,7 +97,8 @@ private fun rememberKnockPermissionRequests(onEvent: (KnockEvent) -> Unit): (Kno
     val onResult = { granted: Boolean, permanentlyDenied: Boolean ->
         onEvent(KnockEvent.PermissionResult(granted, permanentlyDenied))
     }
-    val notifications = rememberPermissionRequest(RuntimePermissions.NOTIFICATIONS, onShown, onResult)
+    val notifications =
+        rememberPermissionRequest(RuntimePermissions.NOTIFICATIONS, onShown, onResult)
     val localNetwork = rememberPermissionRequest(LocalNetworkAccess.PERMISSION, onShown, onResult)
     return { permission ->
         when (permission) {
@@ -118,7 +109,11 @@ private fun rememberKnockPermissionRequests(onEvent: (KnockEvent) -> Unit): (Kno
 }
 
 @Composable
-private fun FailedDialog(state: KnockState.Failed, onEvent: (KnockEvent) -> Unit, onEraseTag: (() -> Unit)?) {
+private fun FailedDialog(
+    state: KnockState.Failed,
+    onEvent: (KnockEvent) -> Unit,
+    onEraseTag: (() -> Unit)?
+) {
     val context = LocalContext.current
     val dismiss = { onEvent(KnockEvent.Cancel) }
     val action = when {
@@ -127,9 +122,18 @@ private fun FailedDialog(state: KnockState.Failed, onEvent: (KnockEvent) -> Unit
             dismiss()
         }
 
-        state.tagErasable && onEraseTag != null -> DialogAction(stringResource(R.string.nfc_erase), onEraseTag)
+        state.tagErasable && onEraseTag != null -> DialogAction(
+            stringResource(R.string.nfc_erase),
+            onEraseTag
+        )
+
         state.retryable -> DialogAction(stringResource(R.string.action_retry)) { onEvent(KnockEvent.Retry) }
         else -> null
     }
-    ErrorDialog(state.error, action = action, title = stringResource(R.string.knock_failed_title), onDismiss = dismiss)
+    ErrorDialog(
+        state.error,
+        action = action,
+        title = stringResource(R.string.knock_failed_title),
+        onDismiss = dismiss
+    )
 }

@@ -1,45 +1,22 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain
-import fr.gildasledrogoff.fwknop.domain.error.ConfigError
-import fr.gildasledrogoff.fwknop.domain.error.SettingsError
-import fr.gildasledrogoff.fwknop.domain.model.AccessRule
-import fr.gildasledrogoff.fwknop.domain.model.AppSettings
-import fr.gildasledrogoff.fwknop.domain.model.ConfigDraft
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.KnockOutcome
-import fr.gildasledrogoff.fwknop.domain.model.KnockRequest
-import fr.gildasledrogoff.fwknop.domain.model.KnockTimerOutcome
-import fr.gildasledrogoff.fwknop.domain.model.KnockTimerPlan
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.PortAccess
-import fr.gildasledrogoff.fwknop.domain.model.QrKeys
-import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
-import fr.gildasledrogoff.fwknop.domain.model.toDraft
-import fr.gildasledrogoff.fwknop.domain.usecase.OtherNfcTagDigestsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ParseQrClientIpUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ParseQrConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.SaveConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.SaveSettingsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.GetExternalAppDelayUseCase
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.mutablePreferencesOf
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.data.local.preferences.SettingsPreferences
 import fr.gildasledrogoff.fwknop.data.local.preferences.toAppSettings
 import fr.gildasledrogoff.fwknop.data.local.preferences.write
-import androidx.datastore.preferences.core.emptyPreferences
-import androidx.datastore.preferences.core.mutablePreferencesOf
-import kotlin.time.Duration.Companion.seconds
-import fr.gildasledrogoff.fwknop.domain.usecase.ScheduleKnockTimerUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ValidateConfigUseCase
-import fr.gildasledrogoff.fwknop.fakes.FakeConfigRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeKnockTimerScheduler
-import fr.gildasledrogoff.fwknop.fakes.FakeNfcTagRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeSettingsRepository
-import fr.gildasledrogoff.fwknop.fakes.sampleConfig
-import com.google.common.truth.Truth.assertThat
+import fr.gildasledrogoff.fwknop.domain.error.ConfigError
+import fr.gildasledrogoff.fwknop.domain.error.SettingsError
+import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.domain.usecase.*
+import fr.gildasledrogoff.fwknop.fakes.*
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-class SupportUseCasesTest {
-    @Test
+import kotlin.time.Duration.Companion.seconds
     fun `adding a config to a tag drops only its previous digests`() = runTest {
         val tags = FakeNfcTagRepository()
         val home = tags.digest(Nickname("home"))
@@ -140,5 +117,4 @@ class SupportUseCasesTest {
         assertThat((result as DomainResult.Failure).error).isInstanceOf(ConfigError.Storage::class.java)
     }
 }
-
 private val SOURCE = ResolvedSourceIp("198.51.100.4", SourceIpMethod.Fixed)

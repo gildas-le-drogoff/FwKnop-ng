@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.utils.helpers
 
 import android.Manifest
@@ -7,10 +11,10 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import dagger.hilt.android.qualifiers.ApplicationContext
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.gildasledrogoff.fwknop.data.local.preferences.SettingsPreferences
 import fr.gildasledrogoff.fwknop.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
@@ -24,23 +28,15 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
-
 enum class PermissionStatus {
     GRANTED,
-
-    
     DENIED,
-
-    
     DENIED_PERMANENTLY,
 }
-
-
 
 data class PermissionSnapshot(
     val notifications: PermissionStatus = PermissionStatus.GRANTED,
     val localNetwork: PermissionStatus = PermissionStatus.GRANTED,
-    
     val prompted: Set<String> = emptySet(),
 ) {
     fun canPrompt(permission: String): Boolean =
@@ -55,16 +51,8 @@ data class PermissionSnapshot(
 
 interface RuntimePermissions {
     val snapshot: StateFlow<PermissionSnapshot>
-
-    
-    
     fun refresh(activity: Activity? = null)
-
-    
-    
     fun onPromptShown(permission: String)
-
-    
     fun onPromptResult(permission: String, granted: Boolean, permanentlyDenied: Boolean)
 
     companion object {
@@ -79,7 +67,6 @@ class AndroidRuntimePermissions @Inject constructor(
     private val store: DataStore<Preferences>,
     @param:ApplicationScope private val scope: CoroutineScope,
 ) : RuntimePermissions {
-    
     private val prompted: MutableSet<String> = ConcurrentHashMap.newKeySet()
     private val refusedForGood: MutableSet<String> = ConcurrentHashMap.newKeySet()
     private val mutableSnapshot = MutableStateFlow(recompute())
@@ -90,17 +77,17 @@ class AndroidRuntimePermissions @Inject constructor(
     }
 
     override fun refresh(activity: Activity?) = update { recompute(activity) }
-
     override fun onPromptShown(permission: String) = update {
         prompted += permission
         recompute()
     }
 
-    override fun onPromptResult(permission: String, granted: Boolean, permanentlyDenied: Boolean) = update {
-        prompted += permission
-        if (granted) refusedForGood -= permission else if (permanentlyDenied) refusedForGood += permission
-        recompute()
-    }
+    override fun onPromptResult(permission: String, granted: Boolean, permanentlyDenied: Boolean) =
+        update {
+            prompted += permission
+            if (granted) refusedForGood -= permission else if (permanentlyDenied) refusedForGood += permission
+            recompute()
+        }
 
     private fun update(compute: () -> PermissionSnapshot) {
         val before = history()
@@ -109,7 +96,6 @@ class AndroidRuntimePermissions @Inject constructor(
     }
 
     private fun history() = prompted.toSet() to refusedForGood.toSet()
-
     private suspend fun restore() {
         val saved = try {
             store.data.first()
@@ -122,7 +108,6 @@ class AndroidRuntimePermissions @Inject constructor(
         mutableSnapshot.value = recompute()
     }
 
-    
     private fun persist() {
         scope.launch {
             try {
@@ -139,7 +124,12 @@ class AndroidRuntimePermissions @Inject constructor(
     private fun recompute(activity: Activity? = null): PermissionSnapshot = PermissionSnapshot(
         notifications = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) statusOf(
             RuntimePermissions.NOTIFICATIONS,
-            { ContextCompat.checkSelfPermission(context, RuntimePermissions.NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED },
+            {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    RuntimePermissions.NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            },
             activity,
         ) else PermissionStatus.GRANTED,
         localNetwork = statusOf(
@@ -150,14 +140,16 @@ class AndroidRuntimePermissions @Inject constructor(
         prompted = prompted.toSet(),
     )
 
-    private fun statusOf(permission: String, granted: () -> Boolean, activity: Activity?): PermissionStatus {
+    private fun statusOf(
+        permission: String,
+        granted: () -> Boolean,
+        activity: Activity?
+    ): PermissionStatus {
         if (granted()) {
-            
             refusedForGood -= permission
             return PermissionStatus.GRANTED
         }
         if (permission in refusedForGood) return PermissionStatus.DENIED_PERMANENTLY
-        
         if (activity != null && permission in prompted &&
             !ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
         ) {

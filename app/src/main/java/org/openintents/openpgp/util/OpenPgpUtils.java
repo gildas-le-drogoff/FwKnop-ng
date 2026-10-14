@@ -1,12 +1,19 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package org.openintents.openpgp.util;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.text.TextUtils;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class OpenPgpUtils {
     public static final Pattern PGP_MESSAGE = Pattern.compile(
             ".*?(-----BEGIN PGP MESSAGE-----.*?-----END PGP MESSAGE-----).*",
@@ -17,6 +24,8 @@ public class OpenPgpUtils {
     public static final int PARSE_RESULT_NO_PGP = -1;
     public static final int PARSE_RESULT_MESSAGE = 0;
     public static final int PARSE_RESULT_SIGNED_MESSAGE = 1;
+    private static final Pattern USER_ID_PATTERN = Pattern.compile("^(.*?)(?: \\((.*)\\))?(?: <(.*)>)?$");
+
     public static int parseMessage(String message) {
         Matcher matcherSigned = PGP_SIGNED_MESSAGE.matcher(message);
         Matcher matcherMessage = PGP_MESSAGE.matcher(message);
@@ -28,14 +37,17 @@ public class OpenPgpUtils {
             return PARSE_RESULT_NO_PGP;
         }
     }
+
     public static boolean isAvailable(Context context) {
         Intent intent = new Intent(OpenPgpApi.SERVICE_INTENT_2);
         List<ResolveInfo> resInfo = context.getPackageManager().queryIntentServices(intent, 0);
         return !resInfo.isEmpty();
     }
+
     public static String convertKeyIdToHex(long keyId) {
         return "0x" + convertKeyIdToHex32bit(keyId >> 32) + convertKeyIdToHex32bit(keyId);
     }
+
     private static String convertKeyIdToHex32bit(long keyId) {
         String hexString = Long.toHexString(keyId & 0xffffffffL).toLowerCase(Locale.ENGLISH);
         while (hexString.length() < 8) {
@@ -43,8 +55,7 @@ public class OpenPgpUtils {
         }
         return hexString;
     }
-    private static final Pattern USER_ID_PATTERN = Pattern.compile("^(.*?)(?: \\((.*)\\))?(?: <(.*)>)?$");
-    
+
     public static UserId splitUserId(final String userId) {
         if (!TextUtils.isEmpty(userId)) {
             final Matcher matcher = USER_ID_PATTERN.matcher(userId);
@@ -54,9 +65,9 @@ public class OpenPgpUtils {
         }
         return new UserId(null, null, null);
     }
-    
+
     public static String createUserId(UserId userId) {
-        String userIdString = userId.name; 
+        String userIdString = userId.name;
         if (userIdString != null && !TextUtils.isEmpty(userId.comment)) {
             userIdString += " (" + userId.comment + ")";
         }
@@ -65,10 +76,12 @@ public class OpenPgpUtils {
         }
         return userIdString;
     }
+
     public static class UserId {
         public final String name;
         public final String email;
         public final String comment;
+
         public UserId(String name, String email, String comment) {
             this.name = name;
             this.email = email;

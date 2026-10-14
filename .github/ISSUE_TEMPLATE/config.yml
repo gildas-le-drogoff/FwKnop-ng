@@ -2,7 +2,4 @@ blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability
     url: https://github.com/gildas-le-drogoff/FwKnop-ng/security/advisories/new
-    about: Report a vulnerability privately, do not open a public issue
-  - name: fwknop documentation
-    url: https://www.cipherdyne.org/fwknop/docs/
-    about: Server-side setup and fwknopd configuration (access.conf, fwknopd.conf)
+    about: Please report security issues privately, not as public issues.

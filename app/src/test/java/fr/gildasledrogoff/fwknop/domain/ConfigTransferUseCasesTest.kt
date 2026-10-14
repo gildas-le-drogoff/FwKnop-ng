@@ -1,28 +1,19 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.domain.error.BackupError
 import fr.gildasledrogoff.fwknop.domain.error.ConfigError
-import fr.gildasledrogoff.fwknop.domain.model.AppSettings
-import fr.gildasledrogoff.fwknop.domain.model.Backup
-import fr.gildasledrogoff.fwknop.domain.model.BackupPassphrase
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.SourceIp
-import fr.gildasledrogoff.fwknop.domain.model.uniqueNickname
-import fr.gildasledrogoff.fwknop.domain.repository.BackupRepository
-import fr.gildasledrogoff.fwknop.domain.usecase.AddConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.DuplicateConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ExportConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.OpenBackupFileUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.RestoreBackupUseCase
+import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.domain.usecase.*
 import fr.gildasledrogoff.fwknop.fakes.FakeConfigRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeNfcTagRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeSettingsRepository
 import fr.gildasledrogoff.fwknop.fakes.sampleConfig
-import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-private class InMemoryBackupRepository : BackupRepository {
-    private val sealed = mutableListOf<Backup>()
     override suspend fun seal(backup: Backup, passphrase: BackupPassphrase): ByteArray {
         sealed += backup
         return byteArrayOf((sealed.size - 1).toByte())

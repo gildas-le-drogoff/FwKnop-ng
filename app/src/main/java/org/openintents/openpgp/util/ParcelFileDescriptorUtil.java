@@ -1,9 +1,16 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package org.openintents.openpgp.util;
+
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
 public class ParcelFileDescriptorUtil {
     public static ParcelFileDescriptor pipeFrom(InputStream inputStream)
             throws IOException {
@@ -14,21 +21,25 @@ public class ParcelFileDescriptorUtil {
                 .start();
         return readSide;
     }
+
     public static TransferThread pipeTo(OutputStream outputStream, ParcelFileDescriptor output)
             throws IOException {
         TransferThread t = new TransferThread(new ParcelFileDescriptor.AutoCloseInputStream(output), outputStream);
         t.start();
         return t;
     }
+
     static class TransferThread extends Thread {
         final InputStream mIn;
         final OutputStream mOut;
+
         TransferThread(InputStream in, OutputStream out) {
             super("IPC Transfer Thread");
             mIn = in;
             mOut = out;
             setDaemon(true);
         }
+
         @Override
         public void run() {
             byte[] buf = new byte[4096];

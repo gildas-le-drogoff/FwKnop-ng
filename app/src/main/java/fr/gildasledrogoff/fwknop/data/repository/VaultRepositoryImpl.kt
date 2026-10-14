@@ -1,18 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.repository
 
 import fr.gildasledrogoff.fwknop.data.local.database.DatabaseFactory
-import fr.gildasledrogoff.fwknop.data.local.security.ColumnCipher
-import fr.gildasledrogoff.fwknop.data.local.security.DatabasePassphrases
-import fr.gildasledrogoff.fwknop.data.local.security.DeviceCredential
-import fr.gildasledrogoff.fwknop.data.local.security.KeysetRotation
-import fr.gildasledrogoff.fwknop.data.local.security.MasterKeyRewrap
-import fr.gildasledrogoff.fwknop.data.local.security.OpenVault
-import fr.gildasledrogoff.fwknop.data.local.security.VaultFailures
-import fr.gildasledrogoff.fwknop.data.local.security.VaultMetadataStore
-import fr.gildasledrogoff.fwknop.data.local.security.VaultOpener
-import fr.gildasledrogoff.fwknop.data.local.security.VaultSession
-import fr.gildasledrogoff.fwknop.data.local.security.VaultWiper
-import fr.gildasledrogoff.fwknop.data.local.security.aead
+import fr.gildasledrogoff.fwknop.data.local.security.*
 import fr.gildasledrogoff.fwknop.domain.error.VaultError
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.VaultState
@@ -72,10 +65,7 @@ class VaultRepositoryImpl @Inject constructor(
     }
 
     override fun isDeviceSecure(): Boolean = device.isSecure()
-
-    
     private fun initialLock(): Boolean = metadata.read().lockEnabled
-
     private fun openVault(): OpenVault {
         val keyset = opener.open(lockNew = _status.value.lockEnabled)
         val aead = keyset.aead()

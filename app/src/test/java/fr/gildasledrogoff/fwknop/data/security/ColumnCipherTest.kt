@@ -1,15 +1,17 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.security
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.data.local.security.ColumnCipher
 import fr.gildasledrogoff.fwknop.data.local.security.aead
 import fr.gildasledrogoff.fwknop.fakes.FakeKeysetStore
 import fr.gildasledrogoff.fwknop.fakes.FakeMasterKeyStore
 import fr.gildasledrogoff.fwknop.fakes.newKeyset
-import com.google.common.truth.Truth.assertThat
-import java.security.GeneralSecurityException
 import org.junit.Assert.assertThrows
 import org.junit.Test
-class ColumnCipherTest {
-    private val cipher = ColumnCipher(newKeyset().aead())
+import java.security.GeneralSecurityException
     @Test
     fun `values round-trip, unicode included`() {
         for (value in listOf("", "s3cr3t", "clé HMAC ✓", "x".repeat(4096))) {

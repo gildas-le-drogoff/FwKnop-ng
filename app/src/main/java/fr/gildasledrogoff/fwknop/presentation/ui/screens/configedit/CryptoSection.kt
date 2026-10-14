@@ -1,9 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.configedit
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -11,18 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.domain.model.CryptoDraft
 import fr.gildasledrogoff.fwknop.domain.model.DigestAlgorithm
 import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
 import fr.gildasledrogoff.fwknop.domain.model.GpgKeyRole
 import fr.gildasledrogoff.fwknop.presentation.state.ConfigEditEvent
-import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.DropdownOptions
-import fr.gildasledrogoff.fwknop.presentation.ui.components.LabeledSwitch
-import fr.gildasledrogoff.fwknop.presentation.ui.components.OptionDropdown
-import fr.gildasledrogoff.fwknop.presentation.ui.components.SecretTextField
-import fr.gildasledrogoff.fwknop.presentation.ui.components.SectionCard
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 
@@ -105,11 +106,15 @@ private fun GpgKeys(crypto: CryptoDraft, onSelect: (GpgKeyRole) -> Unit) {
 
 @Composable
 private fun GpgKeyRow(label: String, key: GpgKeyId?, onSelect: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+
+    FlowRow(
         horizontalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing),
+        verticalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing / 2),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
+        Column(Modifier
+            .weight(1f)
+            .widthIn(min = GPG_LABEL_MIN_WIDTH)) {
             Text(label, style = MaterialTheme.typography.bodyLarge)
             Text(
                 text = key?.toHex() ?: stringResource(R.string.gpg_no_key),
@@ -120,6 +125,8 @@ private fun GpgKeyRow(label: String, key: GpgKeyId?, onSelect: () -> Unit) {
         OutlinedButton(onClick = onSelect) { Text(stringResource(R.string.action_select)) }
     }
 }
+
+private val GPG_LABEL_MIN_WIDTH = 160.dp
 
 @AdaptivePreviews
 @Composable

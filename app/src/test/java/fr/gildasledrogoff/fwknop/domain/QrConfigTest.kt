@@ -1,31 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain
-import fr.gildasledrogoff.fwknop.domain.model.AccessRule
-import fr.gildasledrogoff.fwknop.domain.model.ConfigDraft
-import fr.gildasledrogoff.fwknop.domain.model.DigestAlgorithm
-import fr.gildasledrogoff.fwknop.domain.model.Encryption
-import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
-import fr.gildasledrogoff.fwknop.domain.model.ParsedQr
-import fr.gildasledrogoff.fwknop.domain.model.PortAccess
-import fr.gildasledrogoff.fwknop.domain.model.Protocol
-import fr.gildasledrogoff.fwknop.domain.model.QrConfig
-import fr.gildasledrogoff.fwknop.domain.model.QrKeys
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.ServerEndpoint
-import fr.gildasledrogoff.fwknop.domain.model.ServerPort
-import fr.gildasledrogoff.fwknop.domain.model.SourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
-import fr.gildasledrogoff.fwknop.domain.model.SpaCrypto
-import fr.gildasledrogoff.fwknop.domain.model.toDraft
-import fr.gildasledrogoff.fwknop.domain.model.toQrContent
-import fr.gildasledrogoff.fwknop.domain.model.withQrConfig
-import fr.gildasledrogoff.fwknop.domain.model.withQrKeys
-import fr.gildasledrogoff.fwknop.domain.usecase.ParseQrConfigUseCase
-import fr.gildasledrogoff.fwknop.fakes.sampleConfig
 import com.google.common.truth.Truth.assertThat
+import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.fakes.sampleConfig
 import org.junit.Test
-class QrConfigTest {
-    private val parse = ParseQrConfigUseCase()
     private fun roundTrip(original: SpaConfig): ConfigDraft =
         ConfigDraft().withQrConfig(parse(original.toQrContent()))
     @Test
@@ -75,14 +56,26 @@ class QrConfigTest {
         assertThat(roundTrip(original)).isEqualTo(original.toDraft())
     }
     @Test
-    fun `random port http protocol prompt source and ssh app round-trip`() {
+    fun `random port tcp protocol prompt source and ssh app round-trip`() {
         val original = sampleConfig().copy(
-            server = ServerEndpoint("fw.example.org", ServerPort.Random, Protocol.HTTP),
+            server = ServerEndpoint("fw.example.org", ServerPort.Random, Protocol.TCP),
             sourceIp = SourceIp.Prompt,
             externalApp = ExternalApp.SshUri("root@10.0.0.5:2222"),
             crypto = sampleConfig().crypto.copy(legacyMode = true),
         )
         assertThat(roundTrip(original)).isEqualTo(original.toDraft())
+    }
+    @Test
+    fun `http on a custom port round-trips`() {
+        val original = sampleConfig().copy(server = ServerEndpoint("fw.example.org", ServerPort.Fixed(8080), Protocol.HTTP))
+        assertThat(roundTrip(original)).isEqualTo(original.toDraft())
+    }
+    @Test
+    fun `http without a port stanza goes to port 80 and never random`() {
+        val qr = ParsedQr(QrKeys(null, null), QrConfig(protocol = Protocol.HTTP, randomPort = true))
+        val server = ConfigDraft().withQrConfig(qr).server
+        assertThat(server.port).isEqualTo("80")
+        assertThat(server.randomPort).isFalse()
     }
     @Test
     fun `luci keys-only qr carries no config`() {

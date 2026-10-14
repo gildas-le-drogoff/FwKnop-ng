@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.settings
 
 import androidx.compose.material3.SnackbarHostState
@@ -11,7 +15,6 @@ import fr.gildasledrogoff.fwknop.presentation.ui.components.CollectEffects
 import fr.gildasledrogoff.fwknop.presentation.ui.components.ErrorDialog
 import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberUserAuthenticator
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.SecuritySettingsViewModel
-
 
 @Composable
 fun SecurityHost(viewModel: SecuritySettingsViewModel, snackbarHostState: SnackbarHostState?) {

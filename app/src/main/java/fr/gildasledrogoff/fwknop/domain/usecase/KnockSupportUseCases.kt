@@ -1,25 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.usecase
 
 import fr.gildasledrogoff.fwknop.domain.error.GpgError
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.Encryption
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyRole
-import fr.gildasledrogoff.fwknop.domain.model.InteractionId
-import fr.gildasledrogoff.fwknop.domain.model.KnockOutcome
-import fr.gildasledrogoff.fwknop.domain.model.KnockRequest
-import fr.gildasledrogoff.fwknop.domain.model.KnockTimerOutcome
-import fr.gildasledrogoff.fwknop.domain.model.KnockTimerPlan
-import fr.gildasledrogoff.fwknop.domain.model.NfcTagDigest
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
-import fr.gildasledrogoff.fwknop.domain.model.portAccess
-import fr.gildasledrogoff.fwknop.domain.repository.ConfigRepository
-import fr.gildasledrogoff.fwknop.domain.repository.GpgRepository
-import fr.gildasledrogoff.fwknop.domain.repository.KnockTimerScheduler
-import fr.gildasledrogoff.fwknop.domain.repository.NfcTagRepository
-import fr.gildasledrogoff.fwknop.domain.repository.SettingsRepository
+import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.domain.repository.*
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -33,12 +21,16 @@ class ScheduleKnockTimerUseCase @Inject constructor(
         return when {
             !scheduler.canNotify() ->
                 if (plan is KnockTimerPlan.KeepOpen) KnockTimerOutcome.NOTIFICATIONS_BLOCKED else KnockTimerOutcome.NONE
+
             scheduler.schedule(plan) -> KnockTimerOutcome.SCHEDULED
             else -> fallBackToCountdown(outcome.request, plan)
         }
     }
 
-    private fun fallBackToCountdown(request: KnockRequest, plan: KnockTimerPlan): KnockTimerOutcome {
+    private fun fallBackToCountdown(
+        request: KnockRequest,
+        plan: KnockTimerPlan
+    ): KnockTimerOutcome {
         val keepOpen = plan as? KnockTimerPlan.KeepOpen ?: return KnockTimerOutcome.NONE
         scheduler.schedule(KnockTimerPlan.Countdown(request.config.nickname, keepOpen.seconds))
         return KnockTimerOutcome.KEEP_OPEN_UNAVAILABLE
@@ -47,7 +39,10 @@ class ScheduleKnockTimerUseCase @Inject constructor(
     private fun planFor(request: KnockRequest): KnockTimerPlan? {
         val access = request.config.access.portAccess ?: return null
         val seconds = access.timeoutSeconds ?: return null
-        val canReknock = access.keepOpen && request.config.crypto.encryption is Encryption.Rijndael
+
+        val unattended =
+            request.config.method != KnockMethod.Spa || request.config.crypto.encryption is Encryption.Rijndael
+        val canReknock = access.keepOpen && unattended
         return if (canReknock) {
             KnockTimerPlan.KeepOpen(request, seconds)
         } else {
@@ -66,7 +61,6 @@ class GetNfcKnockConfigUseCase @Inject constructor(
     private val configs: ConfigRepository,
     private val nfcTags: NfcTagRepository,
 ) {
-    
     suspend operator fun invoke(digests: List<NfcTagDigest>): DomainResult<List<SpaConfig>, KnockError> {
         if (!settings.settings.first().nfcKnockEnabled) return DomainResult.Failure(KnockError.NfcDisabled)
         val all = when (val result = configs.getAll()) {
@@ -77,7 +71,9 @@ class GetNfcKnockConfigUseCase @Inject constructor(
             .filterNotNull()
             .distinct()
             .mapNotNull { nickname -> all.firstOrNull { it.nickname == nickname } }
-        return if (matched.isEmpty()) DomainResult.Failure(KnockError.NfcTagUnknown) else DomainResult.Success(matched)
+        return if (matched.isEmpty()) DomainResult.Failure(KnockError.NfcTagUnknown) else DomainResult.Success(
+            matched
+        )
     }
 }
 
@@ -85,9 +81,11 @@ class CreateNfcTagDigestUseCase @Inject constructor(private val nfcTags: NfcTagR
     suspend operator fun invoke(nickname: Nickname): NfcTagDigest = nfcTags.digest(nickname)
 }
 
-
 class OtherNfcTagDigestsUseCase @Inject constructor(private val nfcTags: NfcTagRepository) {
-    suspend operator fun invoke(existing: List<NfcTagDigest>, nickname: Nickname): List<NfcTagDigest> {
+    suspend operator fun invoke(
+        existing: List<NfcTagDigest>,
+        nickname: Nickname
+    ): List<NfcTagDigest> {
         val matched = nfcTags.match(existing, listOf(nickname))
         return existing.filterIndexed { index, _ -> matched[index] == null }.distinct()
     }

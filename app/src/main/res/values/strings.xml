@@ -1,542 +1,1004 @@
+<!--
+SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
 <resources>
-    <string name="app_name" translatable="false">FwKnop-ng</string>
-    <!-- Titles -->
-    <string name="title_new_config">New config</string>
-    <string name="title_settings">Settings</string>
-    <string name="title_help">Help</string>
-    <string name="title_nfc_write">Write NFC tag</string>
-    <string name="title_qr_export">Export QR code</string>
-    <!-- Common actions -->
-    <string name="ok">OK</string>
-    <string name="cancel">Cancel</string>
-    <string name="knock">Knock</string>
-    <string name="action_back">Back</string>
-    <string name="action_save">Save</string>
-    <string name="action_edit">Edit</string>
-    <string name="action_delete">Delete</string>
-    <string name="action_defaults">Defaults</string>
-    <string name="action_select">Select</string>
-    <string name="action_new_config">New config</string>
-    <string name="action_write_nfc">Write to NFC tag</string>
-    <string name="action_open_app_settings">Open settings</string>
-    <string name="action_open_nfc_settings">NFC settings</string>
-    <string name="action_enable_nfc_knock">Enable NFC knocking</string>
-    <string name="action_allow">Allow</string>
-    <string name="action_duplicate">Duplicate</string>
-    <string name="duplicate_title">Duplicate “%1$s”</string>
-    <string name="duplicate_body">The copy needs a nickname of its own.</string>
-    <string name="action_export_file">Export to a file</string>
-    <string name="action_export_qr">Export as QR code</string>
-    <string name="action_save_png">Save as PNG</string>
-    <string name="action_share_png">Share</string>
-    <string name="action_more">More actions for %1$s</string>
-    <string name="action_scan_keys">Scan keys from QR code</string>
-    <string name="action_import_config">Import an encrypted configuration</string>
-    <string name="action_scan_qr">Scan QR</string>
-    <string name="action_show_secret">Show secret</string>
-    <string name="action_hide_secret">Hide secret</string>
-    <string name="action_close_port">Stop re-knocking</string>
-    <!-- Config list -->
-    <string name="empty_title">No configs yet</string>
-    <string name="empty_body">Create a config with your fwknopd server address and keys, then tap Knock to open the port.</string>
-    <string name="delete_title">Delete “%1$s”?</string>
-    <string name="delete_body">The config and its keys will be removed from this device.</string>
-    <string name="tag_launches_app">Launches app</string>
-    <!-- Config sections and fields -->
-    <string name="section_general">General</string>
-    <string name="section_appearance">Appearance</string>
-    <string name="field_theme">Theme</string>
-    <string name="theme_system">System</string>
-    <string name="theme_light">Light</string>
-    <string name="theme_dark">Dark</string>
-    <string name="field_dynamic_color">Wallpaper colors</string>
-    <string name="field_dynamic_color_hint">Use the system palette instead of the app colors.</string>
-    <string name="section_server">Server</string>
-    <string name="section_access">Access</string>
-    <string name="section_source_ip">Source IP</string>
-    <string name="section_crypto">Keys &amp; digests</string>
-    <string name="section_external_app">After knocking</string>
-    <string name="field_nickname">Nickname</string>
-    <string name="field_server_address">Server address</string>
-    <string name="field_server_port">Server port</string>
-    <string name="field_random_port">Use random server port</string>
-    <string name="field_protocol">Protocol</string>
-    <string name="field_message_type">Message type</string>
-    <string name="field_access_ports">Access ports</string>
-    <string name="hint_access_ports">Comma separated, e.g. tcp/22,udp/1194</string>
-    <string name="field_timeout">Firewall timeout (seconds)</string>
-    <string name="field_keep_open">Keep open</string>
-    <string name="hint_keep_open">Re-knocks shortly before the timeout expires</string>
-    <string name="field_internal_ip">Internal IP</string>
-    <string name="field_internal_port">Internal port</string>
-    <string name="field_command">Server command</string>
-    <string name="field_allow_ip">Allow IP</string>
-    <string name="field_ip_to_allow">IP to allow</string>
-    <string name="field_source_ip">Source IP</string>
-    <string name="field_use_gpg">Use GPG (OpenKeychain)</string>
-    <string name="field_rijndael_key">Rijndael key</string>
-    <string name="field_key_base64">Key is base64</string>
-    <string name="hint_blank_key">No key saved: it will be asked for at each knock</string>
-    <string name="field_hmac_key">HMAC key</string>
-    <string name="field_hmac_base64">HMAC key is base64</string>
-    <string name="field_digest">SPA digest</string>
-    <string name="field_hmac_digest">HMAC digest</string>
-    <string name="field_legacy">Legacy mode (fwknop &lt; 2.5)</string>
-    <string name="field_gpg_recipient">Encryption key</string>
-    <string name="field_gpg_signer">Signing key</string>
-    <string name="gpg_no_key">No key selected</string>
-    <string name="field_external_app">Run external app</string>
-    <string name="field_ssh_uri">user@address:port</string>
-    <string name="field_ovpn">OpenVPN profile name</string>
-    <string name="field_wg">WireGuard tunnel name</string>
-    <string name="field_wg_key">WG Tunnel remote control key</string>
-    <string name="field_wg_hint">Requires \"Remote control\" enabled in WG Tunnel\'s settings, which shows this key.</string>
-    <string name="message_open_port">Open port</string>
-    <string name="message_nat_access">NAT access</string>
-    <string name="message_local_nat_access">Local NAT access</string>
-    <string name="message_server_command">Server command</string>
-    <string name="source_ip_resolve">Resolve public IP</string>
-    <string name="source_ip_source">Use packet source IP</string>
-    <string name="source_ip_allow">Fixed IP</string>
-    <string name="source_ip_prompt">Ask at each knock</string>
-    <string name="source_ip_resolve_hint">First the address the system uses to reach the server (no third party). Behind a NAT, falls back to STUN, then HTTPS, then DNS, always in the server\'s IP family.</string>
-    <string name="source_ip_source_hint">No third party, works behind NAT, CGNAT and VPN. The server must set REQUIRE_SOURCE_ADDRESS N: the packet is then no longer tied to your IP and only the replay digest protects it. The fwknop documentation advises against it.</string>
-    <string name="knock_source_line">Source IP %1$s, %2$s</string>
-    <string name="source_method_kernel">chosen by the system, no third party</string>
-    <string name="source_method_stun">seen by STUN server %1$s</string>
-    <string name="source_method_https">seen by %1$s over HTTPS</string>
-    <string name="source_method_dns">seen by OpenDNS over unencrypted DNS</string>
-    <string name="source_method_fixed">fixed in the configuration</string>
-    <string name="source_method_prompted">entered for this knock</string>
-    <string name="source_method_packet">Source mode: the server uses the packet\'s source address, no lookup</string>
-    <string name="app_none">None</string>
-    <string name="app_ssh_uri">SSH URI</string>
-    <string name="app_openvpn">OpenVPN for Android</string>
-    <string name="app_wireguard">WireGuard</string>
-    <!-- Settings -->
-    <string name="field_ip_lookup_url">HTTPS address used to find our public IP</string>
-    <string name="field_stun_lookup">Before HTTPS, ask a STUN server (Cloudflare, then Google) over UDP like the knock. Unencrypted.</string>
-    <string name="field_dns_lookup">If HTTPS fails, ask OpenDNS (Cisco) over unencrypted DNS. Can be spoofed on public Wi-Fi.</string>
-    <string name="field_nfc_knock">Knock when an fwknop NFC tag is scanned in the open app</string>
-    <string name="field_notification">Show timeout notification</string>
-    <string name="field_nfc_keep_others">Keep the other configs on the tag</string>
-    <string name="field_nfc_keep_others_hint">One tag can open several machines: you choose which one when it is scanned. Turn off to leave this config alone on the tag.</string>
-    <!-- Knock -->
-    <string name="knock_key_prompt_title">Key for %1$s</string>
-    <string name="knock_ip_prompt_title">Source IP for %1$s</string>
-    <string name="knock_sending_title">Knocking %1$s</string>
-    <string name="knock_sending_body">Sending SPA packet…</string>
-    <string name="knock_sent">Packet sent to %1$s</string>
-    <string name="field_port_check">After the knock, try a TCP connection to the opened ports for a few seconds to confirm they are reachable. Extra traffic to the server.</string>
-    <string name="port_check_reachable">%1$s: port reachable</string>
-    <string name="port_check_closed">%1$s: still closed (%2$s)</string>
-    <string name="knock_choose_title">Which machine to open?</string>
-    <!-- Notifications -->
-    <string name="notification_channel">Firewall timeouts</string>
-    <string name="notification_title">FwKnop-ng: %1$s</string>
-    <string name="notification_port_open">Port open, closing in</string>
-    <string name="notification_keep_open">Port kept open, next knock before</string>
-    <!-- NFC -->
-    <string name="nfc_waiting_title">Tap a tag</string>
-    <string name="nfc_waiting_body">Hold an NFC tag against the back of the device to store “%1$s”. Only a protected digest is written — never the nickname or the keys.</string>
-    <string name="nfc_written_title">Tag written</string>
-    <string name="nfc_written_body">To knock “%1$s”, unlock the app and hold this tag against the device. Requires the app lock. Rewrite the tag after renaming the config or restoring a backup from another device.</string>
-    <string name="nfc_unsupported_title">NFC unavailable</string>
-    <string name="nfc_unsupported_body">This device has no NFC reader: tags cannot be written nor read.</string>
-    <string name="nfc_failed_title">Write failed</string>
-    <string name="nfc_write_failed">Unable to write the NFC tag. Make sure it is writable, or try another tag.</string>
-    <string name="nfc_write_unsupported">This tag does not support NDEF. Use an NTAG or MIFARE Ultralight tag.</string>
-    <string name="nfc_write_read_only">This tag is read-only (locked). Use another tag.</string>
-    <string name="nfc_write_too_small">Not enough room on this tag. Free some space, stop keeping the other configs, or use a larger tag (NTAG213: 1 config, NTAG215: about 6).</string>
-    <string name="nfc_write_lost">The tag moved away during writing. Hold it still against the device and try again.</string>
-    <string name="nfc_write_key_failed">Unable to compute the tag digest: the vault is unavailable. Unlock the app and try again.</string>
-    <string name="nfc_read_legacy">This old-format tag stores the nickname in clear. Erase it (its other content is kept) or rewrite it from the config menu.</string>
-    <string name="nfc_read_legacy_title">Tag from an older version</string>
-    <string name="nfc_do_nothing">Do nothing</string>
-    <string name="nfc_erase">Erase tag</string>
-    <string name="nfc_erase_title">Erase the tag</string>
-    <string name="nfc_erase_body">Hold the tag against the device to remove its fwknop configs. Its other records are kept.</string>
-    <string name="nfc_wipe_body">Hold the tag against the device to erase all of its content.</string>
-    <string name="nfc_erase_all">Erase everything</string>
-    <string name="nfc_erase_confirm_title">Erase this tag?</string>
-    <string name="nfc_erase_confirm_body">Its fwknop configs will be removed: it will no longer knock from any device. Its other content is kept.</string>
-    <string name="nfc_foreign_title">Unrecognized tag</string>
-    <string name="nfc_foreign_body">This tag is blank or holds no fwknop config — it may serve another purpose (badge, transit card…). Erasing it deletes all its content for good: only erase a tag you own.</string>
-    <string name="nfc_read_unsupported">This NFC tag holds no fwknop config and cannot be rewritten by the app (payment or transit card, locked tag…). It was left untouched.</string>
-    <string name="nfc_erased">Tag erased</string>
-    <string name="nfc_disabled_title">NFC is off</string>
-    <string name="nfc_disabled_body">Turn NFC on in the system settings to write this tag. Tags are only read while NFC is on.</string>
-    <string name="nfc_tips_title">Writing a tag</string>
-    <string name="nfc_tips_body">• NDEF tags: NTAG213/215/216 or MIFARE Ultralight. Blank tags are formatted automatically.\n• The NFC reader is usually near the camera: hold the tag still until confirmed.\n• Other tag content is kept, as are other configs unless you turn it off.\n• Read-only tags cannot be written.</string>
-    <string name="nfc_notice_knock_disabled_title">NFC knocking is off</string>
-    <string name="nfc_notice_knock_disabled_body">You can write the tag, but reading it will not knock until NFC knocking is enabled in the settings.</string>
-    <string name="nfc_notice_local_network_title">Local network access</string>
-    <string name="nfc_notice_local_network_body">For a server on your local network, Android needs the \"Nearby devices\" permission, or the knock is blocked. Grant it now.</string>
-    <string name="nfc_notice_lock_disabled_title">App lock is off</string>
-    <string name="nfc_notice_lock_disabled_body">The tag can be written, but won\'t knock until the app lock is enabled. It holds no secret and only works with this app unlocked.</string>
-    <!-- QR export -->
-    <string name="qr_export_warning">This QR code contains the whole config, keys included. Share it only through a trusted channel.</string>
-    <string name="qr_export_saved">QR code saved as PNG.</string>
-    <string name="qr_import_title">Configuration found</string>
-    <string name="qr_import_body">This QR code holds a full configuration. Import it (replacing the fields below)
-    or only the keys?</string>
-    <string name="qr_import_full">Full configuration</string>
-    <string name="qr_import_keys">Keys only</string>
-    <string name="error_qr_encode">Failed to generate the QR code.</string>
-    <string name="error_qr_write">Could not write the PNG file.</string>
-    <string name="qr_export_encrypt">Encrypt with the export passphrase</string>
-    <string name="qr_export_encrypt_hint">Only FwKnop-ng can read an encrypted QR code — not Fwknop2 or QR code readers. Off by default.</string>
-    <string name="qr_export_encrypted_warning">Anyone with this image can try passphrases offline, without limit: choose a strong one. It is asked when scanning.</string>
-    <string name="action_change_qr_passphrase">Change the export passphrase</string>
-    <string name="qr_passphrase_title">Export passphrase</string>
-    <string name="hint_qr_passphrase">At least %1$d characters. Set once, kept in the app\'s vault, and asked only on the scanning device.</string>
-    <string name="qr_decrypt_title">Encrypted QR code</string>
-    <string name="hint_qr_decrypt">The export passphrase chosen on the device that created this QR code.</string>
-    <string name="action_decrypt">Decrypt</string>
-    <string name="error_qr_wrong_passphrase">Wrong passphrase, or the QR code was altered.</string>
-    <string name="error_qr_unreadable">This encrypted QR code cannot be read. It may come from a newer version of the app.</string>
-    <string name="error_backup_passphrase_short">The passphrase must have at least %1$s characters.</string>
-    <string name="error_backup_passphrase_mismatch">The two passphrases differ.</string>
-    <string name="error_backup_wrong_passphrase">Wrong passphrase, or the file was altered.</string>
-    <string name="error_backup_not_a_backup">This file is not a FwKnop-ng backup, or it was made by a newer version of the app.</string>
-    <string name="error_backup_read">Could not read the backup file.</string>
-    <string name="error_backup_write">Could not write the backup file.</string>
-    <!-- Authentication -->
-    <string name="auth_title_unlock">Unlock FwKnop-ng</string>
-    <string name="auth_title_qr">Show keys as a QR code</string>
-    <string name="auth_title_lock">Change the app lock</string>
-    <string name="auth_title_rotate">Rotate encryption keys</string>
-    <string name="auth_subtitle">Confirm it\'s you</string>
-    <string name="auth_use_credential">Use PIN, pattern or password</string>
-    <!-- App lock -->
-    <string name="lock_title">FwKnop-ng is locked</string>
-    <string name="lock_body">Your configs and keys are encrypted. Unlock with your fingerprint, face or device PIN.</string>
-    <string name="action_unlock">Unlock</string>
-    <string name="lock_invalidated_title">Stored configs are unrecoverable</string>
-    <string name="lock_invalidated_body">Android destroyed the encryption key (screen lock removed or reset, or data restored from another device). The configs can no longer be decrypted: erase them to start over.</string>
-    <string name="action_reset_vault">Erase and start over</string>
-    <string name="reset_confirm_title">Erase all configs?</string>
-    <string name="reset_confirm_body">Every config stored in FwKnop-ng is permanently deleted.</string>
-    <string name="section_security">Security</string>
-    <string name="field_app_lock">Lock the app</string>
-    <string name="hint_app_lock">Ask for biometrics or the device credential to open the app, and again before knocking from an NFC tag</string>
-    <string name="hint_app_lock_unavailable">Set a PIN, pattern or password on the device to enable the lock</string>
-    <string name="field_auto_lock">Lock again after</string>
-    <string name="auto_lock_never">Only when the app restarts</string>
-    <string name="auto_lock_30s">30 seconds in background</string>
-    <string name="auto_lock_1m">1 minute in background</string>
-    <string name="auto_lock_5m">5 minutes in background</string>
-    <string name="auto_lock_15m">15 minutes in background</string>
-    <string name="action_rotate_keys">Rotate encryption keys</string>
-    <string name="hint_rotate_keys">Generates a new data key, re-encrypts every config with it and destroys the old one.</string>
-    <string name="keys_rotated">Encryption keys rotated</string>
-    <string name="lock_enabled">App lock enabled</string>
-    <string name="lock_disabled">App lock disabled</string>
-    <string name="lock_suggestion_title">Protect the app</string>
-    <string name="lock_suggestion_body">FwKnop-ng opens without authentication. Turn on the app lock to require your fingerprint, face or PIN — also needed to knock from an NFC tag.</string>
-    <string name="lock_suggestion_nfc">No secret is ever written to an NFC tag: it only holds a digest that is meaningless without this app, and a tag does nothing unless the app is open and unlocked.</string>
-    <string name="action_enable_lock">Turn on the lock</string>
-    <string name="action_later">Later</string>
-    <string name="section_backup">Backup</string>
-    <string name="hint_backup">“Export all” saves every config, key and setting to a passphrase-encrypted file (app lock excluded); importing it replaces everything. To export a single config, use its card menu; importing it adds it.</string>
-    <string name="action_backup_export">Export all</string>
-    <string name="action_backup_import">Import</string>
-    <string name="auth_title_backup">Export the configuration</string>
-    <string name="backup_export_title">Encrypt the backup</string>
-    <string name="backup_import_title">Decrypt the backup</string>
-    <string name="backup_import_confirm_title">Replace the configuration?</string>
-    <plurals name="backup_import_confirm_body">
-        <item quantity="one">Full export: every config and setting will be replaced by those of the file (%1$d config). Configs missing from the file are deleted.</item>
-        <item quantity="other">Full export: every config and setting will be replaced by those of the file (%1$d configs). Configs missing from the file are deleted.</item>
-    </plurals>
-    <string name="action_backup_restore">Replace</string>
-    <string name="action_export">Export</string>
-    <string name="field_backup_passphrase">Passphrase</string>
-    <string name="field_backup_passphrase_confirm">Confirm the passphrase</string>
-    <string name="hint_backup_passphrase">At least %1$d characters. Without it the file cannot be opened: there is no way to recover it.</string>
-    <string name="hint_backup_import_passphrase">The passphrase chosen when the backup was exported.</string>
-    <plurals name="backup_exported">
-        <item quantity="one">Backup saved: %1$d config.</item>
-        <item quantity="other">Backup saved: %1$d configs.</item>
-    </plurals>
-    <plurals name="backup_imported">
-        <item quantity="one">Backup restored: %1$d config.</item>
-        <item quantity="other">Backup restored: %1$d configs.</item>
-    </plurals>
-    <string name="auth_title_export_config">Export a config</string>
-    <string name="auth_title_nfc_knock">Knock from an NFC tag</string>
-    <string name="import_rename_title">“%1$s” already exists</string>
-    <string name="import_rename_body">Choose another nickname for the imported config, or cancel to skip it.</string>
-    <string name="qr_export_page">%1$d / %2$d</string>
-    <string name="action_previous_qr">Previous QR code</string>
-    <string name="action_next_qr">Next QR code</string>
-    <string name="error_backup_partial">This file only holds a single config.</string>
-    <string name="error_import_no_config">This file holds no config.</string>
-    <plurals name="configs_exported">
-        <item quantity="one">%1$d config exported.</item>
-        <item quantity="other">%1$d configs exported.</item>
-    </plurals>
-    <plurals name="configs_imported">
-        <item quantity="one">%1$d config imported.</item>
-        <item quantity="other">%1$d configs imported.</item>
-    </plurals>
-    <!-- Errors -->
-    <string name="error_title">Error</string>
-    <string name="error_config_not_found">This config no longer exists.</string>
-    <string name="error_nickname_blank">You must choose a nickname.</string>
-    <string name="error_nickname_taken">Another config already uses this nickname.</string>
-    <string name="error_server_invalid">You must supply a valid server address.</string>
-    <string name="error_ports_format">Access ports must be in the form of \'tcp/22\'.</string>
-    <string name="error_timeout_invalid">The firewall timeout must be a positive number of seconds.</string>
-    <string name="error_nat_ip_invalid">You must supply a valid NAT IP.</string>
-    <string name="error_nat_port_invalid">You must provide a valid NAT port.</string>
-    <string name="error_command_blank">The server command cannot be empty.</string>
-    <string name="error_allow_ip_invalid">You must supply a valid IP address to allow.</string>
-    <string name="error_gpg_keys_missing">Please select both GPG keys.</string>
-    <string name="error_hmac_legacy">Cannot use HMAC with legacy mode.</string>
-    <string name="error_hmac_base64_length">HMAC is not valid base64: length is not a multiple of 4.</string>
-    <string name="error_hmac_base64_chars">HMAC is not valid base64: it contains disallowed characters.</string>
-    <string name="error_key_base64_length">Key is not valid base64: length is not a multiple of 4.</string>
-    <string name="error_key_base64_chars">Key is not valid base64: it contains disallowed characters.</string>
-    <string name="error_key_blank">The key cannot be blank.</string>
-    <string name="error_source_ip_invalid">Enter a valid IP address.</string>
-    <string name="error_source_ip_unresolved">Could not find our public IP (%1$s). Check the network or the IP lookup settings.</string>
-    <string name="error_nfc_disabled">This fwknop tag was read, but knocking from NFC tags is disabled. Turn on “Knock when an fwknop NFC tag is scanned” in the app settings.</string>
-    <string name="error_nfc_tag_unknown">This tag matches no config on this device. The config may have been renamed or deleted, or the tag written by another installation: rewrite or erase it.</string>
-    <string name="error_nfc_lock_required">Knocking from an NFC tag requires the app lock. Enable it in the settings, Security section.</string>
-    <string name="error_server_unresolved">Could not resolve server %1$s.</string>
-    <string name="error_server_family_mismatch">Server %1$s has no address of the same type (IPv4/IPv6) as our source IP.</string>
-    <string name="error_packet_generation">Failure generating SPA data. Check the keys.</string>
-    <string name="error_transport">Sending failed: %1$s</string>
-    <string name="error_local_network_blocked">Android blocked the packet to your local network. Allow \"Nearby devices\" in the app settings, then knock again.</string>
-    <string name="error_gpg_not_installed">OpenKeychain must be installed to use GPG.</string>
-    <string name="error_gpg_no_key">No GPG key was returned by OpenKeychain.</string>
-    <string name="error_gpg_interaction">OpenKeychain needs your confirmation.</string>
-    <string name="error_gpg_failed">GPG error: %1$s</string>
-    <string name="error_gpg_unsupported_key">The recipient GPG key is not supported by fwknop: an RSA encryption key (2048 or 3072 bits) is required.</string>
-    <string name="error_gpg_packet_too_large">GPG packet too large (max 1500 characters). Use RSA keys of 3072 bits or less, or an Ed25519 signing key.</string>
-    <string name="error_no_ssh_app">No SSH app found. ConnectBot is recommended.</string>
-    <string name="error_no_vpn_app">No OpenVPN app found. OpenVPN for Android is recommended.</string>
-    <string name="error_no_wireguard_app">No WG Tunnel app found. Install WG Tunnel (com.zaneschepke.wireguardautotunnel).</string>
-    <string name="error_wireguard_key_missing">Enter the WG Tunnel remote control key.</string>
-    <string name="error_lookup_url">The URL must use HTTPS, like https://api.ipify.org</string>
-    <string name="error_vault_auth_required">Authentication expired. Please try again.</string>
-    <string name="error_vault_device_not_secure">Set a PIN, pattern or password on the device first.</string>
-    <string name="error_vault_key_invalidated">The encryption key no longer exists (screen lock removed or reset). The stored configs cannot be recovered.</string>
-    <string name="error_vault_unavailable">Secure storage could not be opened.</string>
-    <string name="error_auth_failed">Authentication failed or is temporarily blocked. Try again later.</string>
-    <string name="help_tagline">Single Packet Authorization client for fwknop</string>
-    <string name="help_version">Version %1$s</string>
-    <string name="help_section_guide">Getting started</string>
-    <string name="help_topic_basics_title">What it does</string>
-    <string name="help_topic_basics_body">
- <![CDATA[
-FwKnop-ng is a client for <a href="https://www.cipherdyne.org/fwknop/">fwknop</a>
- Single Packet Authorization (SPA). Your server keeps its ports closed; tapping Knock sends one encrypted and
- authenticated UDP packet, and fwknopd then opens the requested ports to your IP for the duration of the timeout.
- ]]>
-    </string>
-    <string name="help_topic_config_title">Creating a config</string>
-    <string name="help_topic_config_body">
- <![CDATA[
-Enter the server address, the fwknopd port (udp/62201 by default) and the ports to
- open, e.g. tcp/22. The Rijndael and HMAC keys, their encoding and the digests must match the server\'s access.conf
- (KEY_BASE64, HMAC_KEY_BASE64). Scan a QR code to fill them in, or leave the key blank to be asked at each knock.
- GPG keys are handled by OpenKeychain.
- ]]>
-    </string>
-    <string name="help_topic_source_ip_title">Source IP</string>
-    <string name="help_topic_source_ip_body">
- <![CDATA[
-By default the app first uses the address the system picks to reach the server, without asking
- anyone: enough with native IPv6 or a public IPv4. Behind a NAT it then asks a STUN server, then the HTTPS
- address, then OpenDNS if enabled, always in the server\'s IP family. The method used is shown after each knock.
- The packet source IP mode asks no one and works behind any NAT, but the server must set
- REQUIRE_SOURCE_ADDRESS N, which fwknop advises against. You can also set a fixed IP.
- ]]>
-    </string>
-    <string name="help_topic_after_title">After knocking</string>
-    <string name="help_topic_after_body">
- <![CDATA[
-Keep open re-knocks shortly before the timeout expires. The app can then launch an
- SSH client (ConnectBot), an OpenVPN profile or a WireGuard tunnel.
- ]]>
-    </string>
-    <string name="help_topic_nfc_title">NFC tags</string>
-    <string name="help_topic_nfc_body">
- <![CDATA[
-A tag only holds a digest, never a key. With NFC knocking and the app lock enabled,
- holding it against the unlocked app knocks the matching config.
- ]]>
-    </string>
-    <string name="help_topic_security_title">Security and backup</string>
-    <string name="help_topic_security_body">
- <![CDATA[
-Configs are encrypted on the device. Turn on the app lock in the
- settings, and use a passphrase-encrypted export to move your configs to another device: Android backups cannot
- restore them.
- ]]>
-    </string>
-    <string name="help_topic_troubleshooting_title">Troubleshooting</string>
-    <string name="help_topic_troubleshooting_body">
- <![CDATA[
-If nothing opens, first check the server logs: keys, digests or clock
- out of sync between phone and server. For a server on your local network, allow “Nearby devices” in the app
- permissions.
- ]]>
-    </string>
-    <string name="section_credits">Licenses &amp; credits</string>
-    <string name="credits_license_title">Free software</string>
-    <string name="credits_license_body">
- <![CDATA[
-FwKnop-ng is free software: you can redistribute it and/or modify it under the
- terms of the <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html">GNU General Public License</a> as
- published by the Free Software Foundation, either version 2 or 3.
- ]]>
-    </string>
-<string name="credits_authors_title">Authors</string>
-<string name="credits_authors_body">
- <![CDATA[
-  <a href="https://github.com/gildas-le-drogoff">Gildas Le Drogoff</a>
-  \u00A0
- ]]>
-</string>
-<string name="credits_contributors_title">Contributors</string>
-<string name="credits_contributors_body">
- <![CDATA[
-Legacy application by
- <a href="http://incomsystems.biz/">Jonathan Bennett</a>.
- ]]>
-</string>
-    <string name="credits_artwork_title">Artwork</string>
-    <string name="credits_artwork_body">
- <![CDATA[
-Interface icons from Material Symbols.
- ]]>
-    </string>
-    <string name="credits_libraries_title">Third-party libraries</string>
-    <string name="credits_libraries_body">
- <![CDATA[
-FwKnop-ng ships the following open source components. Full texts:
- <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a>,
- <a href="https://opensource.org/license/bsd-3-clause">BSD-3-Clause</a>,
- <a href="https://opensource.org/license/mit">MIT</a>.
- ]]>
-    </string>
-    <string name="credits_action_source">Source code</string>
-    <string name="credits_action_issues">Report a bug</string>
-    <string name="close">Close</string>
-    <string name="action_retry">Retry</string>
-    <string name="action_continue">Continue</string>
-    <string name="knock_failed_title">Knock failed</string>
-    <string name="knock_sent_keep_open_blocked">Packet sent to %1$s. The port is not kept open: notifications are blocked, so you could not close it.</string>
-    <string name="knock_sent_keep_open_unavailable">Packet sent to %1$s. Keep-open could not start in the background: the port will close at the timeout.</string>
-    <string name="permission_notifications_title">Show the firewall timer?</string>
-    <string name="permission_notifications_body">%1$s opens the port for a limited time. Allow notifications to see the countdown and, with keep-open, to close the port at any time.</string>
-    <string name="permission_local_network_title">Local network access</string>
-    <string name="permission_local_network_body">The server of %1$s is on your local network. Android requires the \"Nearby devices\" permission to send it the knock.</string>
-    <string name="error_config_storage">The configurations could not be read or written (storage error).</string>
-    <string name="error_qr_no_source_ip">This QR code holds no source IP.</string>
-    <string name="error_camera_denied">Scanning a QR code needs the camera. Allow it in the app settings.</string>
-    <string name="notification_keep_open_failed">Re-knock failed: the port is no longer kept open.</string>
-    <string name="nfc_writing_title">Writing…</string>
-    <string name="nfc_writing_body">Hold the tag still until the confirmation.</string>
-    <string name="field_external_app_delay">Delay before opening the app</string>
-    <string name="field_external_app_delay_hint">Wait before launching SSH, OpenVPN or WireGuard, for firewalls that take a moment to apply the rule.</string>
-    <plurals name="external_app_delay_value">
-        <item quantity="one">%d second</item>
-        <item quantity="other">%d seconds</item>
-    </plurals>
-    <string name="action_diagnose">Test this configuration</string>
-    <string name="title_diagnostic">Test: %1$s</string>
-    <string name="diagnostic_intro">Sends a real SPA packet and details each step. The external app is not launched.</string>
-    <string name="diagnostic_run">Run the test</string>
-    <string name="diagnostic_rerun">Run again</string>
-    <string name="diagnostic_steps">Steps</string>
-    <string name="field_source_ip_override">Source IP for this test</string>
-    <string name="diagnostic_step_server_dns">Server DNS lookup</string>
-    <string name="diagnostic_step_source_ip">Source IP</string>
-    <string name="diagnostic_step_family">Address family</string>
-    <string name="diagnostic_step_packet">Packet</string>
-    <string name="diagnostic_step_transport">Transport</string>
-    <string name="diagnostic_status_pending">Waiting</string>
-    <string name="diagnostic_status_running">In progress</string>
-    <string name="diagnostic_status_done">Done</string>
-    <string name="diagnostic_status_skipped">Not run</string>
-    <string name="diagnostic_status_failed">Failed</string>
-    <string name="diagnostic_server_detail">%1$s → %2$s</string>
-    <string name="diagnostic_family_ipv4">IPv4, to server %1$s</string>
-    <string name="diagnostic_family_ipv6">IPv6, to server %1$s</string>
-    <plurals name="diagnostic_packet_size">
-        <item quantity="one">%d byte</item>
-        <item quantity="other">%d bytes</item>
-    </plurals>
-    <string name="diagnostic_transport_detail">%1$s to %2$s, port %3$d</string>
-    <string name="diagnostic_success">Packet sent: every step passed.</string>
-    <string name="diagnostic_failure">The knock stopped at the step marked as failed.</string>
-    <!-- Accessibility (TalkBack) -->
-    <string name="a11y_loading_configs">Loading configurations</string>
-    <string name="a11y_edit_config">edit</string>
-    <string name="a11y_tag_protocol">Protocol %1$s</string>
-    <string name="a11y_tag_access">Access %1$s</string>
-    <string name="a11y_knock_config">Knock %1$s</string>
-    <string name="a11y_knock_sending">sending</string>
-    <string name="a11y_knock_sent">packet sent</string>
-    <string name="a11y_qr_image">QR code of the %1$s configuration</string>
-    <string name="a11y_qr_image_paged">QR code of the %1$s configuration, part %2$d of %3$d</string>
-    <string name="a11y_qr_page">Part %1$d of %2$d</string>
-    <string name="a11y_qr_generating">Generating the QR code</string>
-    <string name="a11y_remove_network">Remove %1$s</string>
-    <string name="a11y_add_network">Add this network</string>
-    <!-- Automatic knock on leaving a trusted Wi-Fi network -->
-    <string name="section_auto_knock">Automatic knock (advanced)</string>
-    <string name="field_auto_knock">Knock when leaving a trusted Wi-Fi network</string>
-    <string name="field_auto_knock_hint">Off by default. Sends a packet without any action from you: read the warning before turning it on.</string>
-    <string name="field_auto_knock_config">Configuration to knock</string>
-    <string name="auto_knock_choose_config">Choose a configuration</string>
-    <string name="auto_knock_no_candidate">No configuration can knock unattended: it needs a saved Rijndael key and a source IP that is not asked at each knock.</string>
-    <string name="auto_knock_config_unavailable">“%1$s” can no longer knock unattended (deleted, renamed or now asking for input): choose another configuration.</string>
-    <string name="auto_knock_trusted_networks">Trusted Wi-Fi networks</string>
-    <string name="auto_knock_no_network">No network yet: add at least one.</string>
-    <string name="field_ssid">Network name (SSID)</string>
-    <string name="action_add_current_network">Add the current Wi-Fi network</string>
-    <string name="auto_knock_current_unavailable">Current Wi-Fi network name unavailable: connect to Wi-Fi, allow the location and turn it on.</string>
-    <string name="auto_knock_location_missing">Android only gives the Wi-Fi network name to apps allowed to use the location. No position is recorded or sent.</string>
-    <string name="action_allow_location">Allow the location</string>
-    <string name="auto_knock_background_missing">To notice the departure while the app is closed, the location must be allowed “All the time”.</string>
-    <string name="action_allow_background_location">Allow all the time</string>
-    <string name="auto_knock_location_off">The location is turned off: Android hides the Wi-Fi network name.</string>
-    <string name="action_enable_location">Turn on the location</string>
-    <string name="auto_knock_behaviour">When the device leaves all these networks, the configuration is knocked through the next network (mobile data…), without launching the app linked to it. With the app lock on, this only happens while the app is unlocked. A notification stays visible while the monitoring runs.</string>
-    <string name="auto_knock_warning_title">Turn on the automatic knock?</string>
-    <string name="auto_knock_warning_body">The automatic knock sends an SPA packet without any action from you, each time the device leaves a trusted Wi-Fi network.\n\n• The port opens for the public IP of the next network (mobile data, public Wi-Fi…) even if you did not mean to connect. Anyone sharing that address (carrier NAT, hotspot) can reach the service while the rule lasts.\n\n• A lost or stolen phone knocks too. Without the app lock, the configuration key is used without any authentication.\n\n• A network name proves nothing: anyone can broadcast the same SSID and make the phone join and leave it, to trigger knocks.\n\n• The app reads the Wi-Fi network name in the background, which Android ties to the location permission “All the time”. No position is recorded or sent.\n\n• A background service runs permanently.\n\nKeep this for a dedicated configuration with a short open time.</string>
-    <string name="auto_knock_warning_ack">I understand these risks</string>
-    <string name="auto_knock_warning_confirm">Turn on</string>
-    <string name="auto_knock_notification_title">Automatic knock armed</string>
-    <string name="auto_knock_notification_body">Watching for the departure from the trusted Wi-Fi networks.</string>
-    <string name="auto_knock_channel_monitor">Automatic knock monitoring</string>
-    <string name="auto_knock_channel_result">Automatic knocks</string>
-    <string name="auto_knock_sent">Automatic knock sent to %1$s after leaving a trusted Wi-Fi network.</string>
-    <string name="auto_knock_failed">Automatic knock of %1$s failed: %2$s</string>
-    <string name="auto_knock_error_locked">the app is locked. Unlock it, or knock by hand.</string>
-    <string name="auto_knock_error_config_missing">the configuration no longer exists.</string>
-    <string name="auto_knock_error_needs_user">the configuration asks for a key or a source IP, or uses GPG.</string>
-    <string name="title_history">History</string>
-    <string name="section_history_retention">Keep history</string>
-    <string name="field_history_retention_hint">Encrypted with your configurations and only readable while the app is unlocked. Older entries are deleted automatically.</string>
-    <string name="history_retention_off">Off</string>
-    <string name="history_retention_7">7 days</string>
-    <string name="history_retention_30">30 days</string>
-    <string name="history_retention_90">90 days</string>
-    <string name="history_empty">No knock recorded yet.</string>
-    <string name="history_empty_off">History is off: knocks are not recorded.</string>
-    <string name="history_entry_title">%1$s · %2$s</string>
-    <string name="history_sent">Sent</string>
-    <string name="history_failed">Failed</string>
-    <string name="action_history_clear">Clear history</string>
-    <string name="history_clear_confirm_title">Clear history?</string>
-    <string name="history_clear_confirm_body">Every recorded knock will be deleted. This cannot be undone.</string>
-    <string name="action_history_disable">Turn off</string>
-    <string name="history_disable_confirm_title">Turn off history?</string>
-    <string name="history_disable_confirm_body">Knocks will no longer be recorded and the existing history will be deleted.</string>
+  <string name="app_name" translatable="false">FwKnop-ng</string>
+  <!-- Titles -->
+  <string name="title_new_fwknop">New fwknop config</string>
+  <string name="title_new_port_knock">New port knocking config</string>
+  <string name="title_new_wake_on_lan">New Wake-on-LAN config</string>
+  <string name="title_settings">Settings</string>
+  <string name="title_help">Help</string>
+  <string name="title_nfc_write">Write NFC tag</string>
+  <string name="title_qr_export">Export QR code</string>
+  <!-- Common actions -->
+  <string name="ok">OK</string>
+  <string name="cancel">Cancel</string>
+  <string name="knock">Knock</string>
+  <string name="action_back">Back</string>
+  <string name="action_save">Save</string>
+  <string name="action_edit">Edit</string>
+  <string name="action_delete">Delete</string>
+  <string name="action_defaults">Defaults</string>
+  <string name="action_select">Select</string>
+  <string name="action_new_config">New config</string>
+  <string name="new_config_choose_title">What should this config do?</string>
+  <string name="kind_fwknop">fwknop (SPA)</string>
+  <string name="kind_fwknop_hint"
+    >Sends an encrypted Single Packet Authorization to an fwknopd
+    server.</string
+  >
+  <string name="kind_port_knock">Classic port knocking</string>
+  <string name="kind_port_knock_hint"
+    >Knocks a port sequence (knockd style): no encryption, the server sees your
+    address.</string
+  >
+  <string name="kind_wake_on_lan">Wake-on-LAN</string>
+  <string name="kind_wake_on_lan_hint"
+    >Sends a magic packet that powers a machine on.</string
+  >
+  <string name="tag_wake_on_lan">Wake-on-LAN</string>
+  <string name="action_wake">Wake</string>
+  <string name="action_write_nfc">Write to NFC tag</string>
+  <string name="action_open_app_settings">Open settings</string>
+  <string name="action_open_nfc_settings">NFC settings</string>
+  <string name="action_enable_nfc_knock">Enable NFC knocking</string>
+  <string name="action_allow">Allow</string>
+  <string name="action_duplicate">Duplicate</string>
+  <string name="duplicate_title">Duplicate “%1$s”</string>
+  <string name="duplicate_body">The copy needs a nickname of its own.</string>
+  <string name="action_export_file">Export to a file</string>
+  <string name="action_export_qr">Export as QR code</string>
+  <string name="action_save_png">Save as PNG</string>
+  <string name="action_share_png">Share</string>
+  <string name="action_more">More actions for %1$s</string>
+  <string name="action_scan_keys">Scan keys from QR code</string>
+  <string name="action_import_config">Import an encrypted configuration</string>
+  <string name="action_scan_qr">Scan QR</string>
+  <string name="action_show_secret">Show secret</string>
+  <string name="action_hide_secret">Hide secret</string>
+  <string name="action_close_port">Stop re-knocking</string>
+  <!-- Config list -->
+  <string name="empty_title">No configs yet</string>
+  <string name="empty_body"
+    >Create a config with your fwknopd server address and keys, then tap Knock
+    to open the port.</string
+  >
+  <string name="delete_title">Delete “%1$s”?</string>
+  <string name="delete_body"
+    >The config and its keys will be removed from this device.</string
+  >
+  <string name="tag_launches_app">Launches app</string>
+  <!-- Config sections and fields -->
+  <string name="section_general">General</string>
+  <string name="section_appearance">Appearance</string>
+  <string name="field_theme">Theme</string>
+  <string name="theme_system">System</string>
+  <string name="theme_light">Light</string>
+  <string name="theme_dark">Dark</string>
+  <string name="field_dynamic_color">Wallpaper colors</string>
+  <string name="field_dynamic_color_hint"
+    >Use the system palette instead of the app colors.</string
+  >
+  <string name="section_server">Server</string>
+  <string name="section_access">Access</string>
+  <string name="section_source_ip">Source IP</string>
+  <string name="section_crypto">Keys &amp; digests</string>
+  <string name="section_external_app">After knocking</string>
+  <string name="section_wake_on_lan">Wake-on-LAN</string>
+  <string name="field_wake_mac">MAC address</string>
+  <string name="field_wake_host">Target address</string>
+  <string name="field_wake_host_hint"
+    >Empty: the local network broadcast (255.255.255.255). From outside, use the
+    address of the router that forwards the packet.</string
+  >
+  <string name="field_wake_port">UDP port</string>
+  <string name="field_wake_password">SecureOn password</string>
+  <string name="field_wake_password_hint"
+    >Optional, only for adapters that require one: 4 or 6 bytes, e.g.
+    00:22:44:66:88:AA or 192.168.1.1.</string
+  >
+  <string name="field_nickname">Nickname</string>
+  <string name="field_server_address">Server address</string>
+  <string name="field_server_port">Server port</string>
+  <string name="field_random_port">Use random server port</string>
+  <string name="field_knock_sequence">Port sequence</string>
+  <string name="hint_knock_sequence"
+    >In order, e.g. tcp/7000,udp/8000,9000 (TCP by default)</string
+  >
+  <string name="field_knock_delay">Delay between knocks (ms)</string>
+  <string name="field_knock_access_ports">Opened ports (optional)</string>
+  <string name="hint_knock_access_ports"
+    >Used to check access after the knock, e.g. tcp/22</string
+  >
+  <string name="tag_port_knocking">Port knocking</string>
+  <string name="field_protocol">Protocol</string>
+  <string name="field_message_type">Message type</string>
+  <string name="field_access_ports">Access ports</string>
+  <string name="hint_access_ports"
+    >Comma separated, e.g. tcp/22,udp/1194</string
+  >
+  <string name="field_timeout">Firewall timeout (seconds)</string>
+  <string name="field_keep_open">Keep open</string>
+  <string name="hint_keep_open"
+    >Re-knocks shortly before the timeout expires</string
+  >
+  <string name="field_internal_ip">Internal IP</string>
+  <string name="field_internal_port">Internal port</string>
+  <string name="field_command">Server command</string>
+  <string name="field_allow_ip">Allow IP</string>
+  <string name="field_ip_to_allow">IP to allow</string>
+  <string name="field_source_ip">Source IP</string>
+  <string name="field_use_gpg">Use GPG (OpenKeychain)</string>
+  <string name="field_rijndael_key">Rijndael key</string>
+  <string name="field_key_base64">Key is base64</string>
+  <string name="hint_blank_key"
+    >No key saved: it will be asked for at each knock</string
+  >
+  <string name="field_hmac_key">HMAC key</string>
+  <string name="field_hmac_base64">HMAC key is base64</string>
+  <string name="field_digest">SPA digest</string>
+  <string name="field_hmac_digest">HMAC digest</string>
+  <string name="field_legacy">Legacy mode (fwknop &lt; 2.5)</string>
+  <string name="field_gpg_recipient">Encryption key</string>
+  <string name="field_gpg_signer">Signing key</string>
+  <string name="gpg_no_key">No key selected</string>
+  <string name="field_external_app">Run external app</string>
+  <string name="field_ssh_uri">user@address:port</string>
+  <string name="field_ovpn">OpenVPN profile name</string>
+  <string name="field_wg">WireGuard tunnel name</string>
+  <string name="field_wg_key">WG Tunnel remote control key</string>
+  <string name="field_wg_hint"
+    >Requires \"Remote control\" enabled in WG Tunnel\'s settings, which shows
+    this key.</string
+  >
+  <string name="message_open_port">Open port</string>
+  <string name="message_nat_access">NAT access</string>
+  <string name="message_local_nat_access">Local NAT access</string>
+  <string name="message_server_command">Server command</string>
+  <string name="source_ip_resolve">Resolve public IP</string>
+  <string name="source_ip_source">Use packet source IP</string>
+  <string name="source_ip_allow">Fixed IP</string>
+  <string name="source_ip_prompt">Ask at each knock</string>
+  <string name="source_ip_resolve_hint"
+    >For a public server, first STUN, then the address the system uses to reach
+    it (no third party), then HTTPS, then DNS, always in the server\'s IP
+    family. A local server gets the system address first.</string
+  >
+  <string name="source_ip_source_hint"
+    >No third party, works behind NAT, CGNAT and VPN. The server must set
+    REQUIRE_SOURCE_ADDRESS N: the packet is then no longer tied to your IP and
+    only the replay digest protects it. The fwknop documentation advises against
+    it.</string
+  >
+  <string name="knock_source_line">Source IP %1$s, %2$s</string>
+  <string name="source_method_kernel"
+    >chosen by the system, no third party</string
+  >
+  <string name="source_method_stun">seen by STUN server %1$s</string>
+  <string name="source_method_https">seen by %1$s over HTTPS</string>
+  <string name="source_method_dns">seen by OpenDNS over unencrypted DNS</string>
+  <string name="source_method_fixed">fixed in the configuration</string>
+  <string name="source_method_prompted">entered for this knock</string>
+  <string name="source_method_packet"
+    >Source mode: the server uses the packet\'s source address, no
+    lookup</string
+  >
+  <string name="app_none">None</string>
+  <string name="app_ssh_uri">SSH URI</string>
+  <string name="app_openvpn">OpenVPN for Android</string>
+  <string name="app_wireguard">WireGuard</string>
+  <!-- Settings -->
+  <string name="field_ip_lookup_url"
+    >HTTPS address used to find our public IP</string
+  >
+  <string name="field_stun_lookup"
+    >Before HTTPS, ask a STUN server (Cloudflare, then Google) over UDP like the
+    knock. Unencrypted.</string
+  >
+  <string name="field_dns_lookup"
+    >If HTTPS fails, ask OpenDNS (Cisco) over unencrypted DNS. Many ISPs and
+    Wi-Fi networks redirect it: its answer is checked against the other probes
+    and flagged when they disagree.</string
+  >
+  <string name="field_vpn_routing">With a VPN active</string>
+  <string name="vpn_routing_auto">Automatic</string>
+  <string name="vpn_routing_via_vpn">Via the VPN</string>
+  <string name="vpn_routing_outside_vpn">Outside the VPN</string>
+  <string name="field_vpn_routing_hint"
+    >Automatic goes through the VPN only for servers it routes (WireGuard split
+    tunnel, Tailscale…) and around it otherwise. Outside the VPN, the server,
+    STUN and HTTPS lookups see your real address.</string
+  >
+  <string name="field_nfc_knock"
+    >Knock when an fwknop NFC tag is scanned in the open app</string
+  >
+  <string name="field_notification">Show timeout notification</string>
+  <string name="field_nfc_keep_others"
+    >Keep the other configs on the tag</string
+  >
+  <string name="field_nfc_keep_others_hint"
+    >One tag can open several machines: you choose which one when it is scanned.
+    Turn off to leave this config alone on the tag.</string
+  >
+  <!-- Knock -->
+  <string name="knock_key_prompt_title">Key for %1$s</string>
+  <string name="knock_ip_prompt_title">Source IP for %1$s</string>
+  <string name="knock_sending_title">Knocking %1$s</string>
+  <string name="knock_sending_body">Sending SPA packet…</string>
+  <string name="knock_sent">Packet sent to %1$s</string>
+  <string name="wake_sent">Wake-on-LAN packet sent to %1$s</string>
+  <string name="field_port_check"
+    >After the knock, try a TCP connection to the opened ports for a few seconds
+    to confirm they are reachable. Extra traffic to the server.</string
+  >
+  <string name="port_check_reachable">%1$s: port reachable</string>
+  <string name="port_check_closed">%1$s: still closed (%2$s)</string>
+  <string name="knock_choose_title">Which machine to open?</string>
+  <!-- Notifications -->
+  <string name="notification_channel">Firewall timeouts</string>
+  <string name="notification_title">FwKnop-ng: %1$s</string>
+  <string name="notification_port_open">Port open, closing in</string>
+  <string name="notification_keep_open"
+    >Port kept open, next knock before</string
+  >
+  <!-- NFC -->
+  <string name="nfc_waiting_title">Tap a tag</string>
+  <string name="nfc_waiting_body"
+    >Hold an NFC tag against the back of the device to store “%1$s”. Only a
+    protected digest is written — never the nickname or the keys.</string
+  >
+  <string name="nfc_written_title">Tag written</string>
+  <string name="nfc_written_body"
+    >To knock “%1$s”, unlock the app and hold this tag against the device.
+    Requires the app lock. Rewrite the tag after renaming the config or
+    restoring a backup from another device.</string
+  >
+  <string name="nfc_unsupported_title">NFC unavailable</string>
+  <string name="nfc_unsupported_body"
+    >This device has no NFC reader: tags cannot be written nor read.</string
+  >
+  <string name="nfc_failed_title">Write failed</string>
+  <string name="nfc_write_failed"
+    >Unable to write the NFC tag. Make sure it is writable, or try another
+    tag.</string
+  >
+  <string name="nfc_write_unsupported"
+    >This tag does not support NDEF. Use an NTAG or MIFARE Ultralight
+    tag.</string
+  >
+  <string name="nfc_write_read_only"
+    >This tag is read-only (locked). Use another tag.</string
+  >
+  <string name="nfc_write_too_small"
+    >Not enough room on this tag. Free some space, stop keeping the other
+    configs, or use a larger tag (NTAG213: 1 config, NTAG215: about 6).</string
+  >
+  <string name="nfc_write_lost"
+    >The tag moved away during writing. Hold it still against the device and try
+    again.</string
+  >
+  <string name="nfc_write_key_failed"
+    >Unable to compute the tag digest: the vault is unavailable. Unlock the app
+    and try again.</string
+  >
+  <string name="nfc_read_legacy"
+    >This old-format tag stores the nickname in clear. Erase it (its other
+    content is kept) or rewrite it from the config menu.</string
+  >
+  <string name="nfc_read_legacy_title">Tag from an older version</string>
+  <string name="nfc_do_nothing">Do nothing</string>
+  <string name="nfc_erase">Erase tag</string>
+  <string name="nfc_erase_title">Erase the tag</string>
+  <string name="nfc_erase_body"
+    >Hold the tag against the device to remove its fwknop configs. Its other
+    records are kept.</string
+  >
+  <string name="nfc_wipe_body"
+    >Hold the tag against the device to erase all of its content.</string
+  >
+  <string name="nfc_erase_all">Erase everything</string>
+  <string name="nfc_erase_confirm_title">Erase this tag?</string>
+  <string name="nfc_erase_confirm_body"
+    >Its fwknop configs will be removed: it will no longer knock from any
+    device. Its other content is kept.</string
+  >
+  <string name="nfc_foreign_title">Unrecognized tag</string>
+  <string name="nfc_foreign_body"
+    >This tag is blank or holds no fwknop config — it may serve another purpose
+    (badge, transit card…). Erasing it deletes all its content for good: only
+    erase a tag you own.</string
+  >
+  <string name="nfc_read_unsupported"
+    >This NFC tag holds no fwknop config and cannot be rewritten by the app
+    (payment or transit card, locked tag…). It was left untouched.</string
+  >
+  <string name="nfc_erased">Tag erased</string>
+  <string name="nfc_disabled_title">NFC is off</string>
+  <string name="nfc_disabled_body"
+    >Turn NFC on in the system settings to write this tag. Tags are only read
+    while NFC is on.</string
+  >
+  <string name="nfc_tips_title">Writing a tag</string>
+  <string name="nfc_tips_body"
+    >• NDEF tags: NTAG213/215/216 or MIFARE Ultralight. Blank tags are formatted
+    automatically.\n• The NFC reader is usually near the camera: hold the tag
+    still until confirmed.\n• Other tag content is kept, as are other configs
+    unless you turn it off.\n• Read-only tags cannot be written.</string
+  >
+  <string name="nfc_notice_knock_disabled_title">NFC knocking is off</string>
+  <string name="nfc_notice_knock_disabled_body"
+    >You can write the tag, but reading it will not knock until NFC knocking is
+    enabled in the settings.</string
+  >
+  <string name="nfc_notice_local_network_title">Local network access</string>
+  <string name="nfc_notice_local_network_body"
+    >For a server on your local network, Android needs the \"Nearby devices\"
+    permission, or the knock is blocked. Grant it now.</string
+  >
+  <string name="nfc_notice_lock_disabled_title">App lock is off</string>
+  <string name="nfc_notice_lock_disabled_body"
+    >The tag can be written, but won\'t knock until the app lock is enabled. It
+    holds no secret and only works with this app unlocked.</string
+  >
+  <!-- QR export -->
+  <string name="qr_export_warning"
+    >This QR code contains the whole config, keys included. Share it only
+    through a trusted channel.</string
+  >
+  <string name="qr_export_saved">QR code saved as PNG.</string>
+  <string name="qr_import_title">Configuration found</string>
+  <string name="qr_import_body"
+    >This QR code holds a full configuration. Import it (replacing the fields
+    below) or only the keys?</string
+  >
+  <string name="qr_import_full">Full configuration</string>
+  <string name="qr_import_keys">Keys only</string>
+  <string name="error_qr_encode">Failed to generate the QR code.</string>
+  <string name="error_qr_write">Could not write the PNG file.</string>
+  <string name="qr_export_encrypt">Encrypt with the export passphrase</string>
+  <string name="qr_export_encrypt_hint"
+    >Only FwKnop-ng can read an encrypted QR code — not Fwknop2 or QR code
+    readers. Off by default.</string
+  >
+  <string name="qr_export_encrypted_warning"
+    >Anyone with this image can try passphrases offline, without limit: choose a
+    strong one. It is asked when scanning.</string
+  >
+  <string name="action_change_qr_passphrase"
+    >Change the export passphrase</string
+  >
+  <string name="qr_passphrase_title">Export passphrase</string>
+  <string name="hint_qr_passphrase"
+    >At least %1$d characters. Set once, kept in the app\'s vault, and asked
+    only on the scanning device.</string
+  >
+  <string name="qr_decrypt_title">Encrypted QR code</string>
+  <string name="hint_qr_decrypt"
+    >The export passphrase chosen on the device that created this QR
+    code.</string
+  >
+  <string name="action_decrypt">Decrypt</string>
+  <string name="error_qr_wrong_passphrase"
+    >Wrong passphrase, or the QR code was altered.</string
+  >
+  <string name="error_qr_unreadable"
+    >This encrypted QR code cannot be read. It may come from a newer version of
+    the app.</string
+  >
+  <string name="error_backup_passphrase_short"
+    >The passphrase must have at least %1$s characters.</string
+  >
+  <string name="error_backup_passphrase_mismatch"
+    >The two passphrases differ.</string
+  >
+  <string name="error_backup_wrong_passphrase"
+    >Wrong passphrase, or the file was altered.</string
+  >
+  <string name="error_backup_not_a_backup"
+    >This file is not a FwKnop-ng backup, or it was made by a newer version of
+    the app.</string
+  >
+  <string name="error_backup_read">Could not read the backup file.</string>
+  <string name="error_backup_write">Could not write the backup file.</string>
+  <!-- Authentication -->
+  <string name="auth_title_unlock">Unlock FwKnop-ng</string>
+  <string name="auth_title_qr">Show keys as a QR code</string>
+  <string name="auth_title_lock">Change the app lock</string>
+  <string name="auth_title_rotate">Rotate encryption keys</string>
+  <string name="auth_subtitle">Confirm it\'s you</string>
+  <string name="auth_use_credential">Use PIN, pattern or password</string>
+  <!-- App lock -->
+  <string name="lock_title">FwKnop-ng is locked</string>
+  <string name="lock_body"
+    >Your configs and keys are encrypted. Unlock with your fingerprint, face or
+    device PIN.</string
+  >
+  <string name="action_unlock">Unlock</string>
+  <string name="lock_invalidated_title"
+    >Stored configs are unrecoverable</string
+  >
+  <string name="lock_invalidated_body"
+    >Android destroyed the encryption key (screen lock removed or reset, or data
+    restored from another device). The configs can no longer be decrypted: erase
+    them to start over.</string
+  >
+  <string name="action_reset_vault">Erase and start over</string>
+  <string name="reset_confirm_title">Erase all configs?</string>
+  <string name="reset_confirm_body"
+    >Every config stored in FwKnop-ng is permanently deleted.</string
+  >
+  <string name="section_security">Security</string>
+  <string name="field_app_lock">Lock the app</string>
+  <string name="hint_app_lock"
+    >Ask for biometrics or the device credential to open the app, and again
+    before knocking from an NFC tag</string
+  >
+  <string name="hint_app_lock_unavailable"
+    >Set a PIN, pattern or password on the device to enable the lock</string
+  >
+  <string name="field_auto_lock">Lock again after</string>
+  <string name="auto_lock_never">Only when the app restarts</string>
+  <string name="auto_lock_30s">30 seconds in background</string>
+  <string name="auto_lock_1m">1 minute in background</string>
+  <string name="auto_lock_5m">5 minutes in background</string>
+  <string name="auto_lock_15m">15 minutes in background</string>
+  <string name="action_rotate_keys">Rotate encryption keys</string>
+  <string name="hint_rotate_keys"
+    >Generates a new data key, re-encrypts every config with it and destroys the
+    old one.</string
+  >
+  <string name="keys_rotated">Encryption keys rotated</string>
+  <string name="lock_enabled">App lock enabled</string>
+  <string name="lock_disabled">App lock disabled</string>
+  <string name="lock_suggestion_title">Protect the app</string>
+  <string name="lock_suggestion_body"
+    >FwKnop-ng opens without authentication. Turn on the app lock to require
+    your fingerprint, face or PIN — also needed to knock from an NFC
+    tag.</string
+  >
+  <string name="lock_suggestion_nfc"
+    >No secret is ever written to an NFC tag: it only holds a digest that is
+    meaningless without this app, and a tag does nothing unless the app is open
+    and unlocked.</string
+  >
+  <string name="action_enable_lock">Turn on the lock</string>
+  <string name="action_later">Later</string>
+  <string name="section_backup">Backup</string>
+  <string name="hint_backup"
+    >“Export all” saves every config, key and setting to a passphrase-encrypted
+    file (app lock excluded); importing it replaces everything. To export a
+    single config, use its card menu; importing it adds it.</string
+  >
+  <string name="action_backup_export">Export all</string>
+  <string name="action_backup_import">Import</string>
+  <string name="auth_title_backup">Export the configuration</string>
+  <string name="backup_export_title">Encrypt the backup</string>
+  <string name="backup_import_title">Decrypt the backup</string>
+  <string name="backup_import_confirm_title">Replace the configuration?</string>
+  <plurals name="backup_import_confirm_body">
+    <item quantity="one"
+      >Full export: every config and setting will be replaced by those of the
+      file (%1$d config). Configs missing from the file are deleted.</item
+    >
+    <item quantity="other"
+      >Full export: every config and setting will be replaced by those of the
+      file (%1$d configs). Configs missing from the file are deleted.</item
+    >
+  </plurals>
+  <string name="action_backup_restore">Replace</string>
+  <string name="action_export">Export</string>
+  <string name="field_backup_passphrase">Passphrase</string>
+  <string name="field_backup_passphrase_confirm">Confirm the passphrase</string>
+  <string name="hint_backup_passphrase"
+    >At least %1$d characters. Without it the file cannot be opened: there is no
+    way to recover it.</string
+  >
+  <string name="hint_backup_import_passphrase"
+    >The passphrase chosen when the backup was exported.</string
+  >
+  <plurals name="backup_exported">
+    <item quantity="one">Backup saved: %1$d config.</item>
+    <item quantity="other">Backup saved: %1$d configs.</item>
+  </plurals>
+  <plurals name="backup_imported">
+    <item quantity="one">Backup restored: %1$d config.</item>
+    <item quantity="other">Backup restored: %1$d configs.</item>
+  </plurals>
+  <string name="auth_title_export_config">Export a config</string>
+  <string name="auth_title_nfc_knock">Knock from an NFC tag</string>
+  <string name="import_rename_title">“%1$s” already exists</string>
+  <string name="import_rename_body"
+    >Choose another nickname for the imported config, or cancel to skip
+    it.</string
+  >
+  <string name="qr_export_page">%1$d / %2$d</string>
+  <string name="action_previous_qr">Previous QR code</string>
+  <string name="action_next_qr">Next QR code</string>
+  <string name="error_backup_partial"
+    >This file only holds a single config.</string
+  >
+  <string name="error_import_no_config">This file holds no config.</string>
+  <plurals name="configs_exported">
+    <item quantity="one">%1$d config exported.</item>
+    <item quantity="other">%1$d configs exported.</item>
+  </plurals>
+  <plurals name="configs_imported">
+    <item quantity="one">%1$d config imported.</item>
+    <item quantity="other">%1$d configs imported.</item>
+  </plurals>
+  <!-- Errors -->
+  <string name="error_title">Error</string>
+  <string name="error_config_not_found">This config no longer exists.</string>
+  <string name="error_nickname_blank">You must choose a nickname.</string>
+  <string name="error_nickname_taken"
+    >Another config already uses this nickname.</string
+  >
+  <string name="error_server_invalid"
+    >You must supply a valid server address.</string
+  >
+  <string name="error_knock_sequence_invalid"
+    >The port sequence must list ports from 1 to 65535, optionally prefixed by
+    tcp/ or udp/.</string
+  >
+  <string name="error_knock_delay_invalid"
+    >The delay between knocks must be between 0 and 10000 ms.</string
+  >
+  <string name="error_ports_format"
+    >Access ports must be in the form of \'tcp/22\'.</string
+  >
+  <string name="error_timeout_invalid"
+    >The firewall timeout must be a positive number of seconds.</string
+  >
+  <string name="error_nat_ip_invalid">You must supply a valid NAT IP.</string>
+  <string name="error_nat_port_invalid"
+    >You must provide a valid NAT port.</string
+  >
+  <string name="error_command_blank"
+    >The server command cannot be empty.</string
+  >
+  <string name="error_allow_ip_invalid"
+    >You must supply a valid IPv4 address to allow: fwknop SPA cannot carry an
+    IPv6 address.</string
+  >
+  <string name="error_gpg_keys_missing">Please select both GPG keys.</string>
+  <string name="error_hmac_legacy">Cannot use HMAC with legacy mode.</string>
+  <string name="error_hmac_base64_length"
+    >HMAC is not valid base64: length is not a multiple of 4.</string
+  >
+  <string name="error_hmac_base64_chars"
+    >HMAC is not valid base64: it contains disallowed characters.</string
+  >
+  <string name="error_key_base64_length"
+    >Key is not valid base64: length is not a multiple of 4.</string
+  >
+  <string name="error_key_base64_chars"
+    >Key is not valid base64: it contains disallowed characters.</string
+  >
+  <string name="error_key_blank">The key cannot be blank.</string>
+  <string name="error_source_ip_invalid"
+    >Enter a valid IPv4 address: fwknop SPA cannot carry an IPv6
+    address.</string
+  >
+  <string name="error_source_ip_unresolved"
+    >Could not find our public IP (%1$s). Check the network or the IP lookup
+    settings.</string
+  >
+  <string name="error_nfc_disabled"
+    >This fwknop tag was read, but knocking from NFC tags is disabled. Turn on
+    “Knock when an fwknop NFC tag is scanned” in the app settings.</string
+  >
+  <string name="error_nfc_tag_unknown"
+    >This tag matches no config on this device. The config may have been renamed
+    or deleted, or the tag written by another installation: rewrite or erase
+    it.</string
+  >
+  <string name="error_nfc_lock_required"
+    >Knocking from an NFC tag requires the app lock. Enable it in the settings,
+    Security section.</string
+  >
+  <string name="error_server_unresolved">Could not resolve server %1$s.</string>
+  <string name="error_server_family_mismatch"
+    >Server %1$s has no IPv4 address: fwknop SPA only works over IPv4.</string
+  >
+  <string name="error_packet_generation"
+    >Failure generating SPA data. Check the keys.</string
+  >
+  <string name="error_transport">Sending failed: %1$s</string>
+  <string name="error_local_network_blocked"
+    >Android blocked the packet to your local network. Allow \"Nearby devices\"
+    in the app settings, then knock again.</string
+  >
+  <string name="error_local_network_blocked_wake"
+    >Android blocked the Wake-on-LAN packet to your local network. Allow
+    \"Nearby devices\" in the app settings, then try waking it again.</string
+  >
+  <string name="error_gpg_not_installed"
+    >OpenKeychain must be installed to use GPG.</string
+  >
+  <string name="error_gpg_no_key"
+    >No GPG key was returned by OpenKeychain.</string
+  >
+  <string name="error_gpg_interaction"
+    >OpenKeychain needs your confirmation.</string
+  >
+  <string name="error_gpg_failed">GPG error: %1$s</string>
+  <string name="error_gpg_unsupported_key"
+    >The recipient GPG key is not supported by fwknop: an RSA encryption key
+    (2048 or 3072 bits) is required.</string
+  >
+  <string name="error_gpg_packet_too_large"
+    >GPG packet too large (max 1500 characters). Use RSA keys of 3072 bits or
+    less, or an Ed25519 signing key.</string
+  >
+  <string name="error_no_ssh_app"
+    >No SSH app found. ConnectBot is recommended.</string
+  >
+  <string name="error_no_vpn_app"
+    >No OpenVPN app found. OpenVPN for Android is recommended.</string
+  >
+  <string name="error_no_wireguard_app"
+    >No WG Tunnel app found. Install WG Tunnel
+    (com.zaneschepke.wireguardautotunnel).</string
+  >
+  <string name="error_wireguard_key_missing"
+    >Enter the WG Tunnel remote control key.</string
+  >
+  <string name="error_wake_mac_invalid"
+    >Enter a valid MAC address, e.g. AA:BB:CC:DD:EE:FF.</string
+  >
+  <string name="error_wake_host_invalid"
+    >The Wake-on-LAN target address must not contain spaces.</string
+  >
+  <string name="error_wake_port_invalid"
+    >The Wake-on-LAN port must be between 1 and 65535.</string
+  >
+  <string name="error_wake_password_invalid"
+    >The SecureOn password must be 4 or 6 bytes, e.g. 00:22:44:66:88:AA or
+    192.168.1.1.</string
+  >
+  <string name="error_lookup_url"
+    >The URL must use HTTPS, like https://api64.ipify.org</string
+  >
+  <string name="error_vault_auth_required"
+    >Authentication expired. Please try again.</string
+  >
+  <string name="error_vault_device_not_secure"
+    >Set a PIN, pattern or password on the device first.</string
+  >
+  <string name="error_vault_key_invalidated"
+    >The encryption key no longer exists (screen lock removed or reset). The
+    stored configs cannot be recovered.</string
+  >
+  <string name="error_vault_unavailable"
+    >Secure storage could not be opened.</string
+  >
+  <string name="error_auth_failed"
+    >Authentication failed or is temporarily blocked. Try again later.</string
+  >
+  <string name="help_tagline"
+    >Single Packet Authorization client for fwknop</string
+  >
+  <string name="help_version">Version %1$s</string>
+  <string name="help_section_guide">Getting started</string>
+  <string name="help_topic_basics_title">What it does</string>
+  <string name="help_topic_basics_body">
+    <![CDATA[ FwKnop-ng is a client for <a
+    href="https://www.cipherdyne.org/fwknop/">fwknop</a> Single Packet
+    Authorization (SPA). Your server keeps its ports closed; tapping Knock sends
+    one encrypted and authenticated UDP packet, and fwknopd then opens the
+    requested ports to your IP for the duration of the timeout. ]]>
+  </string>
+  <string name="help_topic_config_title">Creating a config</string>
+  <string name="help_topic_config_body">
+    <![CDATA[ Enter the server address, the fwknopd port (udp/62201 by default)
+    and the ports to open, e.g. tcp/22. The Rijndael and HMAC keys, their
+    encoding and the digests must match the server\'s access.conf (KEY_BASE64,
+    HMAC_KEY_BASE64). Scan a QR code to fill them in, or leave the key blank to
+    be asked at each knock. GPG keys are handled by OpenKeychain. ]]>
+  </string>
+  <string name="help_topic_source_ip_title">Source IP</string>
+  <string name="help_topic_source_ip_body">
+    <![CDATA[ By default the app first asks a STUN server, because some carriers
+    hand out addresses that look public but are translated again. It then uses
+    the address the system picks to reach the server, without asking anyone,
+    then the HTTPS address, then OpenDNS if enabled. A local server gets the
+    system address first. These lookups tell the STUN, HTTPS and DNS operators
+    your public address and when you knock: the diagnostic lists those queried.
+    The SPA message only carries an IPv4 address, so the app always knocks the
+    server\'s IPv4 address, even on an IPv6 mobile network. The method used is
+    shown after each knock. The packet source IP mode asks no one and works
+    behind any NAT, but the server must set REQUIRE_SOURCE_ADDRESS N, which
+    fwknop advises against. You can also set a fixed IP. ]]>
+  </string>
+  <string name="help_topic_after_title">After knocking</string>
+  <string name="help_topic_after_body">
+    <![CDATA[ Keep open re-knocks shortly before the timeout expires. The app
+    can then launch an SSH client (ConnectBot), an OpenVPN profile or a
+    WireGuard tunnel. ]]>
+  </string>
+  <string name="help_topic_nfc_title">NFC tags</string>
+  <string name="help_topic_nfc_body">
+    <![CDATA[ A tag only holds a digest, never a key. With NFC knocking and the
+    app lock enabled, holding it against the unlocked app knocks the matching
+    config. ]]>
+  </string>
+  <string name="help_topic_security_title">Security and backup</string>
+  <string name="help_topic_security_body">
+    <![CDATA[ Configs are encrypted on the device. Turn on the app lock in the
+    settings, and use a passphrase-encrypted export to move your configs to
+    another device: Android backups cannot restore them. ]]>
+  </string>
+  <string name="help_topic_troubleshooting_title">Troubleshooting</string>
+  <string name="help_topic_troubleshooting_body">
+    <![CDATA[ If nothing opens, first check the server logs: keys, digests or
+    clock out of sync between phone and server. For a server on your local
+    network, allow “Nearby devices” in the app permissions. ]]>
+  </string>
+  <string name="section_credits">Licenses &amp; credits</string>
+  <string name="credits_license_title">Free software</string>
+  <string name="credits_license_body">
+    <![CDATA[ FwKnop-ng is free software: you can redistribute it and/or modify
+    it under the terms of the <a
+    href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html">GNU General
+    Public License</a> as published by the Free Software Foundation, either
+    version 2 or 3. ]]>
+  </string>
+  <string name="credits_authors_title">Authors</string>
+  <string name="credits_authors_body">
+    <![CDATA[ <a href="https://github.com/gildas-le-drogoff">Gildas Le
+    Drogoff</a> \u00A0 ]]>
+  </string>
+  <string name="credits_contributors_title">Contributors</string>
+  <string name="credits_contributors_body">
+    <![CDATA[ Legacy application by <a href="http://incomsystems.biz/">Jonathan
+    Bennett</a>. ]]>
+  </string>
+  <string name="credits_artwork_title">Artwork</string>
+  <string name="credits_artwork_body">
+    <![CDATA[ Interface icons from Material Symbols. ]]>
+  </string>
+  <string name="credits_libraries_title">Third-party libraries</string>
+  <string name="credits_libraries_body">
+    <![CDATA[ FwKnop-ng ships the following open source components. Full texts:
+    <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a>, <a
+    href="https://opensource.org/license/bsd-3-clause">BSD-3-Clause</a>, <a
+    href="https://opensource.org/license/mit">MIT</a>. ]]>
+  </string>
+  <string name="credits_action_source">Source code</string>
+  <string name="credits_action_issues">Report a bug</string>
+  <string name="close">Close</string>
+  <string name="action_retry">Retry</string>
+  <string name="action_continue">Continue</string>
+  <string name="knock_failed_title">Knock failed</string>
+  <string name="wake_failed_title">Wake-on-LAN failed</string>
+  <string name="knock_sent_keep_open_blocked"
+    >Packet sent to %1$s. The port is not kept open: notifications are blocked,
+    so you could not close it.</string
+  >
+  <string name="knock_sent_keep_open_unavailable"
+    >Packet sent to %1$s. Keep-open could not start in the background: the port
+    will close at the timeout.</string
+  >
+  <string name="permission_notifications_title"
+    >Show the firewall timer?</string
+  >
+  <string name="permission_notifications_body"
+    >%1$s opens the port for a limited time. Allow notifications to see the
+    countdown and, with keep-open, to close the port at any time.</string
+  >
+  <string name="permission_local_network_title">Local network access</string>
+  <string name="permission_local_network_body"
+    >The server of %1$s is on your local network. Android requires the \"Nearby
+    devices\" permission to send it the knock.</string
+  >
+  <string name="permission_local_network_wake_body"
+    >The Wake-on-LAN packet of %1$s targets your local network. Android requires
+    the \"Nearby devices\" permission to send it and wake the machine.</string
+  >
+  <string name="error_config_storage"
+    >The configurations could not be read or written (storage error).</string
+  >
+  <string name="error_qr_no_source_ip">This QR code holds no source IP.</string>
+  <string name="error_camera_denied"
+    >Scanning a QR code needs the camera. Allow it in the app settings.</string
+  >
+  <string name="notification_keep_open_failed"
+    >Re-knock failed: the port is no longer kept open.</string
+  >
+  <string name="nfc_writing_title">Writing…</string>
+  <string name="nfc_writing_body"
+    >Hold the tag still until the confirmation.</string
+  >
+  <string name="field_external_app_delay">Delay before opening the app</string>
+  <string name="field_external_app_delay_hint"
+    >Wait before launching SSH, OpenVPN or WireGuard, for firewalls that take a
+    moment to apply the rule.</string
+  >
+  <plurals name="external_app_delay_value">
+    <item quantity="one">%d second</item>
+    <item quantity="other">%d seconds</item>
+  </plurals>
+  <string name="action_diagnose">Test this configuration</string>
+  <string name="title_diagnostic">Test: %1$s</string>
+  <string name="diagnostic_intro"
+    >Sends a real SPA packet and details each step. The external app is not
+    launched.</string
+  >
+  <string name="diagnostic_run">Run the test</string>
+  <string name="diagnostic_rerun">Run again</string>
+  <string name="diagnostic_steps">Steps</string>
+  <string name="field_source_ip_override">Source IP for this test</string>
+  <string name="diagnostic_step_server_dns">Server DNS lookup</string>
+  <string name="diagnostic_step_source_ip">Source IP</string>
+  <string name="diagnostic_step_family">Address family</string>
+  <string name="diagnostic_step_packet">Packet</string>
+  <string name="diagnostic_step_transport">Transport</string>
+  <string name="diagnostic_status_pending">Waiting</string>
+  <string name="diagnostic_status_running">In progress</string>
+  <string name="diagnostic_status_done">Done</string>
+  <string name="diagnostic_status_skipped">Not run</string>
+  <string name="diagnostic_status_failed">Failed</string>
+  <string name="diagnostic_server_detail">%1$s → %2$s</string>
+  <string name="diagnostic_family_ipv4">IPv4, to server %1$s</string>
+  <string name="diagnostic_family_ipv6">IPv6, to server %1$s</string>
+  <string name="diagnostic_vpn_bypassed"
+    >Outside the active VPN: the server and the IP lookup services see your real
+    address</string
+  >
+  <plurals name="diagnostic_packet_size">
+    <item quantity="one">%d byte</item>
+    <item quantity="other">%d bytes</item>
+  </plurals>
+  <string name="diagnostic_transport_detail">%1$s to %2$s, port %3$d</string>
+  <string name="diagnostic_third_parties"
+    >Third parties queried: %1$s. They learn your public address.</string
+  >
+  <string name="diagnostic_cross_check_confirmed">%1$s confirms %2$s.</string>
+  <string name="diagnostic_cross_check_suspect"
+    >Suspicious %1$s answer: %2$s, while an independent probe sees %3$s. This
+    network probably redirects DNS: do not rely on %1$s here.</string
+  >
+  <string name="diagnostic_cross_check_unverified"
+    >%1$s answer %2$s used unverified: no other probe answered, and this network
+    could forge it.</string
+  >
+  <string name="diagnostic_success">Packet sent: every step passed.</string>
+  <string name="diagnostic_failure"
+    >The knock stopped at the step marked as failed.</string
+  >
+  <!-- Accessibility (TalkBack) -->
+  <string name="a11y_loading_configs">Loading configurations</string>
+  <string name="a11y_edit_config">edit</string>
+  <string name="a11y_tag_protocol">Protocol %1$s</string>
+  <string name="a11y_tag_access">Access %1$s</string>
+  <string name="a11y_knock_config">Knock %1$s</string>
+  <string name="a11y_wake_config">Wake %1$s</string>
+  <string name="a11y_knock_sending">sending</string>
+  <string name="a11y_knock_sent">packet sent</string>
+  <string name="a11y_qr_image">QR code of the %1$s configuration</string>
+  <string name="a11y_qr_image_paged"
+    >QR code of the %1$s configuration, part %2$d of %3$d</string
+  >
+  <string name="a11y_qr_page">Part %1$d of %2$d</string>
+  <string name="a11y_qr_generating">Generating the QR code</string>
+  <string name="a11y_remove_network">Remove %1$s</string>
+  <string name="a11y_add_network">Add this network</string>
+  <!-- Automatic knock on leaving a trusted Wi-Fi network -->
+  <string name="section_auto_knock">Automatic knock (advanced)</string>
+  <string name="field_auto_knock"
+    >Knock when leaving a trusted Wi-Fi network</string
+  >
+  <string name="field_auto_knock_hint"
+    >Off by default. Sends a packet without any action from you: read the
+    warning before turning it on.</string
+  >
+  <string name="field_auto_knock_config">Configuration to knock</string>
+  <string name="auto_knock_choose_config">Choose a configuration</string>
+  <string name="auto_knock_no_candidate"
+    >No configuration can knock unattended: it needs a saved Rijndael key and a
+    source IP that is not asked at each knock.</string
+  >
+  <string name="auto_knock_config_unavailable"
+    >“%1$s” can no longer knock unattended (deleted, renamed or now asking for
+    input): choose another configuration.</string
+  >
+  <string name="auto_knock_trusted_networks">Trusted Wi-Fi networks</string>
+  <string name="auto_knock_no_network"
+    >No network yet: add at least one.</string
+  >
+  <string name="field_ssid">Network name (SSID)</string>
+  <string name="action_add_current_network"
+    >Add the current Wi-Fi network</string
+  >
+  <string name="auto_knock_current_unavailable"
+    >Current Wi-Fi network name unavailable: connect to Wi-Fi, allow the
+    location and turn it on.</string
+  >
+  <string name="auto_knock_location_missing"
+    >Android only gives the Wi-Fi network name to apps allowed to use the
+    location. No position is recorded or sent.</string
+  >
+  <string name="action_allow_location">Allow the location</string>
+  <string name="auto_knock_background_missing"
+    >To notice the departure while the app is closed, the location must be
+    allowed “All the time”.</string
+  >
+  <string name="action_allow_background_location">Allow all the time</string>
+  <string name="auto_knock_location_off"
+    >The location is turned off: Android hides the Wi-Fi network name.</string
+  >
+  <string name="action_enable_location">Turn on the location</string>
+  <string name="auto_knock_behaviour"
+    >When the device leaves all these networks, the configuration is knocked
+    through the next network (mobile data…), without launching the app linked to
+    it. With the app lock on, this only happens while the app is unlocked. A
+    notification stays visible while the monitoring runs.</string
+  >
+  <string name="auto_knock_warning_title">Turn on the automatic knock?</string>
+  <string name="auto_knock_warning_body"
+    >The automatic knock sends an SPA packet without any action from you, each
+    time the device leaves a trusted Wi-Fi network.\n\n• The port opens for the
+    public IP of the next network (mobile data, public Wi-Fi…) even if you did
+    not mean to connect. Anyone sharing that address (carrier NAT, hotspot) can
+    reach the service while the rule lasts.\n\n• A lost or stolen phone knocks
+    too. Without the app lock, the configuration key is used without any
+    authentication.\n\n• A network name proves nothing: anyone can broadcast the
+    same SSID and make the phone join and leave it, to trigger knocks.\n\n• The
+    app reads the Wi-Fi network name in the background, which Android ties to
+    the location permission “All the time”. No position is recorded or
+    sent.\n\n• A background service runs permanently.\n\nKeep this for a
+    dedicated configuration with a short open time.</string
+  >
+  <string name="auto_knock_warning_ack">I understand these risks</string>
+  <string name="auto_knock_warning_confirm">Turn on</string>
+  <string name="auto_knock_notification_title">Automatic knock armed</string>
+  <string name="auto_knock_notification_body"
+    >Watching for the departure from the trusted Wi-Fi networks.</string
+  >
+  <string name="auto_knock_channel_monitor">Automatic knock monitoring</string>
+  <string name="auto_knock_channel_result">Automatic knocks</string>
+  <string name="auto_knock_sent"
+    >Automatic knock sent to %1$s after leaving a trusted Wi-Fi network.</string
+  >
+  <string name="auto_knock_failed">Automatic knock of %1$s failed: %2$s</string>
+  <string name="auto_knock_error_locked"
+    >the app is locked. Unlock it, or knock by hand.</string
+  >
+  <string name="auto_knock_error_config_missing"
+    >the configuration no longer exists.</string
+  >
+  <string name="auto_knock_error_needs_user"
+    >the configuration asks for a key or a source IP, or uses GPG.</string
+  >
+  <string name="title_history">History</string>
+  <string name="section_history_retention">Keep history</string>
+  <string name="field_history_retention_hint"
+    >Encrypted with your configurations and only readable while the app is
+    unlocked. Older entries are deleted automatically.</string
+  >
+  <string name="field_history_retention">Duration</string>
+  <string name="history_retention_off">Off</string>
+  <string name="history_retention_7">7 days</string>
+  <string name="history_retention_30">30 days</string>
+  <string name="history_retention_90">90 days</string>
+  <string name="history_empty">No knock recorded yet.</string>
+  <string name="history_empty_off"
+    >History is off: knocks are not recorded.</string
+  >
+  <string name="history_entry_title">%1$s · %2$s</string>
+  <string name="history_sent">Sent</string>
+  <string name="history_failed">Failed</string>
+  <string name="action_history_clear">Clear history</string>
+  <string name="history_clear_confirm_title">Clear history?</string>
+  <string name="history_clear_confirm_body"
+    >Every recorded knock will be deleted. This cannot be undone.</string
+  >
+  <string name="action_history_disable">Turn off</string>
+  <string name="history_disable_confirm_title">Turn off history?</string>
+  <string name="history_disable_confirm_body"
+    >Knocks will no longer be recorded and the existing history will be
+    deleted.</string
+  >
 </resources>

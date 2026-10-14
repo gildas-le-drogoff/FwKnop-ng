@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.state
 
 import androidx.compose.runtime.Immutable
@@ -10,14 +14,14 @@ import fr.gildasledrogoff.fwknop.utils.helpers.LocationAccessStatus
 data class AutoKnockState(
     val isLoading: Boolean = true,
     val settings: AutoKnockSettings = AutoKnockSettings(),
-    /** Configs that can knock unattended. */
+
     val candidates: List<String> = emptyList(),
     val location: LocationAccessStatus = LocationAccessStatus.GRANTED,
-    /** The security warning is shown: enabling needs its explicit confirmation. */
+
     val confirmingEnable: Boolean = false,
     val currentSsidUnavailable: Boolean = false,
 ) {
-    /** Saved config that can no longer knock unattended (deleted, renamed or changed since). */
+
     val configUnavailable: Boolean
         get() = settings.nickname != null && !isLoading && settings.nickname !in candidates
 }

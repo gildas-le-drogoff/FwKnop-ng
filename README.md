@@ -28,9 +28,11 @@ FwKnop-ng sends an encrypted, authenticated SPA packet that makes a `fwknopd` se
 
 ## Screenshots
 
-| Configurations | Edit | QR export | Settings | Help |
-|:-:|:-:|:-:|:-:|:-:|
-| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_config_list.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_config_edit.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_qr_export.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_settings.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5_help.png" width="160" /> |
+| Knock | Config types | Edit | Test |
+|:-:|:-:|:-:|:-:|
+| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_knock.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_config_types.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_config_edit.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_diagnostic.png" width="160" /> |
+| **History** | **QR export** | **Settings** | **Help** |
+| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5_history.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6_qr_export.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/7_settings.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/8_help.png" width="160" /> |
 
 ## Installation
 
@@ -102,10 +104,15 @@ Main libraries: Jetpack Compose (Material 3), Hilt, Room + SQLCipher, Tink, OkHt
 
 ## Privacy
 
-The app has no analytics or tracking. Besides the SPA packet sent to your `fwknopd` server, the only network requests are optional public IP lookups:
+The app has no analytics or tracking. Besides the SPA packet sent to your `fwknopd` server, the only network requests are the public IP lookups of the "Resolve public IP" source mode:
 
-- STUN (`stun.cloudflare.com`, `stun.l.google.com`)
-- HTTPS lookup URL (default `https://ifconfig.me/ip`, user configurable)
+- STUN (`stun.cloudflare.com`, `stun.l.google.com`) — on by default, unencrypted UDP
+- HTTPS lookup URL (default `https://ifconfig.me/ip`, user configurable), never through the system proxy
+- OpenDNS (`208.67.222.222`, `2620:119:35::35`) — off by default, unencrypted DNS on port 53
+
+Each of these operators learns your public address and when you knock. The diagnostic screen lists the ones queried during the test. The fixed IP and packet source IP modes send no lookup at all.
+
+Many ISPs and public Wi-Fi networks redirect port 53, so an OpenDNS answer can be forged. When enabled, it is compared with the address found by an independent probe (STUN, system route or HTTPS): the diagnostic flags it as suspect when they disagree, or as unverified when no other probe answered.
 
 The location permissions (`ACCESS_*_LOCATION`) are only needed by the automatic knock: Android hides the Wi-Fi network name from apps without them. They are requested from its settings only, no position is ever read, and trusted network names stay on the device. The automatic knock service relies on system connectivity callbacks — no wake lock, no polling.
 

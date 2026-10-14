@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.repository
 
 import fr.gildasledrogoff.fwknop.data.local.security.OpenVault
@@ -12,11 +16,7 @@ import fr.gildasledrogoff.fwknop.domain.repository.ConfigRepository
 import fr.gildasledrogoff.fwknop.domain.repository.ConfigResult
 import fr.gildasledrogoff.fwknop.utils.helpers.DebugLog
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.cancellation.CancellationException
@@ -43,15 +43,17 @@ class ConfigRepositoryImpl @Inject constructor(private val session: VaultSession
     override suspend fun exists(nickname: Nickname): ConfigResult<Boolean> =
         guarded { session.await().dao.exists(nickname.value) }
 
-    override suspend fun saveConfig(config: SpaConfig, previous: Nickname?): ConfigResult<Unit> = guarded {
-        session.writing { vault ->
-            val existingId = vault.dao.findByNickname((previous ?: config.nickname).value)?.id ?: 0L
-            vault.dao.replace(
-                vault.cipher.seal(config.toEntity()).copy(id = existingId),
-                previous?.value
-            )
+    override suspend fun saveConfig(config: SpaConfig, previous: Nickname?): ConfigResult<Unit> =
+        guarded {
+            session.writing { vault ->
+                val existingId =
+                    vault.dao.findByNickname((previous ?: config.nickname).value)?.id ?: 0L
+                vault.dao.replace(
+                    vault.cipher.seal(config.toEntity()).copy(id = existingId),
+                    previous?.value
+                )
+            }
         }
-    }
 
     override suspend fun deleteConfig(nickname: Nickname): ConfigResult<Unit> =
         guarded { session.await().dao.deleteByNickname(nickname.value) }
@@ -76,7 +78,6 @@ class ConfigRepositoryImpl @Inject constructor(private val session: VaultSession
             .map<_, ConfigResult<List<SpaConfig>>> { entities ->
                 DomainResult.Success(entities.map { vault.cipher.open(it).toDomain() })
             }
-            
             .catch { if (session.open.value === vault) emit(storageFailure(it)) }
 
     private suspend fun <T> guarded(block: suspend () -> T): ConfigResult<T> =

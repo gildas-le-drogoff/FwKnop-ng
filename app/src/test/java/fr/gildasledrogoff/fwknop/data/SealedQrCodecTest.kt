@@ -1,17 +1,18 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.data.backup.BackupCipher
-import fr.gildasledrogoff.fwknop.data.backup.SealedQrCodec
 import fr.gildasledrogoff.fwknop.domain.error.BackupError
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.SealedQr
 import fr.gildasledrogoff.fwknop.domain.model.toQrContent
 import fr.gildasledrogoff.fwknop.domain.usecase.ParseQrConfigUseCase
 import fr.gildasledrogoff.fwknop.fakes.sampleConfig
-import com.google.common.truth.Truth.assertThat
-import java.util.Base64
 import org.junit.Test
-class SealedQrCodecTest {
-    private val codec =
+import java.util.*
         SealedQrCodec(BackupCipher(iterations = BackupCipher.MIN_ITERATIONS, magic = BackupCipher.QR_MAGIC))
     private val content = sampleConfig().toQrContent()
     @Test

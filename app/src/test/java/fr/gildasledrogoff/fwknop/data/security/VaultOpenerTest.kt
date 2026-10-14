@@ -1,21 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.security
-import fr.gildasledrogoff.fwknop.data.local.security.MasterKeyPolicy
-import fr.gildasledrogoff.fwknop.data.local.security.VaultJanitor
-import fr.gildasledrogoff.fwknop.data.local.security.VaultMetadata
-import fr.gildasledrogoff.fwknop.data.local.security.VaultOpener
-import fr.gildasledrogoff.fwknop.data.local.security.VaultUnrecoverableException
-import fr.gildasledrogoff.fwknop.fakes.FakeDatabaseFileStore
-import fr.gildasledrogoff.fwknop.fakes.FakeKeysetStore
-import fr.gildasledrogoff.fwknop.fakes.FakeMasterKeyStore
-import fr.gildasledrogoff.fwknop.fakes.FakeSealedPassphraseStore
-import fr.gildasledrogoff.fwknop.fakes.FakeVaultMetadataStore
-import fr.gildasledrogoff.fwknop.fakes.SequentialAliases
-import fr.gildasledrogoff.fwknop.fakes.newKeyset
 import com.google.common.truth.Truth.assertThat
+import fr.gildasledrogoff.fwknop.data.local.security.*
+import fr.gildasledrogoff.fwknop.fakes.*
 import org.junit.Assert.assertThrows
 import org.junit.Test
-class VaultOpenerTest {
-    private val keys = FakeMasterKeyStore()
     private val keysets = FakeKeysetStore(keys)
     private val metadata = FakeVaultMetadataStore()
     private val database = FakeDatabaseFileStore()

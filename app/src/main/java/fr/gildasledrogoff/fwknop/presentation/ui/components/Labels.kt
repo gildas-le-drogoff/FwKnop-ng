@@ -1,14 +1,36 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.components
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import fr.gildasledrogoff.fwknop.R
-import fr.gildasledrogoff.fwknop.domain.model.ExternalAppType
-import fr.gildasledrogoff.fwknop.domain.model.MessageType
-import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMode
+import fr.gildasledrogoff.fwknop.domain.model.*
+
+@StringRes
+fun ConfigKind.labelRes(): Int = when (this) {
+    ConfigKind.FWKNOP -> R.string.kind_fwknop
+    ConfigKind.PORT_KNOCK -> R.string.kind_port_knock
+    ConfigKind.WAKE_ON_LAN -> R.string.kind_wake_on_lan
+}
+
+@StringRes
+fun ConfigKind.hintRes(): Int = when (this) {
+    ConfigKind.FWKNOP -> R.string.kind_fwknop_hint
+    ConfigKind.PORT_KNOCK -> R.string.kind_port_knock_hint
+    ConfigKind.WAKE_ON_LAN -> R.string.kind_wake_on_lan_hint
+}
+
+@DrawableRes
+fun ConfigKind.iconRes(): Int = when (this) {
+    ConfigKind.FWKNOP -> R.drawable.ic_shield_rounded
+    ConfigKind.PORT_KNOCK -> R.drawable.ic_bolt_rounded
+    ConfigKind.WAKE_ON_LAN -> R.drawable.ic_power_rounded
+}
 
 @StringRes
 fun MessageType.labelRes(): Int = when (this) {
@@ -25,7 +47,6 @@ fun SourceIpMode.labelRes(): Int = when (this) {
     SourceIpMode.ALLOW -> R.string.source_ip_allow
     SourceIpMode.PROMPT -> R.string.source_ip_prompt
 }
-
 
 @StringRes
 fun SourceIpMode.hintRes(): Int? = when (this) {

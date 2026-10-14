@@ -1,23 +1,16 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.nfc
 
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import androidx.activity.compose.LocalActivity
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
@@ -34,13 +27,7 @@ import fr.gildasledrogoff.fwknop.presentation.state.NfcWriteNotices
 import fr.gildasledrogoff.fwknop.presentation.state.NfcWriteState
 import fr.gildasledrogoff.fwknop.presentation.state.SecuritySettingsEvent
 import fr.gildasledrogoff.fwknop.presentation.state.text
-import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
-import fr.gildasledrogoff.fwknop.presentation.ui.components.LabeledSwitch
-import fr.gildasledrogoff.fwknop.presentation.ui.components.SectionCard
-import fr.gildasledrogoff.fwknop.presentation.ui.components.openAppSettings
-import fr.gildasledrogoff.fwknop.presentation.ui.components.openNfcSettings
-import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberPermissionRequest
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.settings.SecurityHost
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
@@ -58,13 +45,13 @@ fun NfcWriteScreen(
     val notices by viewModel.notices.collectAsStateWithLifecycle()
     val keepOtherConfigs by viewModel.keepOtherConfigs.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    
     SecurityHost(securityViewModel, snackbarHostState = null)
-
     val requestLocalNetwork =
-        rememberPermissionRequest(LocalNetworkAccess.PERMISSION, onResult = viewModel::onPermissionResult)
+        rememberPermissionRequest(
+            LocalNetworkAccess.PERMISSION,
+            onResult = viewModel::onPermissionResult
+        )
     NfcReaderMode(
-        
         enabled = state is NfcWriteState.Waiting || state is NfcWriteState.Failed || state is NfcWriteState.Writing,
         onAvailable = viewModel::onNfcAvailable,
         onUnavailable = viewModel::onNfcUnavailable,
@@ -94,7 +81,6 @@ fun NfcWriteScreen(
         ),
     )
 }
-
 
 @Composable
 fun NfcReaderMode(
@@ -159,7 +145,10 @@ fun NfcWriteContent(content: NfcWriteUi, actions: NfcWriteActions, modifier: Mod
     val dimens = DimensTheme.dimens
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(dimens.sectionSpacing, Alignment.CenterVertically),
+        verticalArrangement = Arrangement.spacedBy(
+            dimens.sectionSpacing,
+            Alignment.CenterVertically
+        ),
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
@@ -241,24 +230,42 @@ private fun NfcWriteTips() {
 @Composable
 private fun NfcWriteNoticeCards(content: NfcWriteUi, actions: NfcWriteActions) {
     if (content.notices.lockDisabled) {
-        SectionCard(stringResource(R.string.nfc_notice_lock_disabled_title), R.drawable.ic_lock_rounded) {
-            Text(stringResource(R.string.nfc_notice_lock_disabled_body), style = MaterialTheme.typography.bodyMedium)
+        SectionCard(
+            stringResource(R.string.nfc_notice_lock_disabled_title),
+            R.drawable.ic_lock_rounded
+        ) {
+            Text(
+                stringResource(R.string.nfc_notice_lock_disabled_body),
+                style = MaterialTheme.typography.bodyMedium
+            )
             FilledTonalButton(onClick = actions.onEnableLock) {
                 Text(stringResource(R.string.action_enable_lock))
             }
         }
     }
     if (content.notices.nfcKnockDisabled) {
-        SectionCard(stringResource(R.string.nfc_notice_knock_disabled_title), R.drawable.ic_settings_rounded) {
-            Text(stringResource(R.string.nfc_notice_knock_disabled_body), style = MaterialTheme.typography.bodyMedium)
+        SectionCard(
+            stringResource(R.string.nfc_notice_knock_disabled_title),
+            R.drawable.ic_settings_rounded
+        ) {
+            Text(
+                stringResource(R.string.nfc_notice_knock_disabled_body),
+                style = MaterialTheme.typography.bodyMedium
+            )
             FilledTonalButton(onClick = actions.onEnableNfcKnock) {
                 Text(stringResource(R.string.action_enable_nfc_knock))
             }
         }
     }
     if (content.notices.localNetworkMissing) {
-        SectionCard(stringResource(R.string.nfc_notice_local_network_title), R.drawable.ic_dns_rounded) {
-            Text(stringResource(R.string.nfc_notice_local_network_body), style = MaterialTheme.typography.bodyMedium)
+        SectionCard(
+            stringResource(R.string.nfc_notice_local_network_title),
+            R.drawable.ic_dns_rounded
+        ) {
+            Text(
+                stringResource(R.string.nfc_notice_local_network_body),
+                style = MaterialTheme.typography.bodyMedium
+            )
             FilledTonalButton(onClick = actions.onGrantLocalNetwork) {
                 Text(
                     stringResource(
@@ -272,7 +279,6 @@ private fun NfcWriteNoticeCards(content: NfcWriteUi, actions: NfcWriteActions) {
 
 private const val READER_FLAGS = NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or
         NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_NFC_V
-
 private val PreviewActions = NfcWriteActions({}, {}, {}, {}, {}, {})
 
 @AdaptivePreviews
@@ -280,7 +286,12 @@ private val PreviewActions = NfcWriteActions({}, {}, {}, {}, {}, {})
 private fun NfcWriteContentPreview() {
     FwknopTheme {
         NfcWriteContent(
-            NfcWriteUi("home", NfcWriteState.Waiting, NfcWriteNotices(true, true), permissionRefused = false),
+            NfcWriteUi(
+                "home",
+                NfcWriteState.Waiting,
+                NfcWriteNotices(true, true),
+                permissionRefused = false
+            ),
             PreviewActions,
         )
     }
@@ -290,6 +301,9 @@ private fun NfcWriteContentPreview() {
 @Composable
 private fun NfcWriteDisabledPreview() {
     FwknopTheme {
-        NfcWriteContent(NfcWriteUi("home", NfcWriteState.Disabled, NfcWriteNotices(), false), PreviewActions)
+        NfcWriteContent(
+            NfcWriteUi("home", NfcWriteState.Disabled, NfcWriteNotices(), false),
+            PreviewActions
+        )
     }
 }

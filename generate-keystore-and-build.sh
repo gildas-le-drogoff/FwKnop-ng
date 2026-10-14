@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -60,7 +64,7 @@ generate_upload_keystore() {
 	(
 		umask 077
 		keytool -genkeypair -v -keystore "$UPLOAD_KEYSTORE_FILE" -alias "$UPLOAD_KEY_ALIAS" \
-			-keyalg RSA -keysize 8192 -validity 10950 \
+			-keyalg RSA -keysize 5120 -validity 10950 \
 			-storepass "$password" -keypass "$password" \
 			-dname "CN=FwKnop-ng Play Upload Key,O=ledrogoff,C=FR"
 		cat > "$UPLOAD_KEYSTORE_PROPS" << EOF

@@ -1,21 +1,15 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.configedit
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -25,18 +19,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.gildasledrogoff.fwknop.R
-import fr.gildasledrogoff.fwknop.presentation.state.BackupEvent
-import fr.gildasledrogoff.fwknop.presentation.state.ConfigEditEffect
-import fr.gildasledrogoff.fwknop.presentation.state.ConfigEditEvent
-import fr.gildasledrogoff.fwknop.presentation.state.ConfigEditState
-import fr.gildasledrogoff.fwknop.presentation.state.SealedQrPrompt
-import fr.gildasledrogoff.fwknop.presentation.ui.components.CollectEffects
-import fr.gildasledrogoff.fwknop.presentation.ui.components.ErrorDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
-import fr.gildasledrogoff.fwknop.presentation.ui.components.PassphraseDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.PassphraseSpec
-import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberInteractionLauncher
-import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberQrScanner
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
+import fr.gildasledrogoff.fwknop.presentation.state.*
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.backup.BackupHost
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.BackupViewModel
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.ConfigEditViewModel
@@ -60,7 +45,6 @@ fun ConfigEditScreen(
                 viewModel.intentSender(effect.id)?.let { launchInteraction(effect.id, it) }
         }
     }
-    
     BackupHost(backupViewModel, snackbarHostState) { if (it > 0) onBack() }
     val onImport = { backupViewModel.onEvent(BackupEvent.ImportRequested) }
     ConfigEditScaffold(
@@ -109,7 +93,6 @@ private fun QrImportDialog(onEvent: (ConfigEditEvent) -> Unit) {
     )
 }
 
-
 private class ConfigEditBars(
     val snackbarHostState: SnackbarHostState,
     val importing: Boolean,
@@ -129,9 +112,11 @@ private fun ConfigEditScaffold(
         floatingActionButton = { SaveFab { onEvent(ConfigEditEvent.Save) } },
         snackbarHost = { SnackbarHost(bars.snackbarHostState) },
     ) { padding ->
-        Box(Modifier
-            .fillMaxSize()
-            .padding(padding)) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
             if (state.isLoading) {
                 CircularProgressIndicator(Modifier.align(Alignment.Center))
             } else {
@@ -150,7 +135,8 @@ private fun ConfigEditTopBar(
     onBack: () -> Unit,
     onScanQr: () -> Unit,
 ) {
-    val title = if (state.isNew) stringResource(R.string.title_new_config) else state.draft.nickname
+    val kind = state.draft.kind
+    val title = if (state.isNew) stringResource(kind.newTitleRes()) else state.draft.nickname
     TopAppBar(
         title = { Text(title) },
         navigationIcon = {
@@ -167,14 +153,24 @@ private fun ConfigEditTopBar(
                     )
                 }
             }
-            IconButton(onClick = onScanQr) {
-                FwknopIcon(
-                    R.drawable.ic_qr_code_scanner_rounded,
-                    stringResource(R.string.action_scan_keys)
-                )
+
+            if (kind != ConfigKind.WAKE_ON_LAN) {
+                IconButton(onClick = onScanQr) {
+                    FwknopIcon(
+                        R.drawable.ic_qr_code_scanner_rounded,
+                        stringResource(R.string.action_scan_keys)
+                    )
+                }
             }
         },
     )
+}
+
+@StringRes
+private fun ConfigKind.newTitleRes(): Int = when (this) {
+    ConfigKind.FWKNOP -> R.string.title_new_fwknop
+    ConfigKind.PORT_KNOCK -> R.string.title_new_port_knock
+    ConfigKind.WAKE_ON_LAN -> R.string.title_new_wake_on_lan
 }
 
 @Composable

@@ -1,25 +1,19 @@
-package fr.gildasledrogoff.fwknop.domain
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
+package fr.gildasledrogoff.fwknop.domain
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.domain.error.ConfigError
 import fr.gildasledrogoff.fwknop.domain.error.GpgError
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogEvent
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogOutcome
-import fr.gildasledrogoff.fwknop.domain.model.Protocol
-import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
+import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.fakes.sampleConfig
-import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.io.IOException
-
-class KnockLogOutcomeTest {
-    @Test
     fun aSuccessIsSent() {
         assertThat(KnockLogOutcome.of(DomainResult.Success(Unit))).isEqualTo(KnockLogOutcome.Sent)
     }
-
     @Test
     fun errorsKeepTheirDiagnosticDetail() {
         assertThat(KnockLogOutcome.of(KnockError.SourceIpUnresolved("all probes failed")))
@@ -33,7 +27,6 @@ class KnockLogOutcomeTest {
         assertThat(KnockLogOutcome.of(KnockError.Config(ConfigError.Storage(IllegalStateException("x")))))
             .isEqualTo(KnockLogOutcome.Failed("CONFIG", "STORAGE"))
     }
-
     @Test
     fun anEventIsBuiltFromTheConfigAndTheKnockResult() {
         val source = ResolvedSourceIp("198.51.100.4", SourceIpMethod.Fixed)

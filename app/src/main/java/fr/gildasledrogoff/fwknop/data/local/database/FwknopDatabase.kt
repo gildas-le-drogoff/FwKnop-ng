@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.local.database
 
 import androidx.room.Database
@@ -18,6 +22,6 @@ abstract class FwknopDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "fwknop.db"
-        const val VERSION = 3
+        const val VERSION = 6
     }
 }

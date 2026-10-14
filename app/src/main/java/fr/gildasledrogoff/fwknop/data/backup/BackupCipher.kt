@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.backup
 
 import java.nio.ByteBuffer
@@ -89,7 +93,6 @@ class BackupCipher(
         const val ITERATIONS = 600_000
         const val MIN_ITERATIONS = 100_000
         const val MAX_ITERATIONS = 10_000_000
-        
         val BACKUP_MAGIC = "FWKNOP2B".toByteArray(Charsets.US_ASCII)
         val QR_MAGIC = "FWKNOP2Q".toByteArray(Charsets.US_ASCII)
         private const val MAGIC_BYTES = 8

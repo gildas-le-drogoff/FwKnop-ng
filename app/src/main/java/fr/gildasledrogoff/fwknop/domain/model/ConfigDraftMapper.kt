@@ -1,20 +1,34 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.model
 
 fun SpaConfig.toDraft(): ConfigDraft = ConfigDraft(
+    kind = kind,
     nickname = nickname.value,
-    server = server.toDraft(),
+    server = server.toDraft().with(method),
     access = access.toDraft(),
     sourceIp = sourceIp.toDraft(),
     crypto = crypto.toDraft(),
     externalApp = externalApp.toDraft(),
+    wakeOnLan = wakeOnLan.toDraft(),
 )
 
 private fun ServerEndpoint.toDraft(): ServerDraft = ServerDraft(
     host = host,
-    port = (port as? ServerPort.Fixed)?.value?.toString() ?: ServerPort.DEFAULT.toString(),
+    port = ((port as? ServerPort.Fixed)?.value ?: protocol.defaultPort).toString(),
     randomPort = port is ServerPort.Random,
     protocol = protocol,
 )
+
+private fun ServerDraft.with(method: KnockMethod): ServerDraft = when (method) {
+    KnockMethod.Spa -> this
+    is KnockMethod.PortSequence -> copy(
+        knockSequence = method.ports.toSequenceText(),
+        knockDelayMs = method.delayMs.toString(),
+    )
+}
 
 private fun AccessRule.toDraft(): AccessDraft {
     val ports = portAccess?.toDraft() ?: AccessDraft(ports = "")
@@ -66,6 +80,7 @@ private fun SpaCrypto.toDraft(): CryptoDraft {
             gpgRecipient = enc.dormantRecipient,
             gpgSigner = enc.dormantSigner,
         )
+
         is Encryption.Gpg -> base.copy(
             useGpg = true,
             gpgRecipient = enc.recipient,
@@ -93,6 +108,7 @@ fun CryptoDraft.withQrKeys(keys: QrKeys): CryptoDraft {
 fun ConfigDraft.withQrConfig(qr: ParsedQr): ConfigDraft {
     val config = qr.config ?: return copy(crypto = crypto.withQrKeys(qr.keys))
     return copy(
+        kind = if (config.knockSequence != null) ConfigKind.PORT_KNOCK else kind,
         nickname = config.nickname ?: nickname,
         server = server.with(config),
         access = access.with(config),
@@ -102,12 +118,15 @@ fun ConfigDraft.withQrConfig(qr: ParsedQr): ConfigDraft {
     )
 }
 
-private fun ServerDraft.with(config: QrConfig) = copy(
-    host = config.serverHost ?: host,
-    port = config.serverPort?.toString() ?: port,
-    randomPort = config.randomPort ?: randomPort,
-    protocol = config.protocol ?: protocol,
-)
+private fun ServerDraft.with(config: QrConfig) = withProtocol(config.protocol ?: protocol).let {
+    it.copy(
+        host = config.serverHost ?: host,
+        port = config.serverPort?.toString() ?: it.port,
+        randomPort = (config.randomPort ?: randomPort) && it.protocol != Protocol.HTTP,
+        knockSequence = config.knockSequence ?: knockSequence,
+        knockDelayMs = config.knockDelayMs?.toString() ?: knockDelayMs,
+    )
+}
 
 private fun AccessDraft.with(config: QrConfig): AccessDraft {
     val importedPorts =

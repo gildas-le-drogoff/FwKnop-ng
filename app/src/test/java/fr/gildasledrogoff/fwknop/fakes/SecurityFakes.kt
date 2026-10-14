@@ -1,20 +1,15 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.fakes
-import fr.gildasledrogoff.fwknop.data.local.database.DatabaseFileStore
-import fr.gildasledrogoff.fwknop.data.local.security.KeyAliasFactory
-import fr.gildasledrogoff.fwknop.data.local.security.KeysetStore
-import fr.gildasledrogoff.fwknop.data.local.security.MasterKeyPolicy
-import fr.gildasledrogoff.fwknop.data.local.security.MasterKeyStore
-import fr.gildasledrogoff.fwknop.data.local.security.SealedExportPassphraseStore
-import fr.gildasledrogoff.fwknop.data.local.security.SealedNfcTagKeyStore
-import fr.gildasledrogoff.fwknop.data.local.security.SealedPassphraseStore
-import fr.gildasledrogoff.fwknop.data.local.security.VaultMetadata
-import fr.gildasledrogoff.fwknop.data.local.security.VaultMetadataStore
-import fr.gildasledrogoff.fwknop.data.local.security.VaultUnrecoverableException
 import com.google.crypto.tink.InsecureSecretKeyAccess
 import com.google.crypto.tink.KeyTemplates
 import com.google.crypto.tink.KeysetHandle
 import com.google.crypto.tink.TinkProtoKeysetFormat
 import com.google.crypto.tink.aead.AeadConfig
+import fr.gildasledrogoff.fwknop.data.local.database.DatabaseFileStore
+import fr.gildasledrogoff.fwknop.data.local.security.*
 import java.io.IOException
 import java.security.GeneralSecurityException
 fun newKeyset(): KeysetHandle {

@@ -1,14 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.usecase
 
-import fr.gildasledrogoff.fwknop.domain.model.AccessRule
-import fr.gildasledrogoff.fwknop.domain.model.KnockRequest
-import fr.gildasledrogoff.fwknop.domain.model.KnockTarget
-import fr.gildasledrogoff.fwknop.domain.model.NatTarget
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.ServerEndpoint
-import fr.gildasledrogoff.fwknop.domain.model.ServerPort
-import fr.gildasledrogoff.fwknop.domain.model.SpaPacketParams
-import fr.gildasledrogoff.fwknop.domain.model.portAccess
+import fr.gildasledrogoff.fwknop.domain.model.*
 import kotlin.random.Random
 
 internal fun KnockRequest.toPacketParams(

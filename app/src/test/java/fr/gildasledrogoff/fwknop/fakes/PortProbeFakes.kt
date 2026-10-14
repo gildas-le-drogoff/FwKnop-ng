@@ -1,8 +1,10 @@
-package fr.gildasledrogoff.fwknop.fakes
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
+package fr.gildasledrogoff.fwknop.fakes
 import fr.gildasledrogoff.fwknop.domain.repository.PortProbeRepository
 
-/** [reachable] gets the port and how many times it has been probed so far, this one included. */
 class FakePortProbeRepository(
     private val reachable: (port: Int, attempt: Int) -> Boolean = { _, _ -> false },
 ) : PortProbeRepository {

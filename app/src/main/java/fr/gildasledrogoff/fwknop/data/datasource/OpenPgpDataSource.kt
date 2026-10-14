@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.datasource
 
 import android.app.PendingIntent
@@ -29,6 +33,7 @@ class OpenPgpDataSource @Inject constructor(
     private val registry: InteractionRegistry,
 ) {
     private val bindLock = Mutex()
+
     @Volatile
     private var connection: OpenPgpServiceConnection? = null
 
@@ -87,7 +92,6 @@ class OpenPgpDataSource @Inject constructor(
         }
         val pending = OpenPgpServiceConnection(context, PROVIDER, listener)
         connection = pending
-        
         continuation.invokeOnCancellation {
             runCatching { pending.unbindFromService() }
             if (connection === pending) connection = null

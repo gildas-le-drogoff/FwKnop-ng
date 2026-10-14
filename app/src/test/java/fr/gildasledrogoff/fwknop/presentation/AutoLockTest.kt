@@ -1,4 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.domain.model.AppSettings
 import fr.gildasledrogoff.fwknop.domain.model.AutoLockDelay
 import fr.gildasledrogoff.fwknop.domain.model.VaultState
@@ -8,7 +13,6 @@ import fr.gildasledrogoff.fwknop.domain.usecase.ObserveVaultStatusUseCase
 import fr.gildasledrogoff.fwknop.fakes.FakeSettingsRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeVaultRepository
 import fr.gildasledrogoff.fwknop.presentation.service.AutoLock
-import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy

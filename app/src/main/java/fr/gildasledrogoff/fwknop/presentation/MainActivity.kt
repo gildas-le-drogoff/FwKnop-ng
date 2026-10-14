@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation
 
 import android.content.Intent
@@ -37,10 +41,13 @@ import javax.inject.Inject
 class MainActivity : FragmentActivity() {
     @Inject
     lateinit var autoLock: AutoLock
+
     @Inject
     lateinit var observeVault: ObserveVaultStatusUseCase
+
     @Inject
     lateinit var permissions: RuntimePermissions
+
     @Inject
     lateinit var observeSettings: ObserveSettingsUseCase
     private val gate: LockGateViewModel by viewModels()
@@ -49,15 +56,17 @@ class MainActivity : FragmentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         autoLock.lockIfExpired()
-        val appearance = observeSettings().map { Appearance(it.themeMode, it.dynamicColor) }.distinctUntilChanged()
+        val appearance = observeSettings().map { Appearance(it.themeMode, it.dynamicColor) }
+            .distinctUntilChanged()
         setContent {
-            
             val current by appearance.collectAsStateWithLifecycle(initialValue = null)
             current?.let { (mode, dynamicColor) ->
                 val dark = mode.isDark()
                 SystemBarsStyle(dark)
                 FwknopTheme(darkTheme = dark, dynamicColor = dynamicColor) {
-                    LockGate(gate, locked = { state, actions -> LockScreenContent(state, actions) }) {
+                    LockGate(
+                        gate,
+                        locked = { state, actions -> LockScreenContent(state, actions) }) {
                         FwknopNavHost()
                     }
                 }
@@ -69,7 +78,6 @@ class MainActivity : FragmentActivity() {
     }
 
     override fun onStart() {
-        
         permissions.refresh(this)
         autoLock.lockIfExpired()
         super.onStart()
@@ -80,7 +88,6 @@ class MainActivity : FragmentActivity() {
         super.onResume()
     }
 
-    
     @Composable
     private fun SystemBarsStyle(dark: Boolean) {
         DisposableEffect(dark) {
@@ -109,9 +116,7 @@ class MainActivity : FragmentActivity() {
     }
 
     private data class Appearance(val mode: ThemeMode, val dynamicColor: Boolean)
-
     private companion object {
-        
         val LIGHT_SCRIM = Color.argb(0xE6, 0xFF, 0xFF, 0xFF)
         val DARK_SCRIM = Color.argb(0x80, 0x1B, 0x1B, 0x1B)
     }

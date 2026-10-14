@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.service
 
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -26,8 +30,10 @@ class AutoLock @Inject constructor(
     @param:ApplicationScope private val scope: CoroutineScope,
 ) {
     private val vault = observeVault()
+
     @Volatile
     private var delay = AutoLockDelay.NEVER
+
     @Volatile
     private var backgroundedAt: Long? = null
     private var timer: Job? = null

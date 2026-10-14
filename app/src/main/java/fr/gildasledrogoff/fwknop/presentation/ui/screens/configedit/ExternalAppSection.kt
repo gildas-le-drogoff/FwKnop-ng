@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.configedit
 
 import androidx.compose.animation.AnimatedVisibility
@@ -8,14 +12,7 @@ import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.domain.model.ExternalAppDraft
 import fr.gildasledrogoff.fwknop.domain.model.ExternalAppType
 import fr.gildasledrogoff.fwknop.presentation.state.ConfigEditEvent
-import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.DropdownOptions
-import fr.gildasledrogoff.fwknop.presentation.ui.components.FormTextField
-import fr.gildasledrogoff.fwknop.presentation.ui.components.OptionDropdown
-import fr.gildasledrogoff.fwknop.presentation.ui.components.SecretTextField
-import fr.gildasledrogoff.fwknop.presentation.ui.components.SectionCard
-import fr.gildasledrogoff.fwknop.presentation.ui.components.labelRes
-import fr.gildasledrogoff.fwknop.presentation.ui.components.labelsOf
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 
 @Composable

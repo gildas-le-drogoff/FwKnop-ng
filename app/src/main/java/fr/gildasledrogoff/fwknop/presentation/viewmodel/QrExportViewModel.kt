@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.viewmodel
 
 import android.graphics.Bitmap
@@ -11,20 +15,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.di.ApplicationScope
 import fr.gildasledrogoff.fwknop.domain.error.ConfigError
-import fr.gildasledrogoff.fwknop.domain.model.BackupPassphrase
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
-import fr.gildasledrogoff.fwknop.domain.model.toQrContent
+import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.domain.usecase.GetConfigUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.HasQrExportPassphraseUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.SealQrContentUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.SetQrExportPassphraseUseCase
-import fr.gildasledrogoff.fwknop.presentation.state.AuthResult
-import fr.gildasledrogoff.fwknop.presentation.state.QrExportState
-import fr.gildasledrogoff.fwknop.presentation.state.UiError
-import fr.gildasledrogoff.fwknop.presentation.state.allowsSensitiveAction
-import fr.gildasledrogoff.fwknop.presentation.state.toUiError
+import fr.gildasledrogoff.fwknop.presentation.state.*
 import fr.gildasledrogoff.fwknop.presentation.ui.navigation.QrExportRoute
 import fr.gildasledrogoff.fwknop.utils.dispatcher.DispatcherProvider
 import fr.gildasledrogoff.fwknop.utils.helpers.DocumentFiles
@@ -33,11 +29,7 @@ import fr.gildasledrogoff.fwknop.utils.helpers.QrShareCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.OutputStream
@@ -63,8 +55,6 @@ class QrExportViewModel @Inject constructor(
     val messages: Flow<Int> = _messages.receiveAsFlow()
     private var qrBitmap: Bitmap? = null
     private var authPrompted = false
-
-    
     private var configs: List<SpaConfig> = emptyList()
     private var pageJob: Job? = null
     private var page: Int
@@ -72,14 +62,11 @@ class QrExportViewModel @Inject constructor(
         set(value) {
             savedStateHandle[KEY_PAGE] = value
         }
-    
     private var encrypted: Boolean
         get() = savedStateHandle[KEY_ENCRYPTED] ?: false
         set(value) {
             savedStateHandle[KEY_ENCRYPTED] = value
         }
-
-    
     private val sealedPages = mutableMapOf<Int, String>()
     private var shared: Boolean
         get() = savedStateHandle[KEY_SHARED] ?: false
@@ -96,7 +83,6 @@ class QrExportViewModel @Inject constructor(
         }
         _state.value = QrExportState.Loading
         viewModelScope.launch {
-            
             configs =
                 nicknames.mapNotNull { (getConfig(Nickname(it)) as? DomainResult.Success)?.data }
             if (configs.isEmpty()) {
@@ -124,10 +110,11 @@ class QrExportViewModel @Inject constructor(
         val config = configs[index]
         val content = if (encrypted) sealedContent(index) else config.toQrContent()
         if (content == null) {
-            
             encrypted = false
             showPage(index)
-            (_state.value as? QrExportState.Ready)?.let { _state.value = it.copy(askPassphrase = true) }
+            (_state.value as? QrExportState.Ready)?.let {
+                _state.value = it.copy(askPassphrase = true)
+            }
             return
         }
         val bitmap =
@@ -143,7 +130,6 @@ class QrExportViewModel @Inject constructor(
             )
 
             configs.size == 1 -> QrExportState.Failed(UiError.Message(R.string.error_qr_encode))
-            
             else -> QrExportState.Ready(config.nickname.value, null, index, configs.size, encrypted)
                 .also { _messages.send(R.string.error_qr_encode) }
         }
@@ -188,7 +174,6 @@ class QrExportViewModel @Inject constructor(
         if (ready == null || !ready.askPassphrase) return passphrase.wipe()
         _state.value = ready.copy(askPassphrase = false)
         viewModelScope.launch {
-            
             if (setExportPassphrase(passphrase) is DomainResult.Success) {
                 sealedPages.clear()
                 encrypted = true

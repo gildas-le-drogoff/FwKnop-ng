@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.viewmodel
 
 import android.nfc.Tag
@@ -7,31 +11,16 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.usecase.CreateNfcTagDigestUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ObserveSettingsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ObserveVaultStatusUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.OtherNfcTagDigestsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.SaveSettingsUseCase
+import fr.gildasledrogoff.fwknop.domain.usecase.*
 import fr.gildasledrogoff.fwknop.presentation.state.NfcWriteNotices
 import fr.gildasledrogoff.fwknop.presentation.state.NfcWriteState
 import fr.gildasledrogoff.fwknop.presentation.state.UiError
 import fr.gildasledrogoff.fwknop.presentation.state.toUiError
 import fr.gildasledrogoff.fwknop.presentation.ui.navigation.NfcWriteRoute
 import fr.gildasledrogoff.fwknop.utils.dispatcher.DispatcherProvider
-import fr.gildasledrogoff.fwknop.utils.helpers.DebugLog
-import fr.gildasledrogoff.fwknop.utils.helpers.LocalNetworkAccess
-import fr.gildasledrogoff.fwknop.utils.helpers.NfcTagWriter
-import fr.gildasledrogoff.fwknop.utils.helpers.NfcWriteResult
-import fr.gildasledrogoff.fwknop.utils.helpers.PermissionStatus
-import fr.gildasledrogoff.fwknop.utils.helpers.RuntimePermissions
+import fr.gildasledrogoff.fwknop.utils.helpers.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -51,21 +40,24 @@ class NfcWriteViewModel @Inject constructor(
     val nickname: String = savedStateHandle.get<String>(NfcWriteRoute.ARG_NICKNAME).orEmpty()
     private val _state = MutableStateFlow<NfcWriteState>(NfcWriteState.Waiting)
     val state: StateFlow<NfcWriteState> = _state.asStateFlow()
-
-    
     val keepOtherConfigs: StateFlow<Boolean> = savedStateHandle.getStateFlow(KEY_KEEP_OTHERS, true)
-
-    
-    
     val notices: StateFlow<NfcWriteNotices> =
-        combine(observeSettings(), permissions.snapshot, observeVault()) { settings, snapshot, vault ->
+        combine(
+            observeSettings(),
+            permissions.snapshot,
+            observeVault()
+        ) { settings, snapshot, vault ->
             NfcWriteNotices(
                 nfcKnockDisabled = !settings.nfcKnockEnabled,
                 localNetworkMissing = snapshot.localNetwork != PermissionStatus.GRANTED,
                 localNetworkPermanentlyDenied = snapshot.localNetwork == PermissionStatus.DENIED_PERMANENTLY,
                 lockDisabled = !vault.lockEnabled,
             )
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), NfcWriteNotices())
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+            NfcWriteNotices()
+        )
 
     fun onNfcUnavailable(present: Boolean) {
         _state.value = if (present) NfcWriteState.Disabled else NfcWriteState.Unsupported
@@ -90,12 +82,10 @@ class NfcWriteViewModel @Inject constructor(
     }
 
     fun onTagDiscovered(tag: Tag) {
-        
         if (_state.value !is NfcWriteState.Waiting && _state.value !is NfcWriteState.Failed) return
         _state.value = NfcWriteState.Writing
         val keepOthers = keepOtherConfigs.value
         viewModelScope.launch {
-            
             val digest = try {
                 createDigest(Nickname(nickname))
             } catch (e: CancellationException) {
@@ -105,10 +95,11 @@ class NfcWriteViewModel @Inject constructor(
                 _state.value = NfcWriteState.Failed(UiError.Message(R.string.nfc_write_key_failed))
                 return@launch
             }
-            
             val result = withContext(dispatchers.io) {
                 writer.write(tag) { existing ->
-                    if (keepOthers) otherDigests(existing, Nickname(nickname)) + digest else listOf(digest)
+                    if (keepOthers) otherDigests(existing, Nickname(nickname)) + digest else listOf(
+                        digest
+                    )
                 }
             }
             _state.value = when (result) {

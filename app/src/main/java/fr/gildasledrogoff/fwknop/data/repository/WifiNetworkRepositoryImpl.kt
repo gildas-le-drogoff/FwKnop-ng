@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.repository
 
 import android.content.Context
@@ -23,18 +27,14 @@ import javax.inject.Singleton
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-/**
- * Network names need the location permission (and, in the background, "Allow all the time") with the
- * location service on; otherwise Android reports them as hidden.
- */
+
 @Singleton
 class WifiNetworkRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : WifiNetworkRepository {
     private val connectivity = context.getSystemService(ConnectivityManager::class.java)
-
     override fun connectedSsids(): Flow<List<String?>> = callbackFlow {
-        // Callbacks arrive one at a time on the ConnectivityManager thread.
+
         val networks = LinkedHashMap<Network, String?>()
         val callback = SsidCallback.create(
             onChanged = { network, capabilities ->
@@ -48,7 +48,7 @@ class WifiNetworkRepositoryImpl @Inject constructor(
         )
         val request = NetworkRequest.Builder()
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-            // A trusted LAN without Internet access still counts.
+
             .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
         connectivity.registerNetworkCallback(request, callback)
@@ -61,7 +61,10 @@ class WifiNetworkRepositoryImpl @Inject constructor(
     override suspend fun awaitInternet(timeout: Duration): Boolean = withTimeoutOrNull(timeout) {
         callbackFlow {
             val callback = object : ConnectivityManager.NetworkCallback() {
-                override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
+                override fun onCapabilitiesChanged(
+                    network: Network,
+                    capabilities: NetworkCapabilities
+                ) {
                     trySend(capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
                 }
             }
@@ -74,7 +77,7 @@ class WifiNetworkRepositoryImpl @Inject constructor(
         val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             capabilities.transportInfo as? WifiInfo
         } else {
-            // Before Android 12 the capabilities carry no WifiInfo.
+
             @Suppress("DEPRECATION")
             context.getSystemService(WifiManager::class.java)?.connectionInfo
         }
@@ -86,7 +89,7 @@ class WifiNetworkRepositoryImpl @Inject constructor(
     }
 }
 
-/** Since Android 12, a callback only sees network names if it asks for location info at construction. */
+
 private class SsidCallback : ConnectivityManager.NetworkCallback {
     private constructor() : super()
 

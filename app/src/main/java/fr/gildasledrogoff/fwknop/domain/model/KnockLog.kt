@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain.model
 
 import fr.gildasledrogoff.fwknop.domain.error.ConfigError
@@ -5,31 +9,52 @@ import fr.gildasledrogoff.fwknop.domain.error.GpgError
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
 import java.time.Instant
 
-/** What happened on one knock attempt, as reported by the caller (the timestamp is added on write). */
+
 data class KnockLogEvent(
     val nickname: Nickname,
     val protocol: Protocol,
-    /** Null when the attempt failed before a source IP was resolved. */
+
     val source: ResolvedSourceIp?,
     val outcome: KnockLogOutcome,
+    val kind: KnockLogKind = KnockLogKind.KNOCK,
 ) {
     companion object {
         fun of(
             config: SpaConfig,
             source: ResolvedSourceIp?,
             result: DomainResult<*, KnockError>,
-        ) = KnockLogEvent(config.nickname, config.server.protocol, source, KnockLogOutcome.of(result))
+        ) = KnockLogEvent(
+            config.nickname,
+            config.knockProtocol(),
+            source,
+            KnockLogOutcome.of(result)
+        )
+
+
+        fun wakeOnLan(nickname: Nickname, result: DomainResult<*, KnockError>) =
+            KnockLogEvent(
+                nickname,
+                Protocol.UDP,
+                null,
+                KnockLogOutcome.of(result),
+                KnockLogKind.WAKE_ON_LAN
+            )
+
+        private fun SpaConfig.knockProtocol(): Protocol = when (val method = method) {
+            KnockMethod.Spa -> server.protocol
+            is KnockMethod.PortSequence -> method.ports.first().protocol
+        }
     }
 }
 
-data class KnockLogEntry(val id: Long, val timestamp: Instant, val event: KnockLogEvent)
 
+enum class KnockLogKind { KNOCK, WAKE_ON_LAN }
+data class KnockLogEntry(val id: Long, val timestamp: Instant, val event: KnockLogEvent)
 sealed interface KnockLogOutcome {
     data object Sent : KnockLogOutcome
 
-    /** [code] is stable across releases (never a class name: R8 renames them). */
-    data class Failed(val code: String, val detail: String? = null) : KnockLogOutcome
 
+    data class Failed(val code: String, val detail: String? = null) : KnockLogOutcome
     companion object {
         fun of(result: DomainResult<*, KnockError>): KnockLogOutcome = when (result) {
             is DomainResult.Success -> Sent
@@ -49,6 +74,7 @@ sealed interface KnockLogOutcome {
             is KnockError.ServerUnresolved -> Failed("SERVER_UNRESOLVED", error.host)
             is KnockError.ServerFamilyMismatch ->
                 Failed("SERVER_FAMILY_MISMATCH", "${error.host} / ${error.sourceIp}")
+
             KnockError.PacketGeneration -> Failed("PACKET_GENERATION")
             KnockError.GpgKeysMissing -> Failed("GPG_KEYS_MISSING")
             is KnockError.Gpg -> Failed("GPG", error.error.logDetail())
@@ -59,7 +85,7 @@ sealed interface KnockLogOutcome {
     }
 }
 
-/** How long knock history is kept; [OFF] records nothing and wipes what exists. */
+
 enum class KnockHistoryRetention(val days: Long?) {
     OFF(null),
     DAYS_7(7),
@@ -72,6 +98,8 @@ private fun ConfigError.logCode(): String = when (this) {
     ConfigError.NicknameBlank -> "NICKNAME_BLANK"
     ConfigError.NicknameTaken -> "NICKNAME_TAKEN"
     ConfigError.ServerInvalid -> "SERVER_INVALID"
+    ConfigError.KnockSequenceInvalid -> "KNOCK_SEQUENCE_INVALID"
+    ConfigError.KnockDelayInvalid -> "KNOCK_DELAY_INVALID"
     ConfigError.PortsFormat -> "PORTS_FORMAT"
     ConfigError.TimeoutInvalid -> "TIMEOUT_INVALID"
     ConfigError.NatIpInvalid -> "NAT_IP_INVALID"
@@ -85,6 +113,10 @@ private fun ConfigError.logCode(): String = when (this) {
     ConfigError.KeyBase64Length -> "KEY_BASE64_LENGTH"
     ConfigError.KeyBase64Chars -> "KEY_BASE64_CHARS"
     ConfigError.WireGuardKeyMissing -> "WIREGUARD_KEY_MISSING"
+    ConfigError.WakeMacInvalid -> "WAKE_MAC_INVALID"
+    ConfigError.WakeHostInvalid -> "WAKE_HOST_INVALID"
+    ConfigError.WakePortInvalid -> "WAKE_PORT_INVALID"
+    ConfigError.WakePasswordInvalid -> "WAKE_PASSWORD_INVALID"
     is ConfigError.Storage -> "STORAGE"
 }
 

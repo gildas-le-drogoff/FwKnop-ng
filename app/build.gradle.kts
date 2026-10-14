@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -24,8 +28,8 @@ android {
         applicationId = "fr.gildasledrogoff.fwknop"
         minSdk = 26
         targetSdk = 37
-        versionCode = 37
-        versionName = "2.0.1"
+        versionCode = 38
+        versionName = "2.1.0"
         testInstrumentationRunner = "fr.gildasledrogoff.fwknop.HiltTestRunner"
     }
 
@@ -59,6 +63,18 @@ android {
         buildConfig = true
         // org.openintents.openpgp.IOpenPgpService2 (vendored openpgp-api).
         aidl = true
+    }
+
+    testOptions {
+        // Robolectric reads the merged manifest and resources (network security config).
+        unitTests.isIncludeAndroidResources = true
+        unitTests.all {
+            // Robolectric (SDK 35+) reaches into java.io.FileDescriptor internals through SharedSecrets.
+            it.jvmArgs(
+                "--add-opens=java.base/java.io=ALL-UNNAMED",
+                "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED",
+            )
+        }
     }
 
     dependenciesInfo {
@@ -165,6 +181,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.truth)
     testImplementation(libs.turbine)
+    testImplementation(libs.robolectric)
     testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(libs.androidx.test.runner)

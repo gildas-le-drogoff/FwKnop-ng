@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.local.security
 
 import android.content.Context
@@ -19,10 +23,8 @@ class PrefsSealedExportPassphraseStore @Inject constructor(
     }
 }
 
-
 class ExportPassphrases @Inject constructor(private val store: SealedExportPassphraseStore) {
     fun isSet(): Boolean = store.read() != null
-
     fun read(aead: Aead): CharArray? = store.read()?.let { sealed ->
         val bytes = aead.decrypt(sealed, ASSOCIATED_DATA)
         try {
@@ -58,7 +60,8 @@ class ExportPassphrases @Inject constructor(private val store: SealedExportPassp
 
     private fun ByteArray.toChars(): CharArray {
         val buffer = Charsets.UTF_8.decode(ByteBuffer.wrap(this))
-        return CharArray(buffer.remaining()).also(buffer::get).also { buffer.array().fill('\u0000') }
+        return CharArray(buffer.remaining()).also(buffer::get)
+            .also { buffer.array().fill('\u0000') }
     }
 
     private companion object {

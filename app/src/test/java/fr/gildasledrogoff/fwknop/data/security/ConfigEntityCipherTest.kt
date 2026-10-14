@@ -1,14 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.security
-import fr.gildasledrogoff.fwknop.data.local.security.ColumnCipher
-import fr.gildasledrogoff.fwknop.data.local.security.ConfigEntityCipher
-import fr.gildasledrogoff.fwknop.data.local.security.aead
-import fr.gildasledrogoff.fwknop.data.mapper.toEntity
-import fr.gildasledrogoff.fwknop.fakes.newKeyset
-import fr.gildasledrogoff.fwknop.fakes.sampleConfig
 import com.google.common.truth.Truth.assertThat
+import fr.gildasledrogoff.fwknop.data.local.security.ConfigEntityCipher
+import fr.gildasledrogoff.fwknop.data.mapper.toEntity
+import fr.gildasledrogoff.fwknop.fakes.sampleConfig
 import org.junit.Test
-class ConfigEntityCipherTest {
-    private val cipher = ConfigEntityCipher(ColumnCipher(newKeyset().aead()))
     private val entity = sampleConfig().toEntity().copy(id = 7, natIp = "10.0.0.2", serverCmd = "systemctl start x")
     @Test
     fun `seal then open gives the row back`() {
@@ -32,8 +31,29 @@ class ConfigEntityCipherTest {
     }
     @Test
     fun `every column declared sensitive is actually sealed`() {
-        assertThat(ConfigEntityCipher.SENSITIVE).hasSize(11)
-        assertThat(ConfigEntityCipher.SENSITIVE).containsAtLeast("KEY", "HMAC", "SERVER_IP", "ACCESS_IP", "NAT_IP")
+        assertThat(ConfigEntityCipher.SENSITIVE).hasSize(13)
+        assertThat(ConfigEntityCipher.SENSITIVE)
+            .containsAtLeast("KEY", "HMAC", "SERVER_IP", "ACCESS_IP", "NAT_IP", "KNOCK_SEQUENCE")
         assertThat(ConfigEntityCipher.SENSITIVE).doesNotContain("NICK_NAME")
+    }
+    @Test
+    fun `knock sequence is sealed, and an empty one stays readable after the v4 migration`() {
+        val knocking = entity.copy(knockSequence = "tcp/7000,udp/8000")
+        val sealed = cipher.seal(knocking)
+        assertThat(sealed.knockSequence).isNotEqualTo(knocking.knockSequence)
+        assertThat(cipher.open(sealed)).isEqualTo(knocking)
+        val spa = cipher.seal(entity.copy(knockSequence = ""))
+        assertThat(spa.knockSequence).isEmpty()
+        assertThat(cipher.open(spa).knockSequence).isEmpty()
+    }
+    @Test
+    fun `wake-on-lan is sealed, and an empty one stays readable after the v5 migration`() {
+        val waking = entity.copy(wakeOnLan = "AA:BB:CC:DD:EE:FF\n9\n192.168.1.255")
+        val sealed = cipher.seal(waking)
+        assertThat(sealed.wakeOnLan).doesNotContain("AA:BB")
+        assertThat(cipher.open(sealed)).isEqualTo(waking)
+        val off = cipher.seal(entity.copy(wakeOnLan = ""))
+        assertThat(off.wakeOnLan).isEmpty()
+        assertThat(cipher.open(off).wakeOnLan).isEmpty()
     }
 }

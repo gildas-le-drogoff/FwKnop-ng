@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -6,23 +10,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.gildasledrogoff.fwknop.domain.error.ConfigError
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.usecase.DeleteConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.DismissLockSuggestionUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.DuplicateConfigUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ObserveConfigsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ObserveSettingsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ObserveVaultStatusUseCase
-import fr.gildasledrogoff.fwknop.presentation.state.ConfigListEvent
-import fr.gildasledrogoff.fwknop.presentation.state.ConfigListState
-import fr.gildasledrogoff.fwknop.presentation.state.UiError
-import fr.gildasledrogoff.fwknop.presentation.state.toSummary
-import fr.gildasledrogoff.fwknop.presentation.state.toUiError
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import fr.gildasledrogoff.fwknop.domain.usecase.*
+import fr.gildasledrogoff.fwknop.presentation.state.*
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -51,7 +41,6 @@ class ConfigListViewModel @Inject constructor(
                 configs = configs.map { it.toSummary() },
                 showHelpOnStart = !settings.helpShown,
                 nfcKnockEnabled = settings.nfcKnockEnabled,
-                
                 suggestLock = !vault.lockEnabled && !settings.lockSuggestionDismissed,
                 error = error,
             )
@@ -66,6 +55,7 @@ class ConfigListViewModel @Inject constructor(
             is ConfigListEvent.DeleteConfig -> viewModelScope.launch {
                 reportFailure(deleteConfig(Nickname(event.nickname)))
             }
+
             is ConfigListEvent.DuplicateConfig -> viewModelScope.launch {
                 reportFailure(duplicateConfig(Nickname(event.source), event.nickname))
             }

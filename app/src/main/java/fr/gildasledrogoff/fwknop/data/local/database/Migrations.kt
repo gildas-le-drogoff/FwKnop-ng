@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.local.database
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import fr.gildasledrogoff.fwknop.data.local.models.ConfigColumns
 import fr.gildasledrogoff.fwknop.data.local.models.KnockLogColumns
-
 
 internal val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
@@ -14,21 +17,42 @@ internal val MIGRATION_1_2 = object : Migration(1, 2) {
         }
     }
 }
-
+internal val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        with(ConfigColumns) {
+            db.execSQL("ALTER TABLE $TABLE ADD COLUMN $KNOCK_SEQUENCE TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE $TABLE ADD COLUMN $KNOCK_DELAY INTEGER NOT NULL DEFAULT 500")
+        }
+    }
+}
+internal val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        with(ConfigColumns) {
+            db.execSQL("ALTER TABLE $TABLE ADD COLUMN $WAKE_ON_LAN TEXT NOT NULL DEFAULT ''")
+        }
+    }
+}
+internal val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        with(KnockLogColumns) {
+            db.execSQL("ALTER TABLE $TABLE ADD COLUMN $KIND TEXT NOT NULL DEFAULT '$KIND_KNOCK'")
+        }
+    }
+}
 internal val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
         with(KnockLogColumns) {
             db.execSQL(
                 "CREATE TABLE IF NOT EXISTS `$TABLE` (" +
-                    "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-                    "`$TIMESTAMP` INTEGER NOT NULL, " +
-                    "`$NICK_NAME` TEXT NOT NULL, " +
-                    "`$PROTOCOL` TEXT NOT NULL, " +
-                    "`$SOURCE_IP` TEXT, " +
-                    "`$SOURCE_IP_METHOD` TEXT, " +
-                    "`$SOURCE_IP_METHOD_DETAIL` TEXT, " +
-                    "`$RESULT` TEXT NOT NULL, " +
-                    "`$ERROR_DETAIL` TEXT)"
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`$TIMESTAMP` INTEGER NOT NULL, " +
+                        "`$NICK_NAME` TEXT NOT NULL, " +
+                        "`$PROTOCOL` TEXT NOT NULL, " +
+                        "`$SOURCE_IP` TEXT, " +
+                        "`$SOURCE_IP_METHOD` TEXT, " +
+                        "`$SOURCE_IP_METHOD_DETAIL` TEXT, " +
+                        "`$RESULT` TEXT NOT NULL, " +
+                        "`$ERROR_DETAIL` TEXT)"
             )
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_${TABLE}_$TIMESTAMP` ON `$TABLE` (`$TIMESTAMP`)")
         }

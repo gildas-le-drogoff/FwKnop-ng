@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.repository
 
 import fr.gildasledrogoff.fwknop.data.backup.SealedQrCodec
@@ -11,7 +15,6 @@ import fr.gildasledrogoff.fwknop.domain.repository.SealedQrRepository
 import fr.gildasledrogoff.fwknop.utils.dispatcher.DispatcherProvider
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-
 
 class SealedQrRepositoryImpl @Inject constructor(
     private val session: VaultSession,

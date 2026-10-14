@@ -1,11 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.components
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +24,6 @@ import androidx.compose.ui.unit.Dp
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 
-
 @Composable
 fun ShieldLockIllustration(
     modifier: Modifier = Modifier,
@@ -37,21 +35,26 @@ fun ShieldLockIllustration(
     val glimmer by transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(GLIMMER_MS, easing = LinearEasing), RepeatMode.Restart),
+        animationSpec = infiniteRepeatable(
+            tween(GLIMMER_MS, easing = LinearEasing),
+            RepeatMode.Restart
+        ),
         label = "glimmer",
     )
     Canvas(modifier.size(boxSize)) {
         val stroke = boxSize.toPx() * 0.025f
         drawShield(tint, stroke)
-        
         val pulse = (1f - kotlin.math.abs(glimmer * 2f - 1f)).let { it * it }
         drawPadlock(tint.copy(alpha = 0.65f + 0.35f * pulse), stroke)
-        drawSparkle(accent.copy(alpha = pulse), Offset(size.width * 0.66f, size.height * 0.36f), pulse)
+        drawSparkle(
+            accent.copy(alpha = pulse),
+            Offset(size.width * 0.66f, size.height * 0.36f),
+            pulse
+        )
     }
 }
 
 private const val GLIMMER_MS = 2600
-
 private fun DrawScope.drawShield(color: Color, stroke: Float) {
     val w = size.width
     val h = size.height
@@ -89,7 +92,11 @@ private fun DrawScope.drawPadlock(color: Color, stroke: Float) {
         cornerRadius = CornerRadius(stroke * 1.5f),
         style = Stroke(stroke),
     )
-    drawCircle(color, radius = stroke * 1.2f, center = Offset(w * 0.5f, bodyTop + bodySize.height * 0.42f))
+    drawCircle(
+        color,
+        radius = stroke * 1.2f,
+        center = Offset(w * 0.5f, bodyTop + bodySize.height * 0.42f)
+    )
     drawLine(
         color,
         Offset(w * 0.5f, bodyTop + bodySize.height * 0.42f),

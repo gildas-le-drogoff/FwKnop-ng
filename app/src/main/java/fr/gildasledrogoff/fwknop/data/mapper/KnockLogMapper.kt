@@ -1,14 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.mapper
 
 import fr.gildasledrogoff.fwknop.data.local.models.KnockLogColumns
 import fr.gildasledrogoff.fwknop.data.local.models.KnockLogEntity
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogEntry
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogEvent
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogOutcome
-import fr.gildasledrogoff.fwknop.domain.model.Nickname
-import fr.gildasledrogoff.fwknop.domain.model.Protocol
-import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
+import fr.gildasledrogoff.fwknop.domain.model.*
 import java.time.Instant
 
 fun KnockLogEvent.toEntity(timestamp: Instant): KnockLogEntity {
@@ -26,6 +24,7 @@ fun KnockLogEvent.toEntity(timestamp: Instant): KnockLogEntity {
         sourceIpMethodDetail = methodDetail,
         result = result,
         errorDetail = errorDetail,
+        kind = kind.name,
     )
 }
 
@@ -36,11 +35,15 @@ fun KnockLogEntity.toDomain(): KnockLogEntry {
         timestamp = Instant.ofEpochMilli(timestamp),
         event = KnockLogEvent(
             nickname = Nickname(nickName),
-            // Unknown protocol names cannot come from this app: fall back rather than drop the row.
+
             protocol = Protocol.entries.firstOrNull { it.name == protocol } ?: Protocol.UDP,
-            source = if (sourceIp != null && method != null) ResolvedSourceIp(sourceIp, method) else null,
+            source = if (sourceIp != null && method != null) ResolvedSourceIp(
+                sourceIp,
+                method
+            ) else null,
             outcome = if (result == KnockLogColumns.RESULT_SENT) KnockLogOutcome.Sent
             else KnockLogOutcome.Failed(result, errorDetail),
+            kind = KnockLogKind.entries.firstOrNull { it.name == kind } ?: KnockLogKind.KNOCK,
         ),
     )
 }

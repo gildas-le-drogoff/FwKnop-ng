@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
@@ -25,18 +29,26 @@ fun FwknopNavHost(navController: NavHostController = rememberNavController()) {
     NavHost(
         navController = navController,
         startDestination = ConfigListRoute,
-        
         enterTransition = {
-            slideIntoContainer(SlideDirection.Start, motion(), initialOffset = { it / 4 }) + fadeIn(motion())
+            slideIntoContainer(SlideDirection.Start, motion(), initialOffset = { it / 4 }) + fadeIn(
+                motion()
+            )
         },
         exitTransition = {
-            slideOutOfContainer(SlideDirection.Start, motion(), targetOffset = { it / 10 }) + fadeOut(motion())
+            slideOutOfContainer(
+                SlideDirection.Start,
+                motion(),
+                targetOffset = { it / 10 }) + fadeOut(motion())
         },
         popEnterTransition = {
-            slideIntoContainer(SlideDirection.End, motion(), initialOffset = { it / 10 }) + fadeIn(motion())
+            slideIntoContainer(SlideDirection.End, motion(), initialOffset = { it / 10 }) + fadeIn(
+                motion()
+            )
         },
         popExitTransition = {
-            slideOutOfContainer(SlideDirection.End, motion(), targetOffset = { it / 4 }) + fadeOut(motion())
+            slideOutOfContainer(SlideDirection.End, motion(), targetOffset = { it / 4 }) + fadeOut(
+                motion()
+            )
         },
     ) {
         composable<ConfigListRoute> { ConfigListScreen(navigation = navController.listNavigation()) }
@@ -51,9 +63,8 @@ fun FwknopNavHost(navController: NavHostController = rememberNavController()) {
 }
 
 private fun <T> motion() = tween<T>(durationMillis = 320, easing = FastOutSlowInEasing)
-
 private fun NavHostController.listNavigation() = ConfigListNavigation(
-    onCreate = { navigate(ConfigEditRoute()) },
+    onCreate = { navigate(ConfigEditRoute(kind = it.name)) },
     onEdit = { navigate(ConfigEditRoute(it)) },
     onWriteNfc = { navigate(NfcWriteRoute(it)) },
     onExportQr = { navigate(QrExportRoute(listOf(it))) },

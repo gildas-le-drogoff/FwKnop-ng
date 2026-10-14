@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.qrexport
 
 import android.content.ClipData
@@ -8,35 +12,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,11 +24,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -61,16 +37,7 @@ import fr.gildasledrogoff.fwknop.presentation.state.AuthPurpose
 import fr.gildasledrogoff.fwknop.presentation.state.AuthResult
 import fr.gildasledrogoff.fwknop.presentation.state.QrExportState
 import fr.gildasledrogoff.fwknop.presentation.state.text
-import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.CollectEffects
-import fr.gildasledrogoff.fwknop.presentation.ui.components.EmptyState
-import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
-import fr.gildasledrogoff.fwknop.presentation.ui.components.LabeledSwitch
-import fr.gildasledrogoff.fwknop.presentation.ui.components.LargeFontPreviews
-import fr.gildasledrogoff.fwknop.presentation.ui.components.PassphraseDialog
-import fr.gildasledrogoff.fwknop.presentation.ui.components.PassphraseSpec
-import fr.gildasledrogoff.fwknop.presentation.ui.components.rememberUserAuthenticator
-import fr.gildasledrogoff.fwknop.presentation.ui.components.scaledMaxLines
+import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.QrExportViewModel
@@ -229,18 +196,9 @@ private fun QrExportBody(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(dimens.contentWidthFraction),
         )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(dimens.itemSpacing),
-            modifier = Modifier.fillMaxWidth(dimens.contentWidthFraction),
-        ) {
-            OutlinedButton(
-                actions.onSavePng,
-                Modifier.weight(1f)
-            ) { Text(stringResource(R.string.action_save_png)) }
-            Button(
-                actions.onShare,
-                Modifier.weight(1f)
-            ) { Text(stringResource(R.string.action_share_png)) }
+        ButtonRow(Modifier.fillMaxWidth(dimens.contentWidthFraction)) {
+            OutlinedButton(actions.onSavePng) { Text(stringResource(R.string.action_save_png)) }
+            Button(actions.onShare) { Text(stringResource(R.string.action_share_png)) }
         }
         if (state.encrypted) {
             TextButton(actions.onChangePassphrase) {
@@ -259,7 +217,7 @@ private fun PageSelector(page: Int, pageCount: Int, onPage: (Int) -> Unit) {
                 stringResource(R.string.action_previous_qr)
             )
         }
-        // "2 / 3" is read as "2 slash 3": spell it out, and announce it when the page changes.
+
         val pageDescription = stringResource(R.string.a11y_qr_page, page + 1, pageCount)
         Text(
             text = stringResource(R.string.qr_export_page, page + 1, pageCount),
@@ -277,8 +235,12 @@ private fun PageSelector(page: Int, pageCount: Int, onPage: (Int) -> Unit) {
 
 @Composable
 private fun QrImage(qr: ImageBitmap?, description: String, modifier: Modifier = Modifier) {
-    
-    Surface(color = Color.White, contentColor = Color.Black, shape = MaterialTheme.shapes.medium, modifier = modifier) {
+    Surface(
+        color = Color.White,
+        contentColor = Color.Black,
+        shape = MaterialTheme.shapes.medium,
+        modifier = modifier
+    ) {
         if (qr != null) {
             Image(
                 bitmap = qr,
@@ -287,11 +249,12 @@ private fun QrImage(qr: ImageBitmap?, description: String, modifier: Modifier = 
             )
         } else {
             val generating = stringResource(R.string.a11y_qr_generating)
-            Box(Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                .semantics { contentDescription = generating })
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                    .semantics { contentDescription = generating })
         }
     }
 }
@@ -328,7 +291,13 @@ private fun QrExportContentPreview() {
 private fun QrExportLargeFontPreview() {
     FwknopTheme {
         QrExportContent(
-            QrExportState.Ready("home-office-nat", qr = null, page = 0, pageCount = 2, encrypted = true),
+            QrExportState.Ready(
+                "home-office-nat",
+                qr = null,
+                page = 0,
+                pageCount = 2,
+                encrypted = true
+            ),
             QrExportActions({}, {}, {}, {}, {})
         )
     }

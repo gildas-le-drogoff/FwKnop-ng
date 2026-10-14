@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.data.repository
 
 import android.content.Intent
@@ -5,11 +9,7 @@ import android.util.Base64
 import fr.gildasledrogoff.fwknop.data.datasource.OpenPgpDataSource
 import fr.gildasledrogoff.fwknop.data.datasource.OpenPgpDataSource.Result
 import fr.gildasledrogoff.fwknop.domain.error.GpgError
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.Encryption
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyRole
-import fr.gildasledrogoff.fwknop.domain.model.InteractionId
+import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.domain.repository.GpgRepository
 import fr.gildasledrogoff.fwknop.utils.dispatcher.DispatcherProvider
 import kotlinx.coroutines.withContext

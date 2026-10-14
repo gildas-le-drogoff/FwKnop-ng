@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -7,11 +11,7 @@ import fr.gildasledrogoff.fwknop.domain.model.AutoKnockSettings
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.Ssids
 import fr.gildasledrogoff.fwknop.domain.repository.AutoKnockMonitor
-import fr.gildasledrogoff.fwknop.domain.usecase.GetCurrentSsidUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.IsAutoKnockableUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ObserveAutoKnockSettingsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.ObserveConfigsUseCase
-import fr.gildasledrogoff.fwknop.domain.usecase.SaveAutoKnockSettingsUseCase
+import fr.gildasledrogoff.fwknop.domain.usecase.*
 import fr.gildasledrogoff.fwknop.presentation.state.AutoKnockEvent
 import fr.gildasledrogoff.fwknop.presentation.state.AutoKnockState
 import fr.gildasledrogoff.fwknop.utils.helpers.LocationAccess
@@ -37,12 +37,20 @@ class AutoKnockViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            observeSettings().collect { settings -> _state.update { it.copy(isLoading = false, settings = settings) } }
+            observeSettings().collect { settings ->
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        settings = settings
+                    )
+                }
+            }
         }
         viewModelScope.launch {
             observeConfigs().collect { result ->
                 if (result is DomainResult.Success) {
-                    val candidates = result.data.filter(autoKnockable::invoke).map { it.nickname.value }
+                    val candidates =
+                        result.data.filter(autoKnockable::invoke).map { it.nickname.value }
                     _state.update { it.copy(candidates = candidates) }
                 }
             }
@@ -51,14 +59,20 @@ class AutoKnockViewModel @Inject constructor(
 
     fun onEvent(event: AutoKnockEvent) {
         when (event) {
-            // Turning it on always goes through the security warning; turning it off never does.
+
             is AutoKnockEvent.EnableRequested ->
-                if (event.enabled) _state.update { it.copy(confirmingEnable = true) } else save { it.copy(enabled = false) }
+                if (event.enabled) _state.update { it.copy(confirmingEnable = true) } else save {
+                    it.copy(
+                        enabled = false
+                    )
+                }
+
             AutoKnockEvent.EnableConfirmed -> {
                 if (!_state.value.confirmingEnable) return
                 _state.update { it.copy(confirmingEnable = false) }
                 save { it.copy(enabled = true) }
             }
+
             AutoKnockEvent.EnableDismissed -> _state.update { it.copy(confirmingEnable = false) }
             is AutoKnockEvent.ConfigChosen -> save { it.copy(nickname = event.nickname) }
             is AutoKnockEvent.SsidAdded -> addSsid(event.ssid)
@@ -68,6 +82,7 @@ class AutoKnockViewModel @Inject constructor(
                 _state.update { it.copy(currentSsidUnavailable = ssid == null) }
                 ssid?.let(::addSsid)
             }
+
             AutoKnockEvent.PermissionsChanged -> {
                 _state.update { it.copy(location = location.status()) }
                 monitor.refresh()
@@ -80,7 +95,7 @@ class AutoKnockViewModel @Inject constructor(
         save { it.copy(trustedSsids = it.trustedSsids + ssid) }
     }
 
-    // Applied locally at once so that quick successive edits build on each other.
+
     private fun save(transform: (AutoKnockSettings) -> AutoKnockSettings) {
         val next = transform(_state.value.settings)
         _state.update { it.copy(settings = next) }

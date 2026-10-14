@@ -1,41 +1,19 @@
+// SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package fr.gildasledrogoff.fwknop.domain
+import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.domain.error.GpgError
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
-import fr.gildasledrogoff.fwknop.domain.model.AccessRule
-import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.Encryption
-import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
-import fr.gildasledrogoff.fwknop.domain.model.InteractionId
-import fr.gildasledrogoff.fwknop.domain.model.AddressFamily
-import fr.gildasledrogoff.fwknop.domain.model.KnockLogOutcome
-import fr.gildasledrogoff.fwknop.domain.model.KnockObserver
-import fr.gildasledrogoff.fwknop.domain.model.KnockRoute
-import fr.gildasledrogoff.fwknop.domain.model.KnockStep
-import fr.gildasledrogoff.fwknop.domain.model.KnockTarget
-import fr.gildasledrogoff.fwknop.domain.model.Protocol
-import fr.gildasledrogoff.fwknop.domain.model.KnockOverrides
-import fr.gildasledrogoff.fwknop.domain.model.KnockRequest
-import fr.gildasledrogoff.fwknop.domain.model.NatTarget
-import fr.gildasledrogoff.fwknop.domain.model.PortAccess
-import fr.gildasledrogoff.fwknop.domain.model.SecretKey
-import fr.gildasledrogoff.fwknop.domain.model.ResolvedSourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIp
-import fr.gildasledrogoff.fwknop.domain.model.SourceIpMethod
+import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.domain.usecase.BuildSpaPacketUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ResolveKnockRouteUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.SendKnockUseCase
-import fr.gildasledrogoff.fwknop.fakes.FakeKnockHistoryRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeGpgRepository
-import fr.gildasledrogoff.fwknop.fakes.FakePublicIpRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeSpaPacketRepository
-import fr.gildasledrogoff.fwknop.fakes.FakeSpaTransportRepository
-import fr.gildasledrogoff.fwknop.fakes.sampleConfig
-import com.google.common.truth.Truth.assertThat
-import kotlin.random.Random
+import fr.gildasledrogoff.fwknop.fakes.*
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-class SendKnockUseCaseTest {
-    private val publicIp = FakePublicIpRepository()
+import kotlin.random.Random
     private val packets = FakeSpaPacketRepository()
     private val transport = FakeSpaTransportRepository(serverIp = "192.0.2.10")
     private val gpg = FakeGpgRepository()
@@ -62,24 +40,57 @@ class SendKnockUseCaseTest {
         sendKnock(KnockRequest(sampleConfig(sourceIp = SourceIp.Resolve)))
         assertThat(packets.built.single().sourceIp).isEqualTo("203.0.113.9")
     }
-    @Test
-    fun `resolve mode looks up in the server family and falls back to the next one`() = runTest {
+
+
+    private fun dualStackServer() {
         transport.serverFamilies = listOf("2001:db8::10", "192.0.2.10")
-        publicIp.results = mapOf("2001:db8::10" to DomainResult.Failure(KnockError.SourceIpUnresolved("v6")))
+        publicIp.results = mapOf("2001:db8::10" to DomainResult.Success(ResolvedSourceIp("2001:db8::4", SourceIpMethod.Stun("stun.example"))))
+    }
+    @Test
+    fun `resolve mode skips the ipv6 server address and knocks over ipv4`() = runTest {
+        dualStackServer()
         val result = sendKnock(KnockRequest(sampleConfig(sourceIp = SourceIp.Resolve)))
-        assertThat(publicIp.asked).containsExactly("2001:db8::10", "192.0.2.10").inOrder()
+        assertThat(publicIp.asked).containsExactly("192.0.2.10")
         assertThat(transport.sent.single().second.address).isEqualTo("192.0.2.10")
+        assertThat(packets.built.single().sourceIp).isEqualTo("203.0.113.9")
         val source = (result as DomainResult.Success).data.source
         assertThat(source).isEqualTo(ResolvedSourceIp("203.0.113.9", SourceIpMethod.Stun("stun.example")))
     }
     @Test
-    fun `resolve mode reports the failure of every server family`() = runTest {
-        transport.serverFamilies = listOf("2001:db8::10", "192.0.2.10")
-        publicIp.results = mapOf("2001:db8::10" to DomainResult.Failure(KnockError.SourceIpUnresolved("v6")))
+    fun `resolve mode reports the ipv4 lookup failure`() = runTest {
+        dualStackServer()
         publicIp.default = DomainResult.Failure(KnockError.SourceIpUnresolved("v4"))
         val result = sendKnock(KnockRequest(sampleConfig(sourceIp = SourceIp.Resolve)))
-        assertThat(result).isEqualTo(DomainResult.Failure(KnockError.SourceIpUnresolved("v6 / v4")))
+        assertThat(result).isEqualTo(DomainResult.Failure(KnockError.SourceIpUnresolved("v4")))
         assertThat(transport.sent).isEmpty()
+    }
+    @Test
+    fun `resolve mode cannot knock an ipv6 only server`() = runTest {
+        transport.serverFamilies = listOf("2001:db8::10")
+        val result = sendKnock(KnockRequest(sampleConfig(sourceIp = SourceIp.Resolve)))
+        assertThat(result).isEqualTo(DomainResult.Failure(KnockError.ServerFamilyMismatch("knock.example.org", "IPv4")))
+        assertThat(publicIp.asked).isEmpty()
+        assertThat(packets.built).isEmpty()
+    }
+    @Test
+    fun `resolve mode refuses a public ip that is not ipv4`() = runTest {
+        publicIp.default = DomainResult.Success(ResolvedSourceIp("2001:db8::4", SourceIpMethod.Stun("stun.example")))
+        val result = sendKnock(KnockRequest(sampleConfig(sourceIp = SourceIp.Resolve)))
+        assertThat(result).isEqualTo(DomainResult.Failure(KnockError.SourceIpInvalid))
+        assertThat(packets.built).isEmpty()
+    }
+    @Test
+    fun `fixed ipv6 source is refused before building the packet`() = runTest {
+        val result = sendKnock(KnockRequest(sampleConfig(sourceIp = SourceIp.Fixed("2001:db8::4"))))
+        assertThat(result).isEqualTo(DomainResult.Failure(KnockError.SourceIpInvalid))
+        assertThat(packets.built).isEmpty()
+        assertThat(transport.sent).isEmpty()
+    }
+    @Test
+    fun `prompted ipv6 source is refused before building the packet`() = runTest {
+        val request = KnockRequest(sampleConfig(sourceIp = SourceIp.Prompt), KnockOverrides(sourceIp = "2001:db8::4"))
+        assertThat(sendKnock(request)).isEqualTo(DomainResult.Failure(KnockError.SourceIpInvalid))
+        assertThat(packets.built).isEmpty()
     }
     @Test
     fun `source mode asks no third party and says so`() = runTest {
@@ -182,9 +193,8 @@ class SendKnockUseCaseTest {
         assertThat(result).isInstanceOf(DomainResult.Success::class.java)
     }
     @Test
-    fun `observer sees every server address then the source of the family that answered`() = runTest {
-        transport.serverFamilies = listOf("2001:db8::10", "192.0.2.10")
-        publicIp.results = mapOf("2001:db8::10" to DomainResult.Failure(KnockError.SourceIpUnresolved("v6")))
+    fun `observer sees every server address then the ipv4 source`() = runTest {
+        dualStackServer()
         sendKnock(KnockRequest(sampleConfig(sourceIp = SourceIp.Resolve)), observer)
         val source = ResolvedSourceIp("203.0.113.9", SourceIpMethod.Stun("stun.example"))
         assertThat(steps.take(3)).containsExactly(
@@ -196,10 +206,9 @@ class SendKnockUseCaseTest {
     }
     @Test
     fun `observer stops at the failing step`() = runTest {
-        transport.serverFamilies = listOf("2001:db8::10")
-        publicIp.default = DomainResult.Failure(KnockError.SourceIpUnresolved("v6"))
+        publicIp.default = DomainResult.Failure(KnockError.SourceIpUnresolved("v4"))
         sendKnock(KnockRequest(sampleConfig(sourceIp = SourceIp.Resolve)), observer)
-        assertThat(steps).containsExactly(KnockStep.ServerResolved("knock.example.org", listOf("2001:db8::10")))
+        assertThat(steps).containsExactly(KnockStep.ServerResolved("knock.example.org", listOf("192.0.2.10")))
     }
     @Test
     fun `a failed send is still announced with its target`() = runTest {
