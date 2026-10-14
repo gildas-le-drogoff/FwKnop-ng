@@ -176,6 +176,7 @@ hs_err_pid*
 htmlcov/
 instance/
 ipython_config.py
+keystore.properties
 lib/
 lib64/
 local.properties
