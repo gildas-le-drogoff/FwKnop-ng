@@ -1,5 +1,6 @@
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.configedit
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.gildasledrogoff.fwknop.R
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
 import fr.gildasledrogoff.fwknop.presentation.state.BackupEvent
 import fr.gildasledrogoff.fwknop.presentation.state.ConfigEditEffect
 import fr.gildasledrogoff.fwknop.presentation.state.ConfigEditEvent
@@ -150,7 +152,8 @@ private fun ConfigEditTopBar(
     onBack: () -> Unit,
     onScanQr: () -> Unit,
 ) {
-    val title = if (state.isNew) stringResource(R.string.title_new_config) else state.draft.nickname
+    val kind = state.draft.kind
+    val title = if (state.isNew) stringResource(kind.newTitleRes()) else state.draft.nickname
     TopAppBar(
         title = { Text(title) },
         navigationIcon = {
@@ -167,14 +170,24 @@ private fun ConfigEditTopBar(
                     )
                 }
             }
-            IconButton(onClick = onScanQr) {
-                FwknopIcon(
-                    R.drawable.ic_qr_code_scanner_rounded,
-                    stringResource(R.string.action_scan_keys)
-                )
+            // fwknop QR codes carry keys and SPA settings, nothing a magic packet uses.
+            if (kind != ConfigKind.WAKE_ON_LAN) {
+                IconButton(onClick = onScanQr) {
+                    FwknopIcon(
+                        R.drawable.ic_qr_code_scanner_rounded,
+                        stringResource(R.string.action_scan_keys)
+                    )
+                }
             }
         },
     )
+}
+
+@StringRes
+private fun ConfigKind.newTitleRes(): Int = when (this) {
+    ConfigKind.FWKNOP -> R.string.title_new_fwknop
+    ConfigKind.PORT_KNOCK -> R.string.title_new_port_knock
+    ConfigKind.WAKE_ON_LAN -> R.string.title_new_wake_on_lan
 }
 
 @Composable

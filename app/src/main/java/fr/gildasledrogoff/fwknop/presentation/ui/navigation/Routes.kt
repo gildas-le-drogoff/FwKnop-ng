@@ -5,10 +5,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object ConfigListRoute
 
+/** [kind] is the [fr.gildasledrogoff.fwknop.domain.model.ConfigKind] name of a new config, null when editing. */
 @Serializable
-data class ConfigEditRoute(val nickname: String? = null) {
+data class ConfigEditRoute(val nickname: String? = null, val kind: String? = null) {
     companion object {
         const val ARG_NICKNAME = "nickname"
+        const val ARG_KIND = "kind"
     }
 }
 

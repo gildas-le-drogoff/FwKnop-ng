@@ -9,9 +9,10 @@ import java.time.Instant
 data class KnockLogEvent(
     val nickname: Nickname,
     val protocol: Protocol,
-    /** Null when the attempt failed before a source IP was resolved. */
+    /** Null when the attempt failed before a source IP was resolved, and for every wake-up. */
     val source: ResolvedSourceIp?,
     val outcome: KnockLogOutcome,
+    val kind: KnockLogKind = KnockLogKind.KNOCK,
 ) {
     companion object {
         fun of(
@@ -20,12 +21,19 @@ data class KnockLogEvent(
             result: DomainResult<*, KnockError>,
         ) = KnockLogEvent(config.nickname, config.knockProtocol(), source, KnockLogOutcome.of(result))
 
+        /** A magic packet always travels over UDP and needs no source IP. */
+        fun wakeOnLan(nickname: Nickname, result: DomainResult<*, KnockError>) =
+            KnockLogEvent(nickname, Protocol.UDP, null, KnockLogOutcome.of(result), KnockLogKind.WAKE_ON_LAN)
+
         private fun SpaConfig.knockProtocol(): Protocol = when (val method = method) {
             KnockMethod.Spa -> server.protocol
             is KnockMethod.PortSequence -> method.ports.first().protocol
         }
     }
 }
+
+/** Stored by name: never rename an entry. */
+enum class KnockLogKind { KNOCK, WAKE_ON_LAN }
 
 data class KnockLogEntry(val id: Long, val timestamp: Instant, val event: KnockLogEvent)
 
@@ -95,6 +103,7 @@ private fun ConfigError.logCode(): String = when (this) {
     ConfigError.WakeMacInvalid -> "WAKE_MAC_INVALID"
     ConfigError.WakeHostInvalid -> "WAKE_HOST_INVALID"
     ConfigError.WakePortInvalid -> "WAKE_PORT_INVALID"
+    ConfigError.WakePasswordInvalid -> "WAKE_PASSWORD_INVALID"
     is ConfigError.Storage -> "STORAGE"
 }
 

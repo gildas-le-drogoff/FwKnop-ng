@@ -1,5 +1,6 @@
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.knock
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -179,11 +180,36 @@ fun PermissionRationaleDialog(
     
     val declineLabel =
         if (prompt.permission == KnockPermission.NOTIFICATIONS) R.string.action_later else R.string.cancel
+    RationaleDialog(icon, title, stringResource(body, prompt.nickname), declineLabel, onContinue, onDecline)
+}
+
+/** Same request as the knock's local network one, worded for a wake-up. */
+@Composable
+fun WakePermissionRationaleDialog(nickname: String, onContinue: () -> Unit, onDecline: () -> Unit) {
+    RationaleDialog(
+        R.drawable.ic_dns_rounded,
+        R.string.permission_local_network_title,
+        stringResource(R.string.permission_local_network_wake_body, nickname),
+        R.string.cancel,
+        onContinue,
+        onDecline,
+    )
+}
+
+@Composable
+private fun RationaleDialog(
+    @DrawableRes icon: Int,
+    @StringRes title: Int,
+    body: String,
+    @StringRes declineLabel: Int,
+    onContinue: () -> Unit,
+    onDecline: () -> Unit,
+) {
     AlertDialog(
         onDismissRequest = onDecline,
         icon = { FwknopIcon(icon, null) },
         title = { Text(stringResource(title)) },
-        text = { Text(stringResource(body, prompt.nickname)) },
+        text = { Text(body) },
         confirmButton = { TextButton(onClick = onContinue) { Text(stringResource(R.string.action_continue)) } },
         dismissButton = { TextButton(onClick = onDecline) { Text(stringResource(declineLabel)) } },
     )
@@ -235,4 +261,10 @@ private fun PermissionRationaleDialogPreview() {
     FwknopTheme {
         PermissionRationaleDialog(KnockState.ExplainPermission("home", KnockPermission.LOCAL_NETWORK), {}, {})
     }
+}
+
+@AdaptivePreviews
+@Composable
+private fun WakePermissionRationaleDialogPreview() {
+    FwknopTheme { WakePermissionRationaleDialog("home", {}, {}) }
 }

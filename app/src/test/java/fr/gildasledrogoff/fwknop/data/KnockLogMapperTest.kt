@@ -3,7 +3,9 @@ package fr.gildasledrogoff.fwknop.data
 import fr.gildasledrogoff.fwknop.data.local.models.KnockLogColumns
 import fr.gildasledrogoff.fwknop.data.mapper.toDomain
 import fr.gildasledrogoff.fwknop.data.mapper.toEntity
+import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.KnockLogEvent
+import fr.gildasledrogoff.fwknop.domain.model.KnockLogKind
 import fr.gildasledrogoff.fwknop.domain.model.KnockLogOutcome
 import fr.gildasledrogoff.fwknop.domain.model.Nickname
 import fr.gildasledrogoff.fwknop.domain.model.Protocol
@@ -52,6 +54,16 @@ class KnockLogMapperTest {
         assertThat(entity.result).isEqualTo("SOURCE_IP_UNRESOLVED")
         assertThat(entity.errorDetail).isEqualTo("STUN timeout")
         assertThat(entity.toDomain().event).isEqualTo(event)
+    }
+
+    @Test
+    fun aWakeUpKeepsItsKindAndOlderRowsAreKnocks() {
+        val wake = KnockLogEvent.wakeOnLan(Nickname("home"), DomainResult.Success(Unit))
+        val entity = wake.toEntity(at)
+        assertThat(entity.kind).isEqualTo("WAKE_ON_LAN")
+        assertThat(entity.toDomain().event).isEqualTo(wake)
+        assertThat(event().toEntity(at).kind).isEqualTo(KnockLogColumns.KIND_KNOCK)
+        assertThat(entity.copy(kind = "FUTURE").toDomain().event.kind).isEqualTo(KnockLogKind.KNOCK)
     }
 
     @Test

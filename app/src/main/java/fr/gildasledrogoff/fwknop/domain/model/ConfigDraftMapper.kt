@@ -1,6 +1,7 @@
 package fr.gildasledrogoff.fwknop.domain.model
 
 fun SpaConfig.toDraft(): ConfigDraft = ConfigDraft(
+    kind = kind,
     nickname = nickname.value,
     server = server.toDraft().with(method),
     access = access.toDraft(),
@@ -20,7 +21,6 @@ private fun ServerEndpoint.toDraft(): ServerDraft = ServerDraft(
 private fun ServerDraft.with(method: KnockMethod): ServerDraft = when (method) {
     KnockMethod.Spa -> this
     is KnockMethod.PortSequence -> copy(
-        portKnocking = true,
         knockSequence = method.ports.toSequenceText(),
         knockDelayMs = method.delayMs.toString(),
     )
@@ -103,6 +103,7 @@ fun CryptoDraft.withQrKeys(keys: QrKeys): CryptoDraft {
 fun ConfigDraft.withQrConfig(qr: ParsedQr): ConfigDraft {
     val config = qr.config ?: return copy(crypto = crypto.withQrKeys(qr.keys))
     return copy(
+        kind = if (config.knockSequence != null) ConfigKind.PORT_KNOCK else kind,
         nickname = config.nickname ?: nickname,
         server = server.with(config),
         access = access.with(config),
@@ -117,7 +118,6 @@ private fun ServerDraft.with(config: QrConfig) = copy(
     port = config.serverPort?.toString() ?: port,
     randomPort = config.randomPort ?: randomPort,
     protocol = config.protocol ?: protocol,
-    portKnocking = config.knockSequence != null || portKnocking,
     knockSequence = config.knockSequence ?: knockSequence,
     knockDelayMs = config.knockDelayMs?.toString() ?: knockDelayMs,
 )

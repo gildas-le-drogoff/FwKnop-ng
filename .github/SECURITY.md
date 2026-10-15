@@ -4,11 +4,11 @@ FwKnop-ng handles secrets (Rijndael and HMAC keys, GPG key selection) and builds
 
 ## Supported versions
 
-Only the [latest release](https://github.com/gildas-le-drogoff/FwKnop-ng/releases/latest) receives security fixes.
+Only the [latest release](https://github.com/gildas-le-drogoff/FwKnop-ng-private/releases/latest) receives security fixes.
 
 ## Reporting a vulnerability
 
-**Do not open a public issue.** Report it privately through [GitHub security advisories](https://github.com/gildas-le-drogoff/FwKnop-ng/security/advisories/new).
+**Do not open a public issue.** Report it privately through [GitHub security advisories](https://github.com/gildas-le-drogoff/FwKnop-ng-private/security/advisories/new).
 
 Please include:
 

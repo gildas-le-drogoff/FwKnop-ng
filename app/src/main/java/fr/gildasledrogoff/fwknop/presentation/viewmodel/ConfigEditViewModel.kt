@@ -9,6 +9,7 @@ import fr.gildasledrogoff.fwknop.domain.error.BackupError
 import fr.gildasledrogoff.fwknop.domain.error.GpgError
 import fr.gildasledrogoff.fwknop.domain.model.BackupPassphrase
 import fr.gildasledrogoff.fwknop.domain.model.ConfigDraft
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.GpgKeyId
 import fr.gildasledrogoff.fwknop.domain.model.GpgKeyRole
@@ -52,8 +53,15 @@ class ConfigEditViewModel @Inject constructor(
 ) : ViewModel() {
     private val original: Nickname? =
         savedStateHandle.get<String>(ConfigEditRoute.ARG_NICKNAME)?.let(::Nickname)
-    private val _state =
-        MutableStateFlow(ConfigEditState(isNew = original == null, isLoading = original != null))
+    private val newKind: ConfigKind = savedStateHandle.get<String>(ConfigEditRoute.ARG_KIND)
+        ?.let { name -> ConfigKind.entries.firstOrNull { it.name == name } } ?: ConfigKind.FWKNOP
+    private val _state = MutableStateFlow(
+        ConfigEditState(
+            isNew = original == null,
+            isLoading = original != null,
+            draft = ConfigDraft(kind = newKind),
+        )
+    )
     val state: StateFlow<ConfigEditState> = _state.asStateFlow()
     private val _effects = Channel<ConfigEditEffect>(Channel.BUFFERED)
     val effects: Flow<ConfigEditEffect> = _effects.receiveAsFlow()

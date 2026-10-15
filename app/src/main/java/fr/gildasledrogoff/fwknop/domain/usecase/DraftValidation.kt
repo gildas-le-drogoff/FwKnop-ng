@@ -34,7 +34,7 @@ private fun ServerDraft.toServerPort(): ServerPort {
     return ServerPort.Fixed(value)
 }
 
-internal fun ServerDraft.toKnockMethod(): DomainResult<KnockMethod, ConfigError> {
+internal fun ServerDraft.toKnockMethod(portKnocking: Boolean): DomainResult<KnockMethod, ConfigError> {
     if (!portKnocking) return Success(KnockMethod.Spa)
     val ports = parseKnockSequence(knockSequence) ?: return Failure(ConfigError.KnockSequenceInvalid)
     val delay = knockDelayMs.trim().toIntOrNull()

@@ -5,16 +5,18 @@ import fr.gildasledrogoff.fwknop.domain.error.KnockError
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult.Failure
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult.Success
+import fr.gildasledrogoff.fwknop.domain.model.KnockLogEvent
 import fr.gildasledrogoff.fwknop.domain.model.MacAddress
 import fr.gildasledrogoff.fwknop.domain.model.Nickname
 import fr.gildasledrogoff.fwknop.domain.model.WakeOnLan
 import fr.gildasledrogoff.fwknop.domain.model.WakeOnLanDraft
+import fr.gildasledrogoff.fwknop.domain.model.WakePassword
 import fr.gildasledrogoff.fwknop.domain.model.isPort
+import fr.gildasledrogoff.fwknop.domain.repository.KnockHistoryRepository
 import fr.gildasledrogoff.fwknop.domain.repository.WakeOnLanRepository
 import javax.inject.Inject
 
-internal fun WakeOnLanDraft.toWakeOnLan(): DomainResult<WakeOnLan?, ConfigError> {
-    if (!enabled) return Success(null)
+internal fun WakeOnLanDraft.toWakeOnLan(): DomainResult<WakeOnLan, ConfigError> {
     val address = MacAddress.parse(mac) ?: return Failure(ConfigError.WakeMacInvalid)
     val rawPort = port.trim()
     val value = when {
@@ -24,14 +26,23 @@ internal fun WakeOnLanDraft.toWakeOnLan(): DomainResult<WakeOnLan?, ConfigError>
     }
     val target = host.trim()
     if (target.any { it.isWhitespace() }) return Failure(ConfigError.WakeHostInvalid)
-    return Success(WakeOnLan(address, target.ifEmpty { null }, value))
+    val secret = password.takeIf { it.isNotBlank() }
+        ?.let { WakePassword.parse(it) ?: return Failure(ConfigError.WakePasswordInvalid) }
+    return Success(WakeOnLan(address, target.ifEmpty { null }, value, secret))
 }
 
 class SendWakeOnLanUseCase @Inject constructor(
     private val getConfig: GetConfigUseCase,
     private val repository: WakeOnLanRepository,
+    private val history: KnockHistoryRepository,
 ) {
     suspend operator fun invoke(nickname: Nickname): DomainResult<Unit, KnockError> {
+        val result = send(nickname)
+        history.record(KnockLogEvent.wakeOnLan(nickname, result))
+        return result
+    }
+
+    private suspend fun send(nickname: Nickname): DomainResult<Unit, KnockError> {
         val config = when (val result = getConfig(nickname)) {
             is Success -> result.data
             is Failure -> return Failure(
@@ -39,6 +50,6 @@ class SendWakeOnLanUseCase @Inject constructor(
             )
         }
         val wake = config.wakeOnLan ?: return Failure(KnockError.Config(ConfigError.WakeMacInvalid))
-        return repository.sendMagicPacket(wake.mac, wake.targetHost(config.server), wake.port)
+        return repository.sendMagicPacket(wake.magicPacket(), wake.targetHost(config.server), wake.port)
     }
 }

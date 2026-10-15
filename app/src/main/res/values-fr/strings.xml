@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Titles -->
-    <string name="title_new_config">Nouvelle configuration</string>
+    <string name="title_new_fwknop">Nouvelle configuration fwknop</string>
+    <string name="title_new_port_knock">Nouvelle configuration port knocking</string>
+    <string name="title_new_wake_on_lan">Nouvelle configuration Wake-on-LAN</string>
     <string name="title_settings">Réglages</string>
     <string name="title_help">Aide</string>
     <string name="title_nfc_write">Écriture sur un tag NFC</string>
@@ -17,6 +19,15 @@
     <string name="action_defaults">Valeurs par défaut</string>
     <string name="action_select">Sélectionner</string>
     <string name="action_new_config">Nouvelle configuration</string>
+    <string name="new_config_choose_title">Que doit faire cette configuration\u00A0?</string>
+    <string name="kind_fwknop">fwknop (SPA)</string>
+    <string name="kind_fwknop_hint">Envoie une autorisation par paquet unique (SPA) chiffrée à un serveur fwknopd.</string>
+    <string name="kind_port_knock">Port knocking classique</string>
+    <string name="kind_port_knock_hint">Frappe une séquence de ports (façon knockd)\u00A0: aucun chiffrement, le serveur voit votre adresse.</string>
+    <string name="kind_wake_on_lan">Wake-on-LAN</string>
+    <string name="kind_wake_on_lan_hint">Envoie un paquet magique qui allume une machine.</string>
+    <string name="tag_wake_on_lan">Wake-on-LAN</string>
+    <string name="action_wake">Réveiller</string>
     <string name="action_write_nfc">Écrire sur un tag NFC</string>
     <string name="action_open_app_settings">Ouvrir les paramètres</string>
     <string name="action_open_nfc_settings">Paramètres NFC</string>
@@ -58,18 +69,16 @@
     <string name="section_crypto">Clés et digests</string>
     <string name="section_external_app">Après le knock</string>
     <string name="section_wake_on_lan">Wake-on-LAN</string>
-    <string name="field_wake_enabled">Activer le Wake-on-LAN</string>
-    <string name="field_wake_enabled_hint">Ajoute un bouton qui envoie un paquet magique pour allumer cette machine.</string>
     <string name="field_wake_mac">Adresse MAC</string>
     <string name="field_wake_host">Adresse cible</string>
-    <string name="field_wake_host_hint">Vide\u00A0: l\'hôte du serveur. Utilisez la diffusion du réseau local (ex. 192.168.1.255) si vous êtes sur le même réseau.</string>
+    <string name="field_wake_host_hint">Vide\u00A0: diffusion sur le réseau local (255.255.255.255). Depuis l\'extérieur, indiquez l\'adresse du routeur qui relaie le paquet.</string>
     <string name="field_wake_port">Port UDP</string>
+    <string name="field_wake_password">Mot de passe SecureOn</string>
+    <string name="field_wake_password_hint">Facultatif, seulement pour les cartes qui l\'exigent\u00A0: 4 ou 6 octets, ex. 00:22:44:66:88:AA ou 192.168.1.1.</string>
     <string name="field_nickname">Surnom</string>
     <string name="field_server_address">Adresse du serveur</string>
     <string name="field_server_port">Port du serveur</string>
     <string name="field_random_port">Utiliser un port serveur aléatoire</string>
-    <string name="field_port_knocking">Port knocking classique</string>
-    <string name="hint_port_knocking">Frappe une séquence de ports (façon knockd) au lieu d\'envoyer un paquet SPA : aucun chiffrement, le serveur voit votre adresse.</string>
     <string name="field_knock_sequence">Séquence de ports</string>
     <string name="hint_knock_sequence">Dans l\'ordre, ex. tcp/7000,udp/8000,9000 (TCP par défaut)</string>
     <string name="field_knock_delay">Délai entre les frappes (ms)</string>
@@ -343,6 +352,7 @@
     <string name="error_packet_generation">Échec de génération des données SPA. Vérifiez les clés.</string>
     <string name="error_transport">Échec de l\'envoi\u00A0: %1$s</string>
     <string name="error_local_network_blocked">Android a bloqué le paquet vers votre réseau local. Autorisez «\u00A0Appareils à proximité\u00A0» dans les paramètres de l\'application, puis knock à nouveau.</string>
+    <string name="error_local_network_blocked_wake">Android a bloqué le paquet Wake-on-LAN vers votre réseau local. Autorisez «\u00A0Appareils à proximité\u00A0» dans les paramètres de l\'application, puis relancez le réveil.</string>
     <string name="error_gpg_not_installed">OpenKeychain doit être installé pour utiliser GPG.</string>
     <string name="error_gpg_no_key">OpenKeychain n\'a renvoyé aucune clé GPG.</string>
     <string name="error_gpg_interaction">OpenKeychain attend votre confirmation.</string>
@@ -356,6 +366,7 @@
     <string name="error_wake_mac_invalid">Saisissez une adresse MAC valide, par ex. AA:BB:CC:DD:EE:FF.</string>
     <string name="error_wake_host_invalid">L\'adresse cible du Wake-on-LAN ne doit pas contenir d\'espaces.</string>
     <string name="error_wake_port_invalid">Le port du Wake-on-LAN doit être compris entre 1 et 65535.</string>
+    <string name="error_wake_password_invalid">Le mot de passe SecureOn doit faire 4 ou 6 octets, ex. 00:22:44:66:88:AA ou 192.168.1.1.</string>
     <string name="error_lookup_url">L\'URL doit utiliser HTTPS, par exemple https://api.ipify.org</string>
     <string name="error_vault_auth_required">L\'authentification a expiré. Veuillez réessayer.</string>
     <string name="error_vault_device_not_secure">Définissez d\'abord un code, schéma ou mot de passe sur l\'appareil.</string>
@@ -474,6 +485,7 @@ FwKnop-ng embarque les composants libres suivants. Textes
     <string name="permission_notifications_body">%1$s ouvre le port pour une durée limitée. Autorisez les notifications pour voir le décompte et, en maintien ouvert, pour fermer le port à tout moment.</string>
     <string name="permission_local_network_title">Accès au réseau local</string>
     <string name="permission_local_network_body">Le serveur de %1$s est sur votre réseau local. Android exige l\'autorisation «\u00A0Appareils à proximité\u00A0» pour lui envoyer le knock.</string>
+    <string name="permission_local_network_wake_body">Le paquet Wake-on-LAN de %1$s vise votre réseau local. Android exige l\'autorisation «\u00A0Appareils à proximité\u00A0» pour l\'envoyer et réveiller la machine.</string>
     <string name="error_config_storage">Impossible de lire ou d\'écrire les configurations (erreur de stockage).</string>
     <string name="error_qr_no_source_ip">Ce QR code ne contient pas d\'IP source.</string>
     <string name="error_camera_denied">Scanner un QR code nécessite la caméra. Autorisez-la dans les paramètres de l\'application.</string>

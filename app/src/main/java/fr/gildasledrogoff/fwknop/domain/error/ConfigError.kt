@@ -23,5 +23,6 @@ sealed interface ConfigError {
     data object WakeMacInvalid : ConfigError
     data object WakeHostInvalid : ConfigError
     data object WakePortInvalid : ConfigError
+    data object WakePasswordInvalid : ConfigError
     data class Storage(val cause: Throwable) : ConfigError
 }

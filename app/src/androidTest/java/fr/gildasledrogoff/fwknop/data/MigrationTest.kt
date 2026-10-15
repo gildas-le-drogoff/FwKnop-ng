@@ -10,6 +10,7 @@ import fr.gildasledrogoff.fwknop.data.local.database.MIGRATION_1_2
 import fr.gildasledrogoff.fwknop.data.local.database.MIGRATION_2_3
 import fr.gildasledrogoff.fwknop.data.local.database.MIGRATION_3_4
 import fr.gildasledrogoff.fwknop.data.local.database.MIGRATION_4_5
+import fr.gildasledrogoff.fwknop.data.local.database.MIGRATION_5_6
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -63,6 +64,19 @@ class MigrationTest {
             db.query("SELECT WAKE_ON_LAN FROM configs").use { cursor ->
                 assertThat(cursor.moveToFirst()).isTrue()
                 assertThat(cursor.getString(0)).isEmpty()
+            }
+        }
+    }
+
+    @Test
+    fun v5KnockLogEntriesAreKnocks() {
+        helper.createDatabase(DB, 5).use { db ->
+            db.execSQL("INSERT INTO knock_log (TIMESTAMP, NICK_NAME, PROTOCOL, RESULT) VALUES (0, 'home', 'UDP', 'SENT')")
+        }
+        helper.runMigrationsAndValidate(DB, 6, true, MIGRATION_5_6).use { db ->
+            db.query("SELECT KIND FROM knock_log").use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getString(0)).isEqualTo("KNOCK")
             }
         }
     }

@@ -1,6 +1,10 @@
 package fr.gildasledrogoff.fwknop.domain.model
 
+/** What a config sends: chosen on creation, a config does one thing only. */
+enum class ConfigKind { FWKNOP, PORT_KNOCK, WAKE_ON_LAN }
+
 data class ConfigDraft(
+    val kind: ConfigKind = ConfigKind.FWKNOP,
     val nickname: String = "",
     val server: ServerDraft = ServerDraft(),
     val access: AccessDraft = AccessDraft(),
@@ -15,7 +19,6 @@ data class ServerDraft(
     val port: String = ServerPort.DEFAULT.toString(),
     val randomPort: Boolean = false,
     val protocol: Protocol = Protocol.UDP,
-    val portKnocking: Boolean = false,
     val knockSequence: String = "",
     val knockDelayMs: String = KnockMethod.PortSequence.DEFAULT_DELAY_MS.toString(),
 )

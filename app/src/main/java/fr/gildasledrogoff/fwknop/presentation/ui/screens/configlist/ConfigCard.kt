@@ -30,7 +30,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -59,6 +58,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.gildasledrogoff.fwknop.R
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
 import fr.gildasledrogoff.fwknop.presentation.state.ConfigSummary
 import fr.gildasledrogoff.fwknop.presentation.ui.components.AdaptivePreviews
 import fr.gildasledrogoff.fwknop.presentation.ui.components.FwknopIcon
@@ -128,12 +128,10 @@ fun ConfigCard(
         ) {
             ConfigCardHeader(summary, accent, actions)
             ConfigTags(summary)
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(dimens.itemSpacing),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(Modifier.weight(1f)) { KnockButton(summary.nickname, knock, actions.onKnock) }
-                if (summary.wakeOnLan) WakeButton(summary.nickname, waking, actions.onWake)
+            if (summary.kind == ConfigKind.WAKE_ON_LAN) {
+                WakeButton(summary.nickname, waking, actions.onWake)
+            } else {
+                KnockButton(summary.nickname, knock, actions.onKnock)
             }
         }
     }
@@ -144,7 +142,7 @@ private fun ConfigCardHeader(summary: ConfigSummary, accent: ConfigAccent, actio
     Row(verticalAlignment = Alignment.CenterVertically) {
         Surface(shape = CircleShape, color = accent.container, contentColor = accent.content) {
             FwknopIcon(
-                R.drawable.ic_shield_rounded_fill,
+                if (summary.kind == ConfigKind.WAKE_ON_LAN) R.drawable.ic_power_rounded else R.drawable.ic_shield_rounded_fill,
                 null,
                 modifier = Modifier.padding(8.dp),
             )
@@ -170,7 +168,7 @@ private fun ConfigCardHeader(summary: ConfigSummary, accent: ConfigAccent, actio
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        ConfigCardMenu(summary.nickname, actions)
+        ConfigCardMenu(summary.nickname, summary.kind, actions)
     }
 }
 
@@ -181,12 +179,14 @@ private fun ConfigTags(summary: ConfigSummary) {
         verticalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing),
     ) {
         // Bare "UDP" or "tcp/22" mean little when read out: TalkBack gets the field name too.
-        if (summary.portKnocking) {
-            Tag(stringResource(R.string.tag_port_knocking))
-        } else {
-            val protocol = summary.protocol.name
-            Tag(protocol, stringResource(R.string.a11y_tag_protocol, protocol))
-            Tag(stringResource(summary.messageType.labelRes()))
+        when (summary.kind) {
+            ConfigKind.FWKNOP -> {
+                val protocol = summary.protocol.name
+                Tag(protocol, stringResource(R.string.a11y_tag_protocol, protocol))
+                Tag(stringResource(summary.messageType.labelRes()))
+            }
+            ConfigKind.PORT_KNOCK -> Tag(stringResource(R.string.tag_port_knocking))
+            ConfigKind.WAKE_ON_LAN -> Tag(stringResource(R.string.tag_wake_on_lan))
         }
         if (summary.accessDetail.isNotEmpty()) {
             Tag(summary.accessDetail, stringResource(R.string.a11y_tag_access, summary.accessDetail))
@@ -242,16 +242,21 @@ private fun KnockButton(nickname: String, status: KnockVisual, onKnock: (String)
 @Composable
 private fun WakeButton(nickname: String, waking: Boolean, onWake: (String) -> Unit) {
     val description = stringResource(R.string.a11y_wake_config, nickname)
-    FilledTonalIconButton(
+    Button(
         onClick = { onWake(nickname) },
         enabled = !waking,
-        modifier = Modifier.semantics { contentDescription = description },
+        shape = MaterialTheme.shapes.small,
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = description },
     ) {
+        val iconModifier = Modifier.padding(end = ButtonDefaults.IconSpacing)
         if (waking) {
-            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+            CircularProgressIndicator(iconModifier.size(ButtonDefaults.IconSize), strokeWidth = 2.dp)
         } else {
-            FwknopIcon(R.drawable.ic_power_rounded, null)
+            FwknopIcon(R.drawable.ic_power_rounded, null, iconModifier)
         }
+        Text(stringResource(R.string.action_wake))
     }
 }
 
@@ -307,9 +312,11 @@ private fun Modifier.knockRipples(status: KnockVisual, color: Color): Modifier {
 }
 
 @Composable
-private fun ConfigCardMenu(nickname: String, actions: ConfigCardActions) {
+private fun ConfigCardMenu(nickname: String, kind: ConfigKind, actions: ConfigCardActions) {
     var expanded by remember { mutableStateOf(false) }
     val nfcAvailable = rememberNfcAvailable()
+    // QR codes, NFC tags and diagnostics are about knocking: a magic packet has none.
+    val knocks = kind != ConfigKind.WAKE_ON_LAN
     Box {
         IconButton(onClick = { expanded = true }) {
             FwknopIcon(
@@ -328,24 +335,28 @@ private fun ConfigCardMenu(nickname: String, actions: ConfigCardActions) {
                 R.string.action_duplicate,
                 R.drawable.ic_content_copy_rounded
             ) { close(); actions.onDuplicate(nickname) }
-            MenuItem(
-                R.string.action_export_qr,
-                R.drawable.ic_qr_code_rounded
-            ) { close(); actions.onExportQr(nickname) }
+            if (knocks) {
+                MenuItem(
+                    R.string.action_export_qr,
+                    R.drawable.ic_qr_code_rounded
+                ) { close(); actions.onExportQr(nickname) }
+            }
             MenuItem(
                 R.string.action_export_file,
                 R.drawable.ic_download_rounded
             ) { close(); actions.onExportFile(nickname) }
-            if (nfcAvailable) {
+            if (knocks && nfcAvailable) {
                 MenuItem(
                     R.string.action_write_nfc,
                     R.drawable.ic_nfc_rounded
                 ) { close(); actions.onWriteNfc(nickname) }
             }
-            MenuItem(
-                R.string.action_diagnose,
-                R.drawable.ic_bolt_rounded
-            ) { close(); actions.onDiagnose(nickname) }
+            if (knocks) {
+                MenuItem(
+                    R.string.action_diagnose,
+                    R.drawable.ic_bolt_rounded
+                ) { close(); actions.onDiagnose(nickname) }
+            }
             MenuItem(
                 R.string.action_delete,
                 R.drawable.ic_delete_rounded

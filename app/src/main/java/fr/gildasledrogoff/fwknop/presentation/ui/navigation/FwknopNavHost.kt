@@ -53,7 +53,7 @@ fun FwknopNavHost(navController: NavHostController = rememberNavController()) {
 private fun <T> motion() = tween<T>(durationMillis = 320, easing = FastOutSlowInEasing)
 
 private fun NavHostController.listNavigation() = ConfigListNavigation(
-    onCreate = { navigate(ConfigEditRoute()) },
+    onCreate = { navigate(ConfigEditRoute(kind = it.name)) },
     onEdit = { navigate(ConfigEditRoute(it)) },
     onWriteNfc = { navigate(NfcWriteRoute(it)) },
     onExportQr = { navigate(QrExportRoute(listOf(it))) },

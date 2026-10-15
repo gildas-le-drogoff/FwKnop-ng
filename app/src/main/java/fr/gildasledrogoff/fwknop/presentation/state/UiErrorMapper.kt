@@ -44,6 +44,7 @@ fun ConfigError.toUiError(): UiError = UiError.Message(
         ConfigError.WakeMacInvalid -> R.string.error_wake_mac_invalid
         ConfigError.WakeHostInvalid -> R.string.error_wake_host_invalid
         ConfigError.WakePortInvalid -> R.string.error_wake_port_invalid
+        ConfigError.WakePasswordInvalid -> R.string.error_wake_password_invalid
         is ConfigError.Storage -> R.string.error_config_storage
     },
 )

@@ -4,7 +4,7 @@ Bug reports, feature requests and pull requests are welcome.
 
 ## Reporting
 
-- **Bugs and feature requests**: use the [issue templates](https://github.com/gildas-le-drogoff/FwKnop-ng/issues/new/choose).
+- **Bugs and feature requests**: use the [issue templates](https://github.com/gildas-le-drogoff/FwKnop-ng-private/issues/new/choose).
 - **Security vulnerabilities**: never in a public issue, see the [security policy](SECURITY.md).
 
 Before reporting a connection problem, check the `fwknopd` server logs and, when possible, try the same configuration with the official `fwknop` command-line client: this tells whether the issue comes from the app or from the server setup.

@@ -5,36 +5,44 @@ import fr.gildasledrogoff.fwknop.data.backup.toDomain
 import fr.gildasledrogoff.fwknop.data.backup.toPayload
 import fr.gildasledrogoff.fwknop.data.mapper.toDomain
 import fr.gildasledrogoff.fwknop.data.mapper.toEntity
+import fr.gildasledrogoff.fwknop.data.mapper.toWakeOnLan
 import fr.gildasledrogoff.fwknop.domain.error.ConfigError
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
 import fr.gildasledrogoff.fwknop.domain.model.AccessDraft
 import fr.gildasledrogoff.fwknop.domain.model.Backup
 import fr.gildasledrogoff.fwknop.domain.model.ConfigDraft
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
 import fr.gildasledrogoff.fwknop.domain.model.CryptoDraft
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
+import fr.gildasledrogoff.fwknop.domain.model.KnockLogKind
+import fr.gildasledrogoff.fwknop.domain.model.KnockMethod
+import fr.gildasledrogoff.fwknop.domain.model.KnockLogOutcome
 import fr.gildasledrogoff.fwknop.domain.model.MacAddress
 import fr.gildasledrogoff.fwknop.domain.model.Nickname
 import fr.gildasledrogoff.fwknop.domain.model.ServerDraft
 import fr.gildasledrogoff.fwknop.domain.model.WakeOnLan
 import fr.gildasledrogoff.fwknop.domain.model.WakeOnLanDraft
+import fr.gildasledrogoff.fwknop.domain.model.WakePassword
 import fr.gildasledrogoff.fwknop.domain.model.toDraft
 import fr.gildasledrogoff.fwknop.domain.repository.WakeOnLanRepository
 import fr.gildasledrogoff.fwknop.domain.usecase.GetConfigUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.SendWakeOnLanUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ValidateConfigUseCase
 import fr.gildasledrogoff.fwknop.fakes.FakeConfigRepository
+import fr.gildasledrogoff.fwknop.fakes.FakeKnockHistoryRepository
 import fr.gildasledrogoff.fwknop.fakes.sampleConfig
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class WakeOnLanTest {
     private val validate = ValidateConfigUseCase()
-    private val draft = ConfigDraft(
+    private val spaDraft = ConfigDraft(
         nickname = "home",
         server = ServerDraft(host = "knock.example.org"),
         access = AccessDraft(ports = "tcp/22"),
         crypto = CryptoDraft(key = "secret"),
     )
+    private val draft = ConfigDraft(kind = ConfigKind.WAKE_ON_LAN, nickname = "nas")
     private val mac = MacAddress.parse("aa:bb:cc:dd:ee:ff")!!
 
     private fun wakeOf(wake: WakeOnLanDraft) = validate(draft.copy(wakeOnLan = wake))
@@ -63,63 +71,131 @@ class WakeOnLanTest {
     }
 
     @Test
-    fun `disabled draft leaves wake-on-lan off`() {
-        val config = (wakeOf(WakeOnLanDraft(mac = "garbage")) as DomainResult.Success).data
-        assertThat(config.wakeOnLan).isNull()
+    fun `secureon password accepts the ether-wake hex and dotted forms`() {
+        mapOf(
+            "00:22:44:66:88:aa" to "00:22:44:66:88:AA",
+            "00-22-44-66-88-AA" to "00:22:44:66:88:AA",
+            "aabbccdd" to "AA:BB:CC:DD",
+            " 192.168.001.1 " to "192.168.1.1",
+        ).forEach { (text, value) -> assertThat(WakePassword.parse(text)?.value).isEqualTo(value) }
+        assertThat(WakePassword.parse("00:22:44:66:88:aa")!!.bytes())
+            .isEqualTo(byteArrayOf(0x00, 0x22, 0x44, 0x66, 0x88.toByte(), 0xAA.toByte()))
+        assertThat(WakePassword.parse("192.168.1.255")!!.bytes())
+            .isEqualTo(byteArrayOf(192.toByte(), 168.toByte(), 1, 255.toByte()))
     }
 
     @Test
-    fun `enabled draft defaults to port 9 and the server host`() {
-        val config = (wakeOf(WakeOnLanDraft(enabled = true, mac = "aabbccddeeff", port = "")) as DomainResult.Success).data
-        assertThat(config.wakeOnLan).isEqualTo(WakeOnLan(mac, host = null, port = 9))
-        assertThat(config.wakeOnLan!!.targetHost(config.server)).isEqualTo("knock.example.org")
+    fun `malformed secureon passwords are rejected`() {
+        listOf("", "aa:bb:cc", "aa:bb:cc:dd:ee", "aa:bb-cc:dd", "aa:bb:cc:dd:ee:ff:00", "1.2.3", "1.2.3.256", "1.2.3.4.5")
+            .forEach { assertThat(WakePassword.parse(it)).isNull() }
+    }
+
+    @Test
+    fun `the password is appended after the 16 address repeats`() {
+        val password = WakePassword.parse("1.2.3.4")
+        val packet = WakeOnLan(mac, null, 9, password).magicPacket()
+        assertThat(packet.size).isEqualTo(106)
+        assertThat(packet.copyOfRange(0, 102)).isEqualTo(mac.magicPacket())
+        assertThat(packet.copyOfRange(102, 106)).isEqualTo(byteArrayOf(1, 2, 3, 4))
+        assertThat(WakeOnLan(mac, null, 9).magicPacket()).isEqualTo(mac.magicPacket())
+    }
+
+    @Test
+    fun `fwknop and port knock configs never wake`() {
+        val wake = WakeOnLanDraft(mac = "aa:bb:cc:dd:ee:ff")
+        listOf(ConfigKind.FWKNOP, ConfigKind.PORT_KNOCK).forEach { kind ->
+            val knock = spaDraft.copy(kind = kind, wakeOnLan = wake, server = spaDraft.server.copy(knockSequence = "7000"))
+            val config = (validate(knock) as DomainResult.Success).data
+            assertThat(config.wakeOnLan).isNull()
+            assertThat(config.kind).isEqualTo(kind)
+        }
+    }
+
+    @Test
+    fun `wake-on-lan draft ignores the other sections`() {
+        val hidden = draft.copy(
+            server = ServerDraft(host = "not a host"),
+            access = AccessDraft(ports = "22"),
+            crypto = CryptoDraft(hmac = "x", legacy = true),
+            wakeOnLan = WakeOnLanDraft(mac = "aabbccddeeff"),
+        )
+        val config = (validate(hidden) as DomainResult.Success).data
+        assertThat(config.kind).isEqualTo(ConfigKind.WAKE_ON_LAN)
+        assertThat(config.method).isEqualTo(KnockMethod.Spa)
+    }
+
+    @Test
+    fun `wake-on-lan draft defaults to port 9 and the local broadcast`() {
+        val config = (wakeOf(WakeOnLanDraft(mac = "aabbccddeeff", port = "")) as DomainResult.Success).data
+        assertThat(config.wakeOnLan).isEqualTo(WakeOnLan(mac, host = WakeOnLan.BROADCAST, port = 9))
+        assertThat(config.server.host).isEqualTo(WakeOnLan.BROADCAST)
     }
 
     @Test
     fun `invalid fields are reported`() {
-        val enabled = WakeOnLanDraft(enabled = true, mac = "aa:bb:cc:dd:ee:ff")
+        val enabled = WakeOnLanDraft(mac = "aa:bb:cc:dd:ee:ff")
         assertThat((wakeOf(enabled.copy(mac = "nope")) as DomainResult.Failure).error)
             .isEqualTo(ConfigError.WakeMacInvalid)
         assertThat((wakeOf(enabled.copy(port = "70000")) as DomainResult.Failure).error)
             .isEqualTo(ConfigError.WakePortInvalid)
         assertThat((wakeOf(enabled.copy(host = "192.168.1 .255")) as DomainResult.Failure).error)
             .isEqualTo(ConfigError.WakeHostInvalid)
+        assertThat((wakeOf(enabled.copy(password = "secret")) as DomainResult.Failure).error)
+            .isEqualTo(ConfigError.WakePasswordInvalid)
+        assertThat((wakeOf(enabled.copy(password = "  ")) as DomainResult.Success).data.wakeOnLan?.password).isNull()
     }
 
     @Test
     fun `wake-on-lan survives draft, entity and backup round trips`() {
-        val config = sampleConfig().copy(wakeOnLan = WakeOnLan(mac, "192.168.1.255", 7))
-        assertThat((validate(config.toDraft()) as DomainResult.Success).data).isEqualTo(config)
-        assertThat(config.toEntity().toDomain()).isEqualTo(config)
-        assertThat(Backup(settings = null, configs = listOf(config)).toPayload().toDomain().configs).containsExactly(config)
+        listOf(null, WakePassword.parse("00:22:44:66:88:aa"), WakePassword.parse("192.168.1.1")).forEach { password ->
+            val wake = WakeOnLanDraft(mac = mac.value, host = "192.168.1.255", port = "7", password = password?.value.orEmpty())
+            val config = (wakeOf(wake) as DomainResult.Success).data
+            assertThat(config.wakeOnLan).isEqualTo(WakeOnLan(mac, "192.168.1.255", 7, password))
+            assertThat((validate(config.toDraft()) as DomainResult.Success).data).isEqualTo(config)
+            assertThat(config.toEntity().toDomain()).isEqualTo(config)
+            assertThat(Backup(settings = null, configs = listOf(config)).toPayload().toDomain().configs)
+                .containsExactly(config)
+        }
+        // Rows written before the password existed have only three lines.
+        assertThat("AA:BB:CC:DD:EE:FF\n7\n".toWakeOnLan()).isEqualTo(WakeOnLan(mac, null, 7))
         assertThat(sampleConfig().toEntity().wakeOnLan).isEmpty()
         assertThat(sampleConfig().toEntity().toDomain().wakeOnLan).isNull()
     }
 
     @Test
     fun `send targets the configured host, or the server host`() = runTest {
-        val sent = mutableListOf<Triple<MacAddress, String, Int>>()
+        val sent = mutableListOf<Triple<List<Byte>, String, Int>>()
         val repository = object : WakeOnLanRepository {
-            override suspend fun sendMagicPacket(mac: MacAddress, host: String, port: Int): DomainResult<Unit, KnockError> {
-                sent += Triple(mac, host, port)
+            override suspend fun sendMagicPacket(packet: ByteArray, host: String, port: Int): DomainResult<Unit, KnockError> {
+                sent += Triple(packet.toList(), host, port)
                 return DomainResult.Success(Unit)
             }
         }
+        val password = WakePassword.parse("1.2.3.4")
         val configs = FakeConfigRepository(
             listOf(
                 sampleConfig("lan").copy(wakeOnLan = WakeOnLan(mac, "192.168.1.255", 9)),
-                sampleConfig("wan").copy(wakeOnLan = WakeOnLan(mac, null, 4009)),
+                sampleConfig("wan").copy(wakeOnLan = WakeOnLan(mac, null, 4009, password)),
                 sampleConfig("none"),
             )
         )
-        val send = SendWakeOnLanUseCase(GetConfigUseCase(configs), repository)
+        val history = FakeKnockHistoryRepository()
+        val send = SendWakeOnLanUseCase(GetConfigUseCase(configs), repository, history)
         assertThat(send(Nickname("lan"))).isEqualTo(DomainResult.Success(Unit))
         assertThat(send(Nickname("wan"))).isEqualTo(DomainResult.Success(Unit))
         assertThat(send(Nickname("none"))).isInstanceOf(DomainResult.Failure::class.java)
         assertThat(send(Nickname("missing"))).isEqualTo(DomainResult.Failure(KnockError.ConfigMissing))
         assertThat(sent).containsExactly(
-            Triple(mac, "192.168.1.255", 9),
-            Triple(mac, "knock.example.org", 4009),
+            Triple(mac.magicPacket().toList(), "192.168.1.255", 9),
+            Triple((mac.magicPacket() + byteArrayOf(1, 2, 3, 4)).toList(), "knock.example.org", 4009),
         ).inOrder()
+        assertThat(history.recorded.map { it.nickname.value to it.outcome }).containsExactly(
+            "lan" to KnockLogOutcome.Sent,
+            "wan" to KnockLogOutcome.Sent,
+            "none" to KnockLogOutcome.Failed("CONFIG", "WAKE_MAC_INVALID"),
+            "missing" to KnockLogOutcome.Failed("CONFIG_MISSING"),
+        ).inOrder()
+        assertThat(history.recorded.map { it.kind }.distinct()).containsExactly(KnockLogKind.WAKE_ON_LAN)
+        assertThat(history.recorded.map { it.source }.distinct()).containsExactly(null)
     }
 }

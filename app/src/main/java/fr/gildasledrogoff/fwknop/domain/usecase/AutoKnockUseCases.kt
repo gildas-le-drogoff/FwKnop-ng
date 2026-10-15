@@ -2,6 +2,7 @@ package fr.gildasledrogoff.fwknop.domain.usecase
 
 import fr.gildasledrogoff.fwknop.domain.error.AutoKnockError
 import fr.gildasledrogoff.fwknop.domain.model.AutoKnockSettings
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.Encryption
 import fr.gildasledrogoff.fwknop.domain.model.KnockOutcome
@@ -41,7 +42,8 @@ class SaveAutoKnockSettingsUseCase @Inject constructor(private val repository: A
 /** Only configs that knock without any input can be sent unattended: saved Rijndael key, no source IP prompt. */
 class IsAutoKnockableUseCase @Inject constructor(private val prompts: GetRequiredPromptsUseCase) {
     operator fun invoke(config: SpaConfig): Boolean =
-        config.crypto.encryption is Encryption.Rijndael && prompts(config).isEmpty()
+        config.kind != ConfigKind.WAKE_ON_LAN &&
+            config.crypto.encryption is Encryption.Rijndael && prompts(config).isEmpty()
 }
 
 /**

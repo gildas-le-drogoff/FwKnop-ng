@@ -6,8 +6,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.gildasledrogoff.fwknop.R
-import fr.gildasledrogoff.fwknop.presentation.state.KnockPermission
-import fr.gildasledrogoff.fwknop.presentation.state.KnockState
 import fr.gildasledrogoff.fwknop.presentation.state.WakeOnLanEffect
 import fr.gildasledrogoff.fwknop.presentation.state.WakeOnLanEvent
 import fr.gildasledrogoff.fwknop.presentation.state.WakeOnLanState
@@ -36,8 +34,8 @@ fun WakeOnLanHost(viewModel: WakeOnLanViewModel, onSent: (WakeOnLanEffect.Sent) 
     val dismiss = { onEvent(WakeOnLanEvent.Dismiss) }
     when (val current = state) {
         WakeOnLanState.Idle, is WakeOnLanState.Sending, is WakeOnLanState.AwaitingPermission -> Unit
-        is WakeOnLanState.ExplainPermission -> PermissionRationaleDialog(
-            KnockState.ExplainPermission(current.nickname, KnockPermission.LOCAL_NETWORK),
+        is WakeOnLanState.ExplainPermission -> WakePermissionRationaleDialog(
+            current.nickname,
             onContinue = requestLocalNetwork,
             onDecline = dismiss,
         )

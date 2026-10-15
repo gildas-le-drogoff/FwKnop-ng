@@ -2,8 +2,8 @@ package fr.gildasledrogoff.fwknop.presentation.state
 
 import androidx.compose.runtime.Immutable
 import fr.gildasledrogoff.fwknop.domain.model.AccessRule
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
 import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
-import fr.gildasledrogoff.fwknop.domain.model.KnockMethod
 import fr.gildasledrogoff.fwknop.domain.model.MessageType
 import fr.gildasledrogoff.fwknop.domain.model.Protocol
 import fr.gildasledrogoff.fwknop.domain.model.ServerPort
@@ -18,8 +18,7 @@ data class ConfigSummary(
     val messageType: MessageType,
     val accessDetail: String,
     val launchesApp: Boolean,
-    val portKnocking: Boolean = false,
-    val wakeOnLan: Boolean = false,
+    val kind: ConfigKind = ConfigKind.FWKNOP,
 )
 
 @Immutable
@@ -42,14 +41,13 @@ sealed interface ConfigListEvent {
 fun SpaConfig.toSummary(): ConfigSummary = ConfigSummary(
     nickname = nickname.value,
     // The knock sequence is a secret: the list shows the host only.
-    endpoint = if (method == KnockMethod.Spa) "${server.host}:${server.port.label()}" else server.host,
+    endpoint = if (kind == ConfigKind.FWKNOP) "${server.host}:${server.port.label()}" else server.host,
     protocol = server.protocol,
     messageType = access.messageType(),
     accessDetail = (access as? AccessRule.ServerCommand)?.command
         ?: access.portAccess?.ports.orEmpty(),
     launchesApp = externalApp != ExternalApp.None,
-    portKnocking = method != KnockMethod.Spa,
-    wakeOnLan = wakeOnLan != null,
+    kind = kind,
 )
 
 private fun ServerPort.label(): String = when (this) {

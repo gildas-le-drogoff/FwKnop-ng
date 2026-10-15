@@ -23,6 +23,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import fr.gildasledrogoff.fwknop.R
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
 import fr.gildasledrogoff.fwknop.domain.model.MessageType
 import fr.gildasledrogoff.fwknop.domain.model.Protocol
 import fr.gildasledrogoff.fwknop.domain.model.uniqueNickname
@@ -159,7 +160,6 @@ internal val previewSummaries = listOf(
         MessageType.OPEN_PORT,
         "tcp/22",
         true,
-        wakeOnLan = true,
     ),
     ConfigSummary(
         "office-nat",
@@ -176,6 +176,15 @@ internal val previewSummaries = listOf(
         MessageType.SERVER_COMMAND,
         "reboot",
         false
+    ),
+    ConfigSummary(
+        "nas",
+        "255.255.255.255",
+        Protocol.UDP,
+        MessageType.OPEN_PORT,
+        "",
+        false,
+        kind = ConfigKind.WAKE_ON_LAN,
     ),
 )
 

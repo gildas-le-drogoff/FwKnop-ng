@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.gildasledrogoff.fwknop.R
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
 import fr.gildasledrogoff.fwknop.domain.model.PortCheck
 import fr.gildasledrogoff.fwknop.presentation.state.BackupEvent
 import fr.gildasledrogoff.fwknop.presentation.state.ConfigListEvent
@@ -67,7 +68,7 @@ import kotlinx.coroutines.delay
 
 @Immutable
 data class ConfigListNavigation(
-    val onCreate: () -> Unit,
+    val onCreate: (ConfigKind) -> Unit,
     val onEdit: (String) -> Unit,
     val onWriteNfc: (String) -> Unit,
     val onExportQr: (String) -> Unit,
@@ -216,12 +217,22 @@ private fun ConfigListTopBar(
 }
 
 @Composable
-private fun NewConfigFab(onCreate: () -> Unit) {
+private fun NewConfigFab(onCreate: (ConfigKind) -> Unit) {
+    var choosing by remember { mutableStateOf(false) }
     ExtendedFloatingActionButton(
-        onClick = onCreate,
+        onClick = { choosing = true },
         icon = { FwknopIcon(R.drawable.ic_add_rounded, null) },
         text = { Text(stringResource(R.string.action_new_config)) },
     )
+    if (choosing) {
+        NewConfigDialog(
+            onChoose = {
+                choosing = false
+                onCreate(it)
+            },
+            onCancel = { choosing = false },
+        )
+    }
 }
 
 @Composable

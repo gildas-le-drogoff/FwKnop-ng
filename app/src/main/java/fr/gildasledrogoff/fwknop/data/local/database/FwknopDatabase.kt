@@ -18,6 +18,6 @@ abstract class FwknopDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "fwknop.db"
-        const val VERSION = 5
+        const val VERSION = 6
     }
 }

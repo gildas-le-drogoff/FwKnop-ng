@@ -4,6 +4,7 @@ import fr.gildasledrogoff.fwknop.data.local.models.KnockLogColumns
 import fr.gildasledrogoff.fwknop.data.local.models.KnockLogEntity
 import fr.gildasledrogoff.fwknop.domain.model.KnockLogEntry
 import fr.gildasledrogoff.fwknop.domain.model.KnockLogEvent
+import fr.gildasledrogoff.fwknop.domain.model.KnockLogKind
 import fr.gildasledrogoff.fwknop.domain.model.KnockLogOutcome
 import fr.gildasledrogoff.fwknop.domain.model.Nickname
 import fr.gildasledrogoff.fwknop.domain.model.Protocol
@@ -26,6 +27,7 @@ fun KnockLogEvent.toEntity(timestamp: Instant): KnockLogEntity {
         sourceIpMethodDetail = methodDetail,
         result = result,
         errorDetail = errorDetail,
+        kind = kind.name,
     )
 }
 
@@ -41,6 +43,7 @@ fun KnockLogEntity.toDomain(): KnockLogEntry {
             source = if (sourceIp != null && method != null) ResolvedSourceIp(sourceIp, method) else null,
             outcome = if (result == KnockLogColumns.RESULT_SENT) KnockLogOutcome.Sent
             else KnockLogOutcome.Failed(result, errorDetail),
+            kind = KnockLogKind.entries.firstOrNull { it.name == kind } ?: KnockLogKind.KNOCK,
         ),
     )
 }

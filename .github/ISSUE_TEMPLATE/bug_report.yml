@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        **Security vulnerabilities must not be reported here.** See the [security policy](https://github.com/gildas-le-drogoff/FwKnop-ng/security/policy).
+        **Security vulnerabilities must not be reported here.** See the [security policy](https://github.com/gildas-le-drogoff/FwKnop-ng-private/security/policy).
 
   - type: textarea
     id: steps-to-reproduce
@@ -106,7 +106,7 @@ body:
       options:
         - label: I have searched the existing issues and this is a new ticket, **NOT** a duplicate or related to another open OR closed issue.
           required: true
-        - label: I have updated the app to the **[latest version](https://github.com/gildas-le-drogoff/FwKnop-ng/releases)** and I can reproduce the issue in this version.
+        - label: I have updated the app to the **[latest version](https://github.com/gildas-le-drogoff/FwKnop-ng-private/releases)** and I can reproduce the issue in this version.
           required: true
         - label: I checked that the same configuration works (or fails the same way) with the official `fwknop` command-line client, when possible.
           required: false

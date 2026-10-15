@@ -23,6 +23,9 @@ data class KnockLogEntity(
     /** [KnockLogColumns.RESULT_SENT] or a KnockLogOutcome.Failed code. */
     @ColumnInfo(name = KnockLogColumns.RESULT) val result: String,
     @ColumnInfo(name = KnockLogColumns.ERROR_DETAIL) val errorDetail: String?,
+    /** A KnockLogKind name. */
+    @ColumnInfo(name = KnockLogColumns.KIND, defaultValue = "'${KnockLogColumns.KIND_KNOCK}'")
+    val kind: String = KnockLogColumns.KIND_KNOCK,
 )
 
 object KnockLogColumns {
@@ -36,4 +39,6 @@ object KnockLogColumns {
     const val RESULT = "RESULT"
     const val ERROR_DETAIL = "ERROR_DETAIL"
     const val RESULT_SENT = "SENT"
+    const val KIND = "KIND"
+    const val KIND_KNOCK = "KNOCK"
 }

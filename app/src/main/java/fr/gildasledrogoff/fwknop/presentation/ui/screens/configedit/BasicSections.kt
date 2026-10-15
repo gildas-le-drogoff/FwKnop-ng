@@ -34,7 +34,7 @@ fun GeneralSection(nickname: String, onChange: (String) -> Unit) {
 }
 
 @Composable
-fun ServerSection(server: ServerDraft, onChange: (ServerDraft) -> Unit) {
+fun ServerSection(server: ServerDraft, portKnocking: Boolean, onChange: (ServerDraft) -> Unit) {
     SectionCard(stringResource(R.string.section_server), R.drawable.ic_dns_rounded) {
         FormTextField(
             value = server.host,
@@ -42,14 +42,7 @@ fun ServerSection(server: ServerDraft, onChange: (ServerDraft) -> Unit) {
             label = stringResource(R.string.field_server_address),
             keyboardType = KeyboardType.Uri,
         )
-        LabeledSwitch(
-            label = stringResource(R.string.field_port_knocking),
-            checked = server.portKnocking,
-            onCheckedChange = { onChange(server.copy(portKnocking = it)) },
-            supportingText = stringResource(R.string.hint_port_knocking),
-        )
-        AnimatedVisibility(visible = server.portKnocking) { KnockSequenceFields(server, onChange) }
-        AnimatedVisibility(visible = !server.portKnocking) { SpaEndpointFields(server, onChange) }
+        if (portKnocking) KnockSequenceFields(server, onChange) else SpaEndpointFields(server, onChange)
     }
 }
 
@@ -129,7 +122,7 @@ private fun SourceIpHint(@StringRes text: Int) {
 @AdaptivePreviews
 @Composable
 private fun ServerSectionPreview() {
-    FwknopTheme { ServerSection(ServerDraft(host = "knock.example.org"), {}) }
+    FwknopTheme { ServerSection(ServerDraft(host = "knock.example.org"), portKnocking = false, {}) }
 }
 
 @AdaptivePreviews
@@ -137,7 +130,8 @@ private fun ServerSectionPreview() {
 private fun PortKnockingSectionPreview() {
     FwknopTheme {
         ServerSection(
-            ServerDraft(host = "knock.example.org", portKnocking = true, knockSequence = "tcp/7000,udp/8000"),
+            ServerDraft(host = "knock.example.org", knockSequence = "tcp/7000,udp/8000"),
+            portKnocking = true,
             {},
         )
     }

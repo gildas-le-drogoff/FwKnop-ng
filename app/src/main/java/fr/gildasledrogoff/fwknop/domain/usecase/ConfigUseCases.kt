@@ -1,13 +1,21 @@
 package fr.gildasledrogoff.fwknop.domain.usecase
 
 import fr.gildasledrogoff.fwknop.domain.error.ConfigError
+import fr.gildasledrogoff.fwknop.domain.model.AccessRule
 import fr.gildasledrogoff.fwknop.domain.model.ConfigDraft
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
 import fr.gildasledrogoff.fwknop.domain.model.CryptoDraft
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.KnockMethod
+import fr.gildasledrogoff.fwknop.domain.model.ExternalApp
 import fr.gildasledrogoff.fwknop.domain.model.Nickname
+import fr.gildasledrogoff.fwknop.domain.model.PortAccess
+import fr.gildasledrogoff.fwknop.domain.model.Protocol
+import fr.gildasledrogoff.fwknop.domain.model.ServerEndpoint
+import fr.gildasledrogoff.fwknop.domain.model.ServerPort
+import fr.gildasledrogoff.fwknop.domain.model.SourceIp
 import fr.gildasledrogoff.fwknop.domain.model.SourceIpDraft
 import fr.gildasledrogoff.fwknop.domain.model.SpaConfig
+import fr.gildasledrogoff.fwknop.domain.model.WakeOnLan
 import fr.gildasledrogoff.fwknop.domain.model.flatMap
 import fr.gildasledrogoff.fwknop.domain.model.map
 import fr.gildasledrogoff.fwknop.domain.repository.ConfigRepository
@@ -32,17 +40,16 @@ class ValidateConfigUseCase @Inject constructor() {
     operator fun invoke(draft: ConfigDraft): DomainResult<SpaConfig, ConfigError> {
         val nickname = draft.nickname.trim()
         if (nickname.isEmpty()) return DomainResult.Failure(ConfigError.NicknameBlank)
+        if (draft.kind == ConfigKind.WAKE_ON_LAN) return wakeConfig(Nickname(nickname), draft)
+        val spa = draft.kind == ConfigKind.FWKNOP
         return draft.server.toEndpoint().flatMap { server ->
-            draft.server.toKnockMethod().flatMap { method ->
-                val spa = method == KnockMethod.Spa
+            draft.server.toKnockMethod(portKnocking = !spa).flatMap { method ->
                 val access = if (spa) draft.access.toAccessRule() else draft.access.toKnockAccessRule()
                 access.flatMap { access ->
                     draft.sourceIp.toSourceIp().orDormant(spa) { SourceIpDraft().toSourceIp() }.flatMap { sourceIp ->
                         draft.crypto.toCrypto().orDormant(spa) { CryptoDraft().toCrypto() }.flatMap { crypto ->
-                            draft.externalApp.toExternalApp().flatMap { app ->
-                                draft.wakeOnLan.toWakeOnLan().map { wake ->
-                                    SpaConfig(Nickname(nickname), server, access, sourceIp, crypto, app, method, wake)
-                                }
+                            draft.externalApp.toExternalApp().map { app ->
+                                SpaConfig(Nickname(nickname), server, access, sourceIp, crypto, app, method)
                             }
                         }
                     }
@@ -50,6 +57,23 @@ class ValidateConfigUseCase @Inject constructor() {
             }
         }
     }
+
+    /** Only the magic packet matters: the other sections take their defaults, the server being the target. */
+    private fun wakeConfig(nickname: Nickname, draft: ConfigDraft): DomainResult<SpaConfig, ConfigError> =
+        draft.wakeOnLan.toWakeOnLan().flatMap { parsed ->
+            val host = parsed.host ?: WakeOnLan.BROADCAST
+            CryptoDraft().toCrypto().map { crypto ->
+                SpaConfig(
+                    nickname = nickname,
+                    server = ServerEndpoint(host, ServerPort.Fixed(ServerPort.DEFAULT), Protocol.UDP),
+                    access = AccessRule.OpenPort(PortAccess("", timeoutSeconds = null, keepOpen = false)),
+                    sourceIp = SourceIp.Resolve,
+                    crypto = crypto,
+                    externalApp = ExternalApp.None,
+                    wakeOnLan = parsed.copy(host = host),
+                )
+            }
+        }
 
     /** A port knock ignores this section, hidden in the editor: kept when valid, reset otherwise. */
     private fun <T> DomainResult<T, ConfigError>.orDormant(

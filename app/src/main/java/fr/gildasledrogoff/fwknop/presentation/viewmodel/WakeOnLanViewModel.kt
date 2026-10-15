@@ -3,12 +3,14 @@ package fr.gildasledrogoff.fwknop.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.gildasledrogoff.fwknop.R
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.Nickname
 import fr.gildasledrogoff.fwknop.domain.usecase.SendWakeOnLanUseCase
 import fr.gildasledrogoff.fwknop.presentation.state.WakeOnLanEffect
 import fr.gildasledrogoff.fwknop.presentation.state.WakeOnLanEvent
+import fr.gildasledrogoff.fwknop.presentation.state.UiError
 import fr.gildasledrogoff.fwknop.presentation.state.WakeOnLanState
 import fr.gildasledrogoff.fwknop.presentation.state.toUiError
 import fr.gildasledrogoff.fwknop.utils.helpers.LocalNetworkAccess
@@ -80,6 +82,9 @@ class WakeOnLanViewModel @Inject constructor(
         if (event.granted) send(current.nickname) else _state.value = failLocalNetwork(current.nickname)
     }
 
-    private fun failLocalNetwork(nickname: String) =
-        WakeOnLanState.Failed(nickname, KnockError.LocalNetworkBlocked.toUiError(), fixInAppSettings = true)
+    private fun failLocalNetwork(nickname: String) = WakeOnLanState.Failed(
+        nickname,
+        UiError.Message(R.string.error_local_network_blocked_wake),
+        fixInAppSettings = true,
+    )
 }

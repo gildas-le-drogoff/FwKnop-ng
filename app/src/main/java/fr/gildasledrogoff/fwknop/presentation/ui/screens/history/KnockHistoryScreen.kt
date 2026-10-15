@@ -31,9 +31,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.gildasledrogoff.fwknop.R
+import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.KnockHistoryRetention
 import fr.gildasledrogoff.fwknop.domain.model.KnockLogEntry
 import fr.gildasledrogoff.fwknop.domain.model.KnockLogEvent
+import fr.gildasledrogoff.fwknop.domain.model.KnockLogKind
 import fr.gildasledrogoff.fwknop.domain.model.KnockLogOutcome
 import fr.gildasledrogoff.fwknop.domain.model.Nickname
 import fr.gildasledrogoff.fwknop.domain.model.Protocol
@@ -182,8 +184,12 @@ private fun KnockLogCard(entry: KnockLogEntry, formatter: DateTimeFormatter) {
                 tint = if (sent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
             )
             Column(Modifier.weight(1f)) {
+                val method = when (event.kind) {
+                    KnockLogKind.KNOCK -> event.protocol.name
+                    KnockLogKind.WAKE_ON_LAN -> stringResource(R.string.section_wake_on_lan)
+                }
                 Text(
-                    stringResource(R.string.history_entry_title, event.nickname.value, event.protocol.name),
+                    stringResource(R.string.history_entry_title, event.nickname.value, method),
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
@@ -235,6 +241,11 @@ private fun KnockHistoryContentPreview() {
             KnockHistoryState(
                 isLoading = false,
                 entries = listOf(
+                    KnockLogEntry(
+                        3,
+                        Instant.parse("2026-10-15T08:31:00Z"),
+                        KnockLogEvent.wakeOnLan(Nickname("home"), DomainResult.Success(Unit)),
+                    ),
                     KnockLogEntry(
                         2,
                         Instant.parse("2026-10-15T08:30:00Z"),

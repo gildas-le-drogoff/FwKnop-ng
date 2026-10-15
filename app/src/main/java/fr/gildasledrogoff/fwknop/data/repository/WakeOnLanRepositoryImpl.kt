@@ -6,7 +6,6 @@ import fr.gildasledrogoff.fwknop.data.remote.api.NetworkPath
 import fr.gildasledrogoff.fwknop.data.remote.api.isUniqueLocal
 import fr.gildasledrogoff.fwknop.domain.error.KnockError
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
-import fr.gildasledrogoff.fwknop.domain.model.MacAddress
 import fr.gildasledrogoff.fwknop.domain.repository.WakeOnLanRepository
 import fr.gildasledrogoff.fwknop.utils.dispatcher.DispatcherProvider
 import fr.gildasledrogoff.fwknop.utils.helpers.DebugLog
@@ -26,7 +25,7 @@ class WakeOnLanRepositoryImpl @Inject constructor(
     private val localNetwork: LocalNetworkAccess,
 ) : WakeOnLanRepository {
     override suspend fun sendMagicPacket(
-        mac: MacAddress,
+        packet: ByteArray,
         host: String,
         port: Int,
     ): DomainResult<Unit, KnockError> = withContext(dispatchers.io) {
@@ -44,7 +43,6 @@ class WakeOnLanRepositoryImpl @Inject constructor(
         if (localNetwork.needsRequest() && address.isLocalNetwork()) {
             return@withContext DomainResult.Failure(KnockError.LocalNetworkPermissionRequired)
         }
-        val packet = mac.magicPacket()
         try {
             route.datagramSocket().use { socket ->
                 socket.broadcast = true

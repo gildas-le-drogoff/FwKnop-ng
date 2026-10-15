@@ -10,8 +10,16 @@ data class SpaConfig(
     val crypto: SpaCrypto,
     val externalApp: ExternalApp,
     val method: KnockMethod = KnockMethod.Spa,
+    /** Set on Wake-on-LAN configs only: the other sections then stay dormant. */
     val wakeOnLan: WakeOnLan? = null,
-)
+) {
+    val kind: ConfigKind
+        get() = when {
+            method is KnockMethod.PortSequence -> ConfigKind.PORT_KNOCK
+            wakeOnLan != null -> ConfigKind.WAKE_ON_LAN
+            else -> ConfigKind.FWKNOP
+        }
+}
 
 sealed interface KnockMethod {
     data object Spa : KnockMethod

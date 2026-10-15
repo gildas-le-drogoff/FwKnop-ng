@@ -5,6 +5,7 @@ import fr.gildasledrogoff.fwknop.domain.error.KnockError
 import fr.gildasledrogoff.fwknop.domain.model.AccessDraft
 import fr.gildasledrogoff.fwknop.domain.model.AccessRule
 import fr.gildasledrogoff.fwknop.domain.model.ConfigDraft
+import fr.gildasledrogoff.fwknop.domain.model.ConfigKind
 import fr.gildasledrogoff.fwknop.domain.model.CryptoDraft
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.KnockMethod
@@ -61,8 +62,9 @@ class PortKnockingTest {
 
     private val validate = ValidateConfigUseCase()
     private val knockDraft = ConfigDraft(
+        kind = ConfigKind.PORT_KNOCK,
         nickname = "home",
-        server = ServerDraft(host = "knock.example.org", portKnocking = true, knockSequence = "7000,udp/8000,tcp/9000", knockDelayMs = "200"),
+        server = ServerDraft(host = "knock.example.org", knockSequence = "7000,udp/8000,tcp/9000", knockDelayMs = "200"),
         access = AccessDraft(ports = ""),
     )
 
@@ -110,8 +112,9 @@ class PortKnockingTest {
         val config = (validate(knockDraft) as DomainResult.Success).data
         assertThat(config.toEntity().toDomain()).isEqualTo(config)
         val parsed = ParseQrConfigUseCase()(config.toQrContent())
-        val imported = ConfigDraft().withQrConfig(parsed).server
-        assertThat(imported.portKnocking).isTrue()
+        val draft = ConfigDraft().withQrConfig(parsed)
+        assertThat(draft.kind).isEqualTo(ConfigKind.PORT_KNOCK)
+        val imported = draft.server
         assertThat(parseKnockSequence(imported.knockSequence)).isEqualTo(sequence.ports)
         assertThat(imported.knockDelayMs).isEqualTo("200")
     }
