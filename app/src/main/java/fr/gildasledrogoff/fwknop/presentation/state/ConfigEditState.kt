@@ -7,6 +7,7 @@ package fr.gildasledrogoff.fwknop.presentation.state
 import android.content.Intent
 import androidx.compose.runtime.Immutable
 import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.domain.usecase.FwknopServerBlocks
 
 @Immutable
 data class ConfigEditState(
@@ -15,6 +16,9 @@ data class ConfigEditState(
     val draft: ConfigDraft = ConfigDraft(),
     val pendingQr: ParsedQr? = null,
     val sealedQr: SealedQrPrompt? = null,
+    val fwknopBlocks: FwknopServerBlocks? = null,
+    val keysGenerated: Boolean = false,
+    val confirmKeyReplacement: Boolean = false,
     val error: UiError? = null,
 )
 
@@ -36,6 +40,11 @@ sealed interface ConfigEditEvent {
     data object SealedQrDismissed : ConfigEditEvent
     data class SelectGpgKey(val role: GpgKeyRole) : ConfigEditEvent
     data class IconChanged(val value: ConfigIcon) : ConfigEditEvent
+    data object GenerateKeys : ConfigEditEvent
+    data object ConfirmKeyReplacement : ConfigEditEvent
+    data object DismissKeyReplacement : ConfigEditEvent
+    data object ShowFwknopBlocks : ConfigEditEvent
+    data object DismissFwknopBlocks : ConfigEditEvent
     data class InteractionFinished(
         val id: InteractionId,
         val completed: Boolean,

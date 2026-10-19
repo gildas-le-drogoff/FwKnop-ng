@@ -29,6 +29,7 @@ class ConfigEditViewModel @Inject constructor(
     private val parseQrConfig: ParseQrConfigUseCase,
     private val openSealedQr: OpenSealedQrUseCase,
     private val selectGpgKey: SelectGpgKeyUseCase,
+    private val generateKeys: GenerateSpaKeysUseCase,
     private val interactions: InteractionRegistry,
 ) : ViewModel() {
     private val original: Nickname? =
@@ -74,11 +75,36 @@ class ConfigEditViewModel @Inject constructor(
             }
 
             is ConfigEditEvent.SelectGpgKey -> selectKey(event.role, resume = null)
+            ConfigEditEvent.GenerateKeys -> if (_state.value.draft.crypto.hasKeys()) {
+                _state.update { it.copy(confirmKeyReplacement = true) }
+            } else {
+                applyGeneratedKeys()
+            }
+
+            ConfigEditEvent.ConfirmKeyReplacement -> applyGeneratedKeys()
+            ConfigEditEvent.DismissKeyReplacement -> _state.update { it.copy(confirmKeyReplacement = false) }
+            ConfigEditEvent.ShowFwknopBlocks -> _state.update {
+                it.copy(fwknopBlocks = it.draft.toServerBlocks(), keysGenerated = false)
+            }
+
+            ConfigEditEvent.DismissFwknopBlocks -> _state.update { it.copy(fwknopBlocks = null, keysGenerated = false) }
             is ConfigEditEvent.InteractionFinished -> onInteractionFinished(event)
             ConfigEditEvent.Save -> save()
             ConfigEditEvent.DismissError -> _state.update { it.copy(error = null) }
         }
     }
+
+    private fun applyGeneratedKeys() = _state.update {
+        val draft = it.draft.copy(crypto = it.draft.crypto.withGeneratedKeys(generateKeys()))
+        it.copy(
+            draft = draft,
+            confirmKeyReplacement = false,
+            fwknopBlocks = draft.toServerBlocks(),
+            keysGenerated = true,
+        )
+    }
+
+    private fun CryptoDraft.hasKeys() = key.isNotBlank() || hmac.isNotBlank()
 
     private fun load(nickname: Nickname) = viewModelScope.launch {
         when (val result = getConfig(nickname)) {

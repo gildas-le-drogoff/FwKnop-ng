@@ -56,6 +56,23 @@ fun ConfigEditScreen(
     state.error?.let { ErrorDialog(it) { viewModel.onEvent(ConfigEditEvent.DismissError) } }
     if (state.pendingQr != null) QrImportDialog(viewModel::onEvent)
     state.sealedQr?.let { SealedQrDialog(it, viewModel::onEvent) }
+    if (state.confirmKeyReplacement) KeyReplacementDialog(viewModel::onEvent)
+    state.fwknopBlocks?.let {
+        FwknopBlocksDialog(it, state.keysGenerated) { viewModel.onEvent(ConfigEditEvent.DismissFwknopBlocks) }
+    }
+}
+
+@Composable
+private fun KeyReplacementDialog(onEvent: (ConfigEditEvent) -> Unit) {
+    ConfirmDialog(
+        spec = ConfirmSpec(
+            title = stringResource(R.string.keys_replace_title),
+            text = stringResource(R.string.keys_replace_body),
+            confirmLabel = stringResource(R.string.action_replace_keys),
+        ),
+        onConfirm = { onEvent(ConfigEditEvent.ConfirmKeyReplacement) },
+        onDismiss = { onEvent(ConfigEditEvent.DismissKeyReplacement) },
+    )
 }
 
 @Composable

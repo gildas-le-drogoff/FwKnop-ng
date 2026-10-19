@@ -5,9 +5,12 @@
 package fr.gildasledrogoff.fwknop.domain
 import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.domain.model.*
+import fr.gildasledrogoff.fwknop.domain.usecase.GenerateSpaKeysUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ParseFwknopRcUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ValidateConfigUseCase
+import fr.gildasledrogoff.fwknop.domain.usecase.withGeneratedKeys
 import org.junit.Test
+import java.util.Base64
 class FwknopRcTest {
     private val parse = ParseFwknopRcUseCase(ValidateConfigUseCase())
     @Test
@@ -103,5 +106,14 @@ class FwknopRcTest {
             "HMAC_KEY_BASE64", "aG1hYw==",
             "HMAC_DIGEST_TYPE", "sha256",
         )
+    }
+    @Test
+    fun `generated keys have the fwknop sizes and pass validation`() {
+        val keys = GenerateSpaKeysUseCase()()
+        assertThat(Base64.getDecoder().decode(keys.key)).hasLength(32)
+        assertThat(Base64.getDecoder().decode(keys.hmac)).hasLength(64)
+        val draft = ConfigDraft(nickname = "home", server = ServerDraft(host = "knock.example.org"))
+        val config = ValidateConfigUseCase()(draft.copy(crypto = draft.crypto.withGeneratedKeys(keys)))
+        assertThat(config).isInstanceOf(DomainResult.Success::class.java)
     }
 }

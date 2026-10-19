@@ -9,6 +9,8 @@ import fr.gildasledrogoff.fwknop.domain.error.ConfigError
 import fr.gildasledrogoff.fwknop.domain.model.*
 import fr.gildasledrogoff.fwknop.domain.repository.BackupRepository
 import fr.gildasledrogoff.fwknop.domain.repository.ConfigRepository
+import java.security.SecureRandom
+import java.util.Base64
 import javax.inject.Inject
 
 class ExportConfigUseCase @Inject constructor(
@@ -124,3 +126,28 @@ class GetFwknopServerBlocksUseCase @Inject constructor(private val configs: Conf
 }
 
 fun ConfigDraft.toServerBlocks() = FwknopServerBlocks(nickname, toFwknopRc(), toAccessConf())
+
+data class GeneratedSpaKeys(val key: String, val hmac: String)
+
+class GenerateSpaKeysUseCase @Inject constructor() {
+    operator fun invoke(): GeneratedSpaKeys {
+        val random = SecureRandom()
+        fun encoded(size: Int) =
+            Base64.getEncoder().encodeToString(ByteArray(size).also(random::nextBytes))
+        return GeneratedSpaKeys(encoded(KEY_BYTES), encoded(HMAC_KEY_BYTES))
+    }
+
+    private companion object {
+        const val KEY_BYTES = 32
+        const val HMAC_KEY_BYTES = 64
+    }
+}
+
+fun CryptoDraft.withGeneratedKeys(keys: GeneratedSpaKeys): CryptoDraft = copy(
+    useGpg = false,
+    key = keys.key,
+    keyBase64 = true,
+    hmac = keys.hmac,
+    hmacBase64 = true,
+    legacy = false,
+)

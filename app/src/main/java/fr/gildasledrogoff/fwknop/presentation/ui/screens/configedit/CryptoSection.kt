@@ -4,11 +4,15 @@
 
 package fr.gildasledrogoff.fwknop.presentation.ui.screens.configedit
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -40,12 +44,28 @@ fun CryptoSection(crypto: CryptoDraft, onEvent: (ConfigEditEvent) -> Unit) {
         }
         AnimatedVisibility(visible = !crypto.useGpg) { RijndaelKey(crypto, onChange) }
         HmacKey(crypto, onChange)
+        ButtonRow {
+            if (!crypto.useGpg) {
+                OutlinedButton(onClick = { onEvent(ConfigEditEvent.GenerateKeys) }) {
+                    ButtonLabel(R.drawable.ic_key_rounded, stringResource(R.string.action_generate_keys))
+                }
+            }
+            OutlinedButton(onClick = { onEvent(ConfigEditEvent.ShowFwknopBlocks) }) {
+                ButtonLabel(R.drawable.ic_code_rounded, stringResource(R.string.action_show_fwknop_blocks))
+            }
+        }
         DigestFields(crypto, onChange)
         LabeledSwitch(
             stringResource(R.string.field_legacy),
             crypto.legacy,
             { onChange(crypto.copy(legacy = it)) })
     }
+}
+
+@Composable
+private fun ButtonLabel(@DrawableRes icon: Int, text: String) {
+    FwknopIcon(icon, null, Modifier.size(ButtonDefaults.IconSize))
+    Text(text, Modifier.padding(start = ButtonDefaults.IconSpacing))
 }
 
 @Composable

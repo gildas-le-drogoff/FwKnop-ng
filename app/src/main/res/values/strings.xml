@@ -1012,6 +1012,8 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="fwknop_block_server">Server · access.conf</string>
   <string name="fwknop_block_client">Client · ~/.fwknoprc</string>
   <string name="fwknop_block_copied">Copied</string>
+  <string name="action_generate_keys">Generate keys</string>
+  <string name="action_show_fwknop_blocks">Server config</string>
   <string name="fwknop_block_server_hint"
     >Append to /etc/fwknop/access.conf on the server, then restart fwknopd.</string
   >
@@ -1019,6 +1021,18 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >Optional: append to ~/.fwknoprc on a computer to knock from it too.</string
   >
   <string name="action_copy">Copy</string>
+  <string name="keys_generated_title">New keys generated</string>
+  <string name="keys_generated_body"
+    >Save this config, then update the server with the stanza below: until then,
+    it refuses the knocks.</string
+  >
+  <string name="keys_replace_title">Replace the keys?</string>
+  <string name="keys_replace_body"
+    >This config already has keys. New ones will replace them, and the server will
+    refuse knocks until it gets the new access.conf stanza.\n\nLeaving without
+    saving keeps the current keys.</string
+  >
+  <string name="action_replace_keys">Replace</string>
   <string name="field_icon">Icon</string>
   <string name="hint_icon">Shown on the config card and on its home screen shortcut.</string>
   <string name="action_choose_icon">choose the icon</string>

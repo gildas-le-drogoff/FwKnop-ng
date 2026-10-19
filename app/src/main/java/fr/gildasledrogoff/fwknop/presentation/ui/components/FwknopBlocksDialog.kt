@@ -40,18 +40,18 @@ import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 
 @Composable
-fun FwknopBlocksDialog(blocks: FwknopServerBlocks, onDismiss: () -> Unit) {
+fun FwknopBlocksDialog(blocks: FwknopServerBlocks, keysGenerated: Boolean = false, onDismiss: () -> Unit) {
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
     ) {
-        FwknopBlocksScreen(blocks, onDismiss)
+        FwknopBlocksScreen(blocks, keysGenerated, onDismiss)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FwknopBlocksScreen(blocks: FwknopServerBlocks, onDismiss: () -> Unit) {
+private fun FwknopBlocksScreen(blocks: FwknopServerBlocks, keysGenerated: Boolean, onDismiss: () -> Unit) {
     val dimens = DimensTheme.dimens
     Scaffold(
         topBar = {
@@ -78,6 +78,7 @@ private fun FwknopBlocksScreen(blocks: FwknopServerBlocks, onDismiss: () -> Unit
                     .widthIn(max = MAX_CONTENT_WIDTH)
                     .padding(dimens.screenPadding),
             ) {
+                if (keysGenerated) KeysGeneratedBanner()
                 Notice(R.drawable.ic_lock_rounded, stringResource(R.string.fwknop_blocks_body))
                 Block(
                     title = stringResource(R.string.fwknop_block_server),
@@ -91,6 +92,28 @@ private fun FwknopBlocksScreen(blocks: FwknopServerBlocks, onDismiss: () -> Unit
                     icon = R.drawable.ic_computer_rounded,
                     text = blocks.client,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun KeysGeneratedBanner() {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(DimensTheme.dimens.itemSpacing),
+            modifier = Modifier.padding(DimensTheme.dimens.cardPadding),
+        ) {
+            FwknopIcon(R.drawable.ic_key_rounded, null)
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(stringResource(R.string.keys_generated_title), style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.keys_generated_body), style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
@@ -164,6 +187,7 @@ private fun FwknopBlocksScreenPreview() {
                 "[home]\nSPA_SERVER          knock.example.org\nKEY_BASE64          c2VjcmV0",
                 "SOURCE              ANY\nOPEN_PORTS          tcp/22\nKEY_BASE64          c2VjcmV0",
             ),
+            keysGenerated = true,
             onDismiss = {},
         )
     }
