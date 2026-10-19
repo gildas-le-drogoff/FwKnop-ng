@@ -20,9 +20,15 @@ import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 
 @Composable
-fun GeneralSection(nickname: String, onChange: (String) -> Unit) {
+fun GeneralSection(
+    nickname: String,
+    icon: ConfigIcon,
+    onNicknameChange: (String) -> Unit,
+    onIconChange: (ConfigIcon) -> Unit,
+) {
     SectionCard(stringResource(R.string.section_general), R.drawable.ic_shield_rounded) {
-        FormTextField(nickname, onChange, stringResource(R.string.field_nickname))
+        FormTextField(nickname, onNicknameChange, stringResource(R.string.field_nickname))
+        IconPicker(icon, onIconChange)
     }
 }
 
@@ -151,5 +157,5 @@ private fun SourceModeSectionPreview() {
 @AdaptivePreviews
 @Composable
 private fun GeneralSectionPreview() {
-    FwknopTheme { GeneralSection("home", {}) }
+    FwknopTheme { GeneralSection("home", ConfigIcon.HOME, {}, {}) }
 }

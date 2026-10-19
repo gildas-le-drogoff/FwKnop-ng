@@ -26,7 +26,10 @@ class DeleteConfigUseCase @Inject constructor(private val repository: ConfigRepo
 }
 
 class ValidateConfigUseCase @Inject constructor() {
-    operator fun invoke(draft: ConfigDraft): DomainResult<SpaConfig, ConfigError> {
+    operator fun invoke(draft: ConfigDraft): DomainResult<SpaConfig, ConfigError> =
+        validate(draft).map { it.copy(icon = draft.icon) }
+
+    private fun validate(draft: ConfigDraft): DomainResult<SpaConfig, ConfigError> {
         val nickname = draft.nickname.trim()
         if (nickname.isEmpty()) return DomainResult.Failure(ConfigError.NicknameBlank)
         if (draft.kind == ConfigKind.WAKE_ON_LAN) return wakeConfig(Nickname(nickname), draft)

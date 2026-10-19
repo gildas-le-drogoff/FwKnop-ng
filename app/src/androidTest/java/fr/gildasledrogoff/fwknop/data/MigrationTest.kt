@@ -73,6 +73,16 @@ class MigrationTest {
             }
         }
     }
+    @Test
+    fun v6ConfigsKeepTheAppIcon() {
+        helper.createDatabase(DB, 6).use { db -> insertV1(db, "plain", gpgKey = 0) }
+        helper.runMigrationsAndValidate(DB, 7, true, MIGRATION_6_7).use { db ->
+            db.query("SELECT ICON FROM configs").use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getString(0)).isEmpty()
+            }
+        }
+    }
     private fun insertV1(db: SupportSQLiteDatabase, nickname: String, gpgKey: Long) =
         db.execSQL(
             """

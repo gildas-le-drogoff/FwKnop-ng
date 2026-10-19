@@ -43,6 +43,7 @@ data class ConfigEntity(
     ) val knockSequence: String = "",
     @ColumnInfo(name = ConfigColumns.KNOCK_DELAY, defaultValue = "500") val knockDelay: Int = 500,
     @ColumnInfo(name = ConfigColumns.WAKE_ON_LAN, defaultValue = "''") val wakeOnLan: String = "",
+    @ColumnInfo(name = ConfigColumns.ICON, defaultValue = "''") val icon: String = "",
 )
 
 object ConfigColumns {
@@ -72,4 +73,5 @@ object ConfigColumns {
     const val KNOCK_SEQUENCE = "KNOCK_SEQUENCE"
     const val KNOCK_DELAY = "KNOCK_DELAY"
     const val WAKE_ON_LAN = "WAKE_ON_LAN"
+    const val ICON = "ICON"
 }

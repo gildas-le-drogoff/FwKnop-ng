@@ -16,6 +16,7 @@ data class SpaConfig(
     val method: KnockMethod = KnockMethod.Spa,
 
     val wakeOnLan: WakeOnLan? = null,
+    val icon: ConfigIcon = ConfigIcon.APP,
 ) {
     val kind: ConfigKind
         get() = when {

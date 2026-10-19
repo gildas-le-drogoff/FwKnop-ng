@@ -39,6 +39,12 @@ class ConfigMapperTest {
             .isEqualTo(ServerPort.Fixed(8080))
     }
     @Test
+    fun `blank or unknown icon falls back to the app icon`() {
+        assertThat(legacyRow.toDomain().icon).isEqualTo(ConfigIcon.APP)
+        assertThat(legacyRow.copy(icon = "SPACESHIP").toDomain().icon).isEqualTo(ConfigIcon.APP)
+        assertThat(legacyRow.copy(icon = "HOME").toDomain().icon).isEqualTo(ConfigIcon.HOME)
+    }
+    @Test
     fun `unknown digest falls back to sha256`() {
         assertThat(legacyRow.toDomain().crypto.hmacDigest.name).isEqualTo("SHA256")
     }
@@ -56,6 +62,7 @@ class ConfigMapperTest {
             sampleConfig(
                 encryption = Encryption.Rijndael(SecretKey("secret", base64 = false), GpgKeyId(0x1234), GpgKeyId(0x5678)),
             ),
+            sampleConfig().copy(icon = ConfigIcon.GARAGE),
         )
         configs.forEach { assertThat(it.toEntity().toDomain()).isEqualTo(it) }
     }

@@ -7,6 +7,7 @@ package fr.gildasledrogoff.fwknop.domain.model
 fun SpaConfig.toDraft(): ConfigDraft = ConfigDraft(
     kind = kind,
     nickname = nickname.value,
+    icon = icon,
     server = server.toDraft().with(method),
     access = access.toDraft(),
     sourceIp = sourceIp.toDraft(),

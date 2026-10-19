@@ -16,6 +16,7 @@ data class ConfigSummary(
     val accessDetail: String,
     val launchesApp: Boolean,
     val kind: ConfigKind = ConfigKind.FWKNOP,
+    val icon: ConfigIcon = ConfigIcon.APP,
 )
 
 @Immutable
@@ -45,6 +46,7 @@ fun SpaConfig.toSummary(): ConfigSummary = ConfigSummary(
         ?: access.portAccess?.ports.orEmpty(),
     launchesApp = externalApp != ExternalApp.None,
     kind = kind,
+    icon = icon,
 )
 
 private fun ServerPort.label(): String = when (this) {

@@ -56,6 +56,7 @@ class ConfigEditViewModel @Inject constructor(
     fun onEvent(event: ConfigEditEvent) {
         when (event) {
             is ConfigEditEvent.NicknameChanged -> updateDraft { it.copy(nickname = event.value) }
+            is ConfigEditEvent.IconChanged -> updateDraft { it.copy(icon = event.value) }
             is ConfigEditEvent.ServerChanged -> updateDraft { it.copy(server = event.value) }
             is ConfigEditEvent.AccessChanged -> updateDraft { it.copy(access = event.value) }
             is ConfigEditEvent.SourceIpChanged -> updateDraft { it.copy(sourceIp = event.value) }

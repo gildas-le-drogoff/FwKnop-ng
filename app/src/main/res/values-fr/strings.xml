@@ -1122,6 +1122,50 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >Les knocks ne seront plus enregistrés et l\'historique existant sera
     supprimé.</string
   >
+  <string name="field_icon">Icône</string>
+  <string name="hint_icon">Affichée sur la carte de la config et sur son raccourci d\'écran d\'accueil.</string>
+  <string name="action_choose_icon">choisir l\'icône</string>
+  <string name="action_reset_icon">Revenir à l\'icône de l\'appli</string>
+  <string name="icon_group_places">Lieux</string>
+  <string name="icon_group_machines">Machines</string>
+  <string name="icon_group_devices">Appareils et services</string>
+  <string name="icon_app">Icône de l\'appli</string>
+  <string name="icon_home">Maison</string>
+  <string name="icon_garage">Garage</string>
+  <string name="icon_server">Serveur</string>
+  <string name="icon_office">Bureau</string>
+  <string name="icon_building">Immeuble</string>
+  <string name="icon_computer">Ordinateur</string>
+  <string name="icon_storage">NAS</string>
+  <string name="icon_cloud">Cloud</string>
+  <string name="icon_cottage">Maison de campagne</string>
+  <string name="icon_store">Boutique</string>
+  <string name="icon_factory">Usine</string>
+  <string name="icon_school">École</string>
+  <string name="icon_boat">Bateau</string>
+  <string name="icon_camping">Camping</string>
+  <string name="icon_database">Base de données</string>
+  <string name="icon_web">Site web</string>
+  <string name="icon_router">Routeur</string>
+  <string name="icon_network">Réseau</string>
+  <string name="icon_laptop">Portable</string>
+  <string name="icon_terminal">Terminal</string>
+  <string name="icon_camera">Caméra</string>
+  <string name="icon_smart_home">Domotique</string>
+  <string name="icon_lighting">Éclairage</string>
+  <string name="icon_media">Serveur multimédia</string>
+  <string name="icon_games">Serveur de jeux</string>
+  <string name="icon_vacation">Vacances</string>
+  <string name="icon_workshop">Atelier</string>
+  <string name="icon_vpn">VPN</string>
+  <string name="icon_mail">Serveur mail</string>
+  <string name="icon_backup">Sauvegarde</string>
+  <string name="icon_board">Carte de dév</string>
+  <string name="icon_printer">Imprimante</string>
+  <string name="icon_tv">TV</string>
+  <string name="icon_speaker">Enceinte</string>
+  <string name="icon_heating">Chauffage</string>
+  <string name="icon_doorbell">Sonnette</string>
   <string name="field_doh">DNS chiffré (DNS over HTTPS)</string>
   <string name="field_doh_hint"
     >Résout le nom du serveur en HTTPS avant le knock : le réseau ne le voit pas.

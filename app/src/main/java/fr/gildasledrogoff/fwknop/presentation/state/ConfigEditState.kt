@@ -34,6 +34,7 @@ sealed interface ConfigEditEvent {
     class SealedQrPassphraseEntered(val passphrase: CharArray) : ConfigEditEvent
     data object SealedQrDismissed : ConfigEditEvent
     data class SelectGpgKey(val role: GpgKeyRole) : ConfigEditEvent
+    data class IconChanged(val value: ConfigIcon) : ConfigEditEvent
     data class InteractionFinished(
         val id: InteractionId,
         val completed: Boolean,

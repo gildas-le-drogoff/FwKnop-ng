@@ -39,6 +39,13 @@ internal val MIGRATION_5_6 = object : Migration(5, 6) {
         }
     }
 }
+internal val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        with(ConfigColumns) {
+            db.execSQL("ALTER TABLE $TABLE ADD COLUMN $ICON TEXT NOT NULL DEFAULT ''")
+        }
+    }
+}
 internal val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
         with(KnockLogColumns) {

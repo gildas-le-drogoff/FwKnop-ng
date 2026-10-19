@@ -27,6 +27,7 @@ fun ConfigEntity.toDomain(): SpaConfig = SpaConfig(
     externalApp = toExternalApp(),
     method = toKnockMethod(),
     wakeOnLan = wakeOnLan.toWakeOnLan(),
+    icon = ConfigIcon.parse(icon),
 )
 
 fun SpaConfig.toEntity(): ConfigEntity {
@@ -60,6 +61,7 @@ fun SpaConfig.toEntity(): ConfigEntity {
         knockDelay = (method as? KnockMethod.PortSequence)?.delayMs
             ?: KnockMethod.PortSequence.DEFAULT_DELAY_MS,
         wakeOnLan = wakeOnLan.toWakeColumn(),
+        icon = if (icon == ConfigIcon.APP) "" else icon.name,
     )
 }
 

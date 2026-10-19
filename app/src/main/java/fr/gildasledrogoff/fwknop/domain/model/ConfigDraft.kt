@@ -9,6 +9,7 @@ enum class ConfigKind { FWKNOP, PORT_KNOCK, WAKE_ON_LAN }
 data class ConfigDraft(
     val kind: ConfigKind = ConfigKind.FWKNOP,
     val nickname: String = "",
+    val icon: ConfigIcon = ConfigIcon.APP,
     val server: ServerDraft = ServerDraft(),
     val access: AccessDraft = AccessDraft(),
     val sourceIp: SourceIpDraft = SourceIpDraft(),

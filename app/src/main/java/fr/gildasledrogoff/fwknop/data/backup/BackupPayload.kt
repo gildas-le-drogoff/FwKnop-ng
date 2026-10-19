@@ -61,6 +61,7 @@ internal data class BackupConfig(
     val knockSequence: String = "",
     val knockDelay: Int = KnockMethod.PortSequence.DEFAULT_DELAY_MS,
     val wakeOnLan: String = "",
+    val icon: String = "",
 )
 
 internal fun Backup.toPayload() = BackupPayload(
@@ -135,6 +136,7 @@ private fun ConfigEntity.toBackupConfig() = BackupConfig(
     knockSequence = knockSequence,
     knockDelay = knockDelay,
     wakeOnLan = wakeOnLan,
+    icon = icon,
 )
 
 private fun BackupConfig.toEntity() = ConfigEntity(
@@ -163,4 +165,5 @@ private fun BackupConfig.toEntity() = ConfigEntity(
     knockSequence = knockSequence,
     knockDelay = knockDelay,
     wakeOnLan = wakeOnLan,
+    icon = icon,
 )

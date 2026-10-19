@@ -25,6 +25,14 @@ class ValidateConfigUseCaseTest {
         assertThat(config.server.port).isEqualTo(ServerPort.Fixed(62201))
     }
     @Test
+    fun `the icon survives validation of every kind`() {
+        val wake = ConfigDraft(kind = ConfigKind.WAKE_ON_LAN, nickname = "nas", wakeOnLan = WakeOnLanDraft(mac = "00:11:22:33:44:55"))
+        listOf(valid, wake).forEach { draft ->
+            val config = (validate(draft.copy(icon = ConfigIcon.STORAGE)) as DomainResult.Success).data
+            assertThat(config.icon).isEqualTo(ConfigIcon.STORAGE)
+        }
+    }
+    @Test
     fun `blank nickname is rejected`() {
         assertThat(errorOf(valid.copy(nickname = "  "))).isEqualTo(ConfigError.NicknameBlank)
     }

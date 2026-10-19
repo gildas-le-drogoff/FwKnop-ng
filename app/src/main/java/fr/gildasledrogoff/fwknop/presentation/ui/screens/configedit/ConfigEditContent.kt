@@ -27,7 +27,14 @@ fun ConfigEditContent(state: ConfigEditState, onEvent: (ConfigEditEvent) -> Unit
         horizontalArrangement = Arrangement.spacedBy(dimens.sectionSpacing),
         verticalItemSpacing = dimens.sectionSpacing,
     ) {
-        item { GeneralSection(draft.nickname) { onEvent(ConfigEditEvent.NicknameChanged(it)) } }
+        item {
+            GeneralSection(
+                draft.nickname,
+                draft.icon,
+                { onEvent(ConfigEditEvent.NicknameChanged(it)) },
+                { onEvent(ConfigEditEvent.IconChanged(it)) },
+            )
+        }
         if (draft.kind == ConfigKind.WAKE_ON_LAN) {
             item { WakeOnLanSection(draft.wakeOnLan, onEvent) }
             return@LazyVerticalStaggeredGrid

@@ -1002,6 +1002,50 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >Knocks will no longer be recorded and the existing history will be
     deleted.</string
   >
+  <string name="field_icon">Icon</string>
+  <string name="hint_icon">Shown on the config card and on its home screen shortcut.</string>
+  <string name="action_choose_icon">choose the icon</string>
+  <string name="action_reset_icon">Back to the app icon</string>
+  <string name="icon_group_places">Places</string>
+  <string name="icon_group_machines">Machines</string>
+  <string name="icon_group_devices">Devices and services</string>
+  <string name="icon_app">App icon</string>
+  <string name="icon_home">House</string>
+  <string name="icon_garage">Garage</string>
+  <string name="icon_server">Server</string>
+  <string name="icon_office">Office</string>
+  <string name="icon_building">Building</string>
+  <string name="icon_computer">Computer</string>
+  <string name="icon_storage">NAS</string>
+  <string name="icon_cloud">Cloud</string>
+  <string name="icon_cottage">Cottage</string>
+  <string name="icon_store">Shop</string>
+  <string name="icon_factory">Factory</string>
+  <string name="icon_school">School</string>
+  <string name="icon_boat">Boat</string>
+  <string name="icon_camping">Camping</string>
+  <string name="icon_database">Database</string>
+  <string name="icon_web">Website</string>
+  <string name="icon_router">Router</string>
+  <string name="icon_network">Network</string>
+  <string name="icon_laptop">Laptop</string>
+  <string name="icon_terminal">Terminal</string>
+  <string name="icon_camera">Camera</string>
+  <string name="icon_smart_home">Smart home</string>
+  <string name="icon_lighting">Lighting</string>
+  <string name="icon_media">Media server</string>
+  <string name="icon_games">Game server</string>
+  <string name="icon_vacation">Vacation home</string>
+  <string name="icon_workshop">Workshop</string>
+  <string name="icon_vpn">VPN</string>
+  <string name="icon_mail">Mail server</string>
+  <string name="icon_backup">Backup</string>
+  <string name="icon_board">Dev board</string>
+  <string name="icon_printer">Printer</string>
+  <string name="icon_tv">TV</string>
+  <string name="icon_speaker">Speaker</string>
+  <string name="icon_heating">Heating</string>
+  <string name="icon_doorbell">Doorbell</string>
   <string name="field_doh">Encrypted DNS (DNS over HTTPS)</string>
   <string name="field_doh_hint"
     >Resolves the server name over HTTPS before knocking, so the network does not

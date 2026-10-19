@@ -107,7 +107,8 @@ private fun ConfigCardHeader(
     Row(verticalAlignment = Alignment.CenterVertically) {
         Surface(shape = CircleShape, color = accent.container, contentColor = accent.content) {
             FwknopIcon(
-                if (summary.kind == ConfigKind.WAKE_ON_LAN) R.drawable.ic_power_rounded else R.drawable.ic_shield_rounded_fill,
+                summary.icon.glyphRes()
+                    ?: if (summary.kind == ConfigKind.WAKE_ON_LAN) R.drawable.ic_power_rounded else R.drawable.ic_shield_rounded_fill,
                 null,
                 modifier = Modifier.padding(8.dp),
             )
