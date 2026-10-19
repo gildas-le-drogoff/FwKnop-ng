@@ -20,7 +20,7 @@ Binaries:
 Builds:
   - versionName: 2.1.2
     versionCode: 40
-    commit: 74d5b3adc245b527a275ab8b01d2622a685140e2
+    commit: 8b406785da9947e237df40cf4e453d8027880a64
     subdir: app
     gradle:
       - yes
