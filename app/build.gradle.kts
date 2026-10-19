@@ -121,8 +121,8 @@ androidComponents {
     // keystore, sign them with the debug key so the macrobenchmarks can install them.
     onVariants(selector().all()) { variant ->
         val benchmarkType = variant.buildType == "benchmarkRelease" || variant.buildType == "nonMinifiedRelease"
-        if (benchmarkType && keystoreProperties.isEmpty()) {
-            variant.signingConfig.setConfig(android.signingConfigs.getByName("debug"))
+        if (benchmarkType && keystoreProperties.isEmpty) {
+            variant.signingConfig.from(android.signingConfigs.getByName("debug"))
         }
     }
 }
