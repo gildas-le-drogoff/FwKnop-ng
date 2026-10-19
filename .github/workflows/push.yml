@@ -1,15 +1,13 @@
 name: FwKnop-ng push CI
 
+# Releases are published by release.yml on v* tags; this workflow only checks main.
 on:
   push:
     branches:
       - main
-    tags:
-      - v*
 
 permissions:
-  # Required to create the GitHub release.
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -34,57 +32,5 @@ jobs:
       - name: Unit tests
         run: ./gradlew testDebugUnitTest
 
-      # app/build.gradle.kts only enables release signing when keystore.properties exists.
-      - name: Write keystore.properties
-        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'gildas-le-drogoff/FwKnop-ng'
-        run: |
-          set -e
-          echo "$SIGNING_KEY" | base64 -d > release-keystore.jks
-          echo "storeFile=release-keystore.jks" >> keystore.properties
-          echo "storePassword=$KEY_STORE_PASSWORD" >> keystore.properties
-          echo "keyAlias=$ALIAS" >> keystore.properties
-          echo "keyPassword=$KEY_PASSWORD" >> keystore.properties
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-          ALIAS: ${{ secrets.ALIAS }}
-          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-
       - name: Assemble release
         run: ./gradlew assembleRelease
-
-      - name: Delete keystore
-        if: always() && startsWith(github.ref, 'refs/tags/') && github.repository == 'gildas-le-drogoff/FwKnop-ng'
-        run: rm -f keystore.properties release-keystore.jks
-
-      - name: Save version tag in env
-        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'gildas-le-drogoff/FwKnop-ng'
-        run: |
-          set -x
-          echo "VERSION_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-
-      - name: Prepare APK with checksum, archive mapping.txt file
-        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'gildas-le-drogoff/FwKnop-ng'
-        run: |
-          set -e
-          mv app/build/outputs/apk/release/app-release.apk FwKnop-ng-${{ env.VERSION_TAG }}.apk
-          sha256=`sha256sum FwKnop-ng-${{ env.VERSION_TAG }}.apk | awk '{ print $1 }'`
-          echo "APK_SHA256=$sha256" >> $GITHUB_ENV
-          tar -czvf mapping-${{ env.VERSION_TAG }}.tar.gz --directory=app/build/outputs/mapping/release/ mapping.txt
-
-      - name: Create release
-        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'gildas-le-drogoff/FwKnop-ng'
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
-        with:
-          tag_name: ${{ env.VERSION_TAG }}
-          name: FwKnop-ng ${{ env.VERSION_TAG }}
-          body: |
-            ### Checksum
-            | File                                  | SHA-256               |
-            |---------------------------------------|-----------------------|
-            | FwKnop-ng-${{ env.VERSION_TAG }}.apk  | ${{ env.APK_SHA256 }} |
-          files: |
-            FwKnop-ng-${{ env.VERSION_TAG }}.apk
-            mapping-${{ env.VERSION_TAG }}.tar.gz
-          draft: true
-          prerelease: false
