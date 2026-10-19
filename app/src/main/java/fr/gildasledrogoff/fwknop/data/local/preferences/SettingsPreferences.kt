@@ -24,6 +24,8 @@ object SettingsPreferences {
     val EXTERNAL_APP_DELAY = intPreferencesKey("ExternalAppDelaySeconds")
     val KNOCK_HISTORY_RETENTION = stringPreferencesKey("KnockHistoryRetention")
     val VPN_ROUTING = stringPreferencesKey("VpnRouting")
+    val DOH_ENABLED = booleanPreferencesKey("EnableDoh")
+    val DOH_URL = stringPreferencesKey("DohUrl")
     val PERMISSIONS_PROMPTED = stringSetPreferencesKey("PermissionsPrompted")
     val PERMISSIONS_REFUSED_FOR_GOOD = stringSetPreferencesKey("PermissionsRefusedForGood")
 }
@@ -55,6 +57,8 @@ fun Preferences.toAppSettings(): AppSettings {
             ?: defaults.externalAppDelaySeconds,
         vpnRouting = VpnRouting.entries.firstOrNull { it.name == this[SettingsPreferences.VPN_ROUTING] }
             ?: defaults.vpnRouting,
+        dohEnabled = this[SettingsPreferences.DOH_ENABLED] ?: defaults.dohEnabled,
+        dohUrl = this[SettingsPreferences.DOH_URL] ?: defaults.dohUrl,
     )
 }
 
@@ -71,4 +75,6 @@ fun MutablePreferences.write(settings: AppSettings) {
     this[SettingsPreferences.EXTERNAL_APP_DELAY] = settings.externalAppDelaySeconds
     this[SettingsPreferences.KNOCK_HISTORY_RETENTION] = settings.knockHistoryRetention.name
     this[SettingsPreferences.VPN_ROUTING] = settings.vpnRouting.name
+    this[SettingsPreferences.DOH_ENABLED] = settings.dohEnabled
+    this[SettingsPreferences.DOH_URL] = settings.dohUrl
 }

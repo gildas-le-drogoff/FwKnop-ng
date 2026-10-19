@@ -149,6 +149,7 @@ private fun SettingsForm(form: AppSettings, onChange: (AppSettings) -> Unit) {
             onChange(form.copy(dnsLookupEnabled = it))
         })
         VpnRoutingField(form.vpnRouting) { onChange(form.copy(vpnRouting = it)) }
+        DohField(form, onChange)
         LabeledSwitch(stringResource(R.string.field_nfc_knock), form.nfcKnockEnabled, {
             onChange(form.copy(nfcKnockEnabled = it))
         })
@@ -173,6 +174,25 @@ private fun VpnRoutingField(routing: VpnRouting, onChange: (VpnRouting) -> Unit)
             stringResource(R.string.field_vpn_routing_hint),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun DohField(form: AppSettings, onChange: (AppSettings) -> Unit) {
+    LabeledSwitch(
+        label = stringResource(R.string.field_doh),
+        checked = form.dohEnabled,
+        onCheckedChange = { onChange(form.copy(dohEnabled = it)) },
+        supportingText = stringResource(R.string.field_doh_hint),
+    )
+    if (form.dohEnabled) {
+        SuggestionTextField(
+            value = form.dohUrl,
+            onValueChange = { onChange(form.copy(dohUrl = it)) },
+            label = stringResource(R.string.field_doh_url),
+            suggestions = AppSettings.DOH_PRESETS,
+            keyboardType = KeyboardType.Uri,
         )
     }
 }

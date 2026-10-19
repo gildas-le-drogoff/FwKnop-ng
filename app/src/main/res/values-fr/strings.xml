@@ -1122,4 +1122,13 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >Les knocks ne seront plus enregistrés et l\'historique existant sera
     supprimé.</string
   >
+  <string name="field_doh">DNS chiffré (DNS over HTTPS)</string>
+  <string name="field_doh_hint"
+    >Résout le nom du serveur en HTTPS avant le knock : le réseau ne le voit pas.
+    Aucun repli sur le DNS en clair.</string
+  >
+  <string name="field_doh_url">Résolveur DNS over HTTPS</string>
+  <string name="error_doh_url"
+    >Le résolveur DNS over HTTPS doit être une adresse https://.</string
+  >
 </resources>

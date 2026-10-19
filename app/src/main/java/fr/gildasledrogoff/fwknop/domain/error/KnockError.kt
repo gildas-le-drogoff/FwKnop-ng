@@ -37,4 +37,5 @@ sealed interface GpgError {
 
 sealed interface SettingsError {
     data object InvalidLookupUrl : SettingsError
+    data object InvalidDohUrl : SettingsError
 }

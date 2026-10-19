@@ -90,6 +90,7 @@ fun GpgError.toUiError(): UiError = when (this) {
 
 fun SettingsError.toUiError(): UiError = when (this) {
     SettingsError.InvalidLookupUrl -> UiError.Message(R.string.error_lookup_url)
+    SettingsError.InvalidDohUrl -> UiError.Message(R.string.error_doh_url)
 }
 
 fun VaultError.toUiError(): UiError = UiError.Message(

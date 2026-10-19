@@ -1002,4 +1002,13 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >Knocks will no longer be recorded and the existing history will be
     deleted.</string
   >
+  <string name="field_doh">Encrypted DNS (DNS over HTTPS)</string>
+  <string name="field_doh_hint"
+    >Resolves the server name over HTTPS before knocking, so the network does not
+    see it. There is no fallback to plain DNS.</string
+  >
+  <string name="field_doh_url">DNS over HTTPS resolver</string>
+  <string name="error_doh_url"
+    >The DNS over HTTPS resolver must be an https:// address.</string
+  >
 </resources>

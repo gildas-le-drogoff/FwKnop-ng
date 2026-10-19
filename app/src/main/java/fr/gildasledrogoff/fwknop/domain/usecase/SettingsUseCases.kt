@@ -37,8 +37,11 @@ class SaveSettingsUseCase @Inject constructor(private val repository: SettingsRe
     suspend operator fun invoke(settings: AppSettings): DomainResult<AppSettings, SettingsError> {
         val url = settings.ipLookupUrl.trim()
         if (!isValidLookupUrl(url)) return DomainResult.Failure(SettingsError.InvalidLookupUrl)
+        val dohUrl = settings.dohUrl.trim()
+        if (settings.dohEnabled && !isValidLookupUrl(dohUrl)) return DomainResult.Failure(SettingsError.InvalidDohUrl)
         val normalized = settings.copy(
             ipLookupUrl = url,
+            dohUrl = dohUrl.ifEmpty { AppSettings.DEFAULT_DOH_URL },
             externalAppDelaySeconds = settings.externalAppDelaySeconds.coerceIn(AppSettings.EXTERNAL_APP_DELAY_RANGE),
         )
         repository.saveSettings(normalized)

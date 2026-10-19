@@ -21,6 +21,9 @@ data class AppSettings(
 
     val externalAppDelaySeconds: Int = DEFAULT_EXTERNAL_APP_DELAY_SECONDS,
     val vpnRouting: VpnRouting = VpnRouting.AUTO,
+
+    val dohEnabled: Boolean = false,
+    val dohUrl: String = DEFAULT_DOH_URL,
 ) {
     companion object {
         const val DEFAULT_IP_LOOKUP_URL = "https://ifconfig.me/ip"
@@ -31,6 +34,16 @@ data class AppSettings(
             "https://checkip.global.api.aws",
 
             "https://api64.ipify.org",
+        )
+
+        const val DEFAULT_DOH_URL = "https://dns9.quad9.net/dns-query"
+        val DOH_PRESETS = listOf(
+            DEFAULT_DOH_URL,
+            "https://one.one.one.one/dns-query",
+            "https://dns.google/dns-query",
+            "https://cloudflare-dns.com/dns-query",
+            "https://security.cloudflare-dns.com/dns-query",
+            "https://dns10.quad9.net/dns-query",
         )
     }
 }

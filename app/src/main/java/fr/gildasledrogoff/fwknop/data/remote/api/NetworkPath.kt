@@ -14,6 +14,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.gildasledrogoff.fwknop.di.ApplicationScope
 import fr.gildasledrogoff.fwknop.domain.model.NetworkSession
 import fr.gildasledrogoff.fwknop.domain.model.VpnRouting
+import fr.gildasledrogoff.fwknop.domain.model.isIpAddress
 import fr.gildasledrogoff.fwknop.domain.repository.SettingsRepository
 import fr.gildasledrogoff.fwknop.utils.helpers.DebugLog
 import kotlinx.coroutines.CoroutineScope
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.runBlocking
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import java.io.IOException
 import java.net.DatagramSocket
@@ -45,12 +47,14 @@ interface NetworkPath {
         private val keepsVpnFor: (InetAddress) -> Boolean = { false },
 
         private val vpnDns: Network? = null,
+        private val doh: DohResolver? = null,
     ) : NetworkSession {
 
         fun towards(server: InetAddress): Route =
-            if (bypassesVpn && keepsVpnFor(server)) Route(null, bypassesVpn = false) else this
+            if (bypassesVpn && keepsVpnFor(server)) Route(null, bypassesVpn = false, doh = doh) else this
 
         fun lookup(host: String): Array<InetAddress> = when {
+            doh != null && !host.isIpAddress() -> doh.lookup(host, httpClient(doh.client))
             network == null -> InetAddress.getAllByName(host)
             vpnDns == null -> network.getAllByName(host)
             else -> try {
@@ -95,22 +99,34 @@ class AndroidNetworkPath @Inject constructor(
     private val connectivity = context.getSystemService(ConnectivityManager::class.java)
     private val routing = settingsRepository.settings.map { it.vpnRouting }
         .stateIn(scope, SharingStarted.Eagerly, null)
+    private val dohUrl = settingsRepository.settings.map { if (it.dohEnabled) it.dohUrl else "" }
+        .stateIn(scope, SharingStarted.Eagerly, null)
+    private val dohClient by lazy { OkHttpClient() }
 
     override fun current(): NetworkPath.Route {
+        val doh = doh()
         val vpn = activeVpn()
-            ?: return NetworkPath.Route(physicalActiveNetwork(), bypassesVpn = false)
+            ?: return NetworkPath.Route(physicalActiveNetwork(), bypassesVpn = false, doh = doh)
 
         val routing = routing.value ?: runBlocking { settingsRepository.settings.first().vpnRouting }
         val bypass = bypassNetwork()
             ?.takeIf { bypassesVpn(routing, server = null, vpnRoutes = null) && canBind(it) }
-            ?: return NetworkPath.Route(null, bypassesVpn = false)
-        if (routing != VpnRouting.AUTO) return NetworkPath.Route(bypass)
+            ?: return NetworkPath.Route(null, bypassesVpn = false, doh = doh)
+        if (routing != VpnRouting.AUTO) return NetworkPath.Route(bypass, doh = doh)
         val routes = vpnRoutes(vpn)
         return NetworkPath.Route(
             bypass,
             keepsVpnFor = { !bypassesVpn(routing, it, routes) },
             vpnDns = vpn,
+            doh = doh,
         )
+    }
+
+    private fun doh(): DohResolver? {
+        val url = dohUrl.value ?: runBlocking {
+            settingsRepository.settings.first().let { if (it.dohEnabled) it.dohUrl else "" }
+        }
+        return url.toHttpUrlOrNull()?.let { DohResolver(it, dohClient) }
     }
 
     private fun activeVpn(): Network? = connectivity.activeNetwork?.takeIf {

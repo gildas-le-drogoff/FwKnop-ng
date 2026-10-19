@@ -30,6 +30,8 @@ internal data class BackupSettings(
     val ipLookupUrl: String = AppSettings().ipLookupUrl,
     val autoLockDelay: String = AppSettings().autoLockDelay.name,
     val vpnRouting: String = AppSettings().vpnRouting.name,
+    val dohEnabled: Boolean = AppSettings().dohEnabled,
+    val dohUrl: String = AppSettings().dohUrl,
 )
 
 @Serializable
@@ -72,6 +74,8 @@ internal fun Backup.toPayload() = BackupPayload(
             ipLookupUrl = it.ipLookupUrl,
             autoLockDelay = it.autoLockDelay.name,
             vpnRouting = it.vpnRouting.name,
+            dohEnabled = it.dohEnabled,
+            dohUrl = it.dohUrl,
         )
     },
     configs = configs.map { it.toEntity().toBackupConfig() },
@@ -91,6 +95,8 @@ internal fun BackupPayload.toDomain() = Backup(
                 ?: AppSettings().autoLockDelay,
             vpnRouting = VpnRouting.entries.firstOrNull { routing -> routing.name == it.vpnRouting }
                 ?: AppSettings().vpnRouting,
+            dohEnabled = it.dohEnabled,
+            dohUrl = it.dohUrl,
         )
     },
     configs = configs.filter { it.nickName.isNotBlank() }.associateBy { it.nickName }.values
