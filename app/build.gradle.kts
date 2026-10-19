@@ -50,6 +50,9 @@ android {
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.findByName("release")
+            // x86/x86_64 would only serve emulators (debug keeps them): drops 4.3 MiB of SQLCipher binaries.
+            //noinspection ChromeOsAbiSupport
+            ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
         }
     }
 
@@ -89,6 +92,9 @@ android {
     }
 
     packaging {
+        // AGP strips native libraries only when an NDK is installed: never strip, so the APK bytes
+        // do not depend on the build machine (F-Droid compares its build with the published APK).
+        jniLibs.keepDebugSymbols += "**/*.so"
         resources.excludes += listOf(
             "META-INF/DEPENDENCIES.txt",
             "META-INF/LICENSE.txt",

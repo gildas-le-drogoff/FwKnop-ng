@@ -7,3 +7,9 @@
 -dontwarn sun.net.spi.nameservice.**
 -dontwarn lombok.**
 -dontwarn org.slf4j.**
+
+# Strips debug and verbose logs (mostly from libraries) from release builds.
+-assumenosideeffects class android.util.Log {
+    public static int d(...);
+    public static int v(...);
+}
