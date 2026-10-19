@@ -8,6 +8,9 @@ set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+export JAVA_HOME="/usr/lib/jvm/java-25-openjdk"
+export PATH="${JAVA_HOME}/bin:${PATH}"
+
 RELEASE_KEYSTORE_PROPS="keystore.properties"
 RELEASE_CERT_SHA256="$(sed -n 's/^AllowedAPKSigningKeys: *//p' "${PROJECT_DIR}/metadata/fr.gildasledrogoff.fwknop.yml")"
 
@@ -119,7 +122,9 @@ check_aab_signature() {
 
 build_apks() {
 	log "${GREEN}Build release APK (F-Droid/GitHub) + debug APK...${NC}"
-	./gradlew assembleDebug assembleRelease --console=plain -q
+	./gradlew assembleDebug --console=plain -q
+	./gradlew build --console=plain -q
+	./gradlew assembleRelease --console=plain -q
 }
 
 build_aab() {
@@ -132,9 +137,24 @@ build_aab() {
 		./gradlew bundleRelease --console=plain -q
 }
 
+check_sync_host() {
+	# The first connection often times out while the host wakes up: retry.
+	local attempt
+	for attempt in 1 2 3; do
+		ssh -o BatchMode=yes -o ConnectTimeout=5 "$SYNC_HOST" true > /dev/null 2>&1 && return 0
+	done
+	return 1
+}
+
 push_to_phone() {
 	local prefix=""
-	[ "$(hostname -s)" = "$SYNC_HOST" ] || prefix="${SYNC_HOST}:"
+	if [ "$(hostname -s)" != "$SYNC_HOST" ]; then
+		if ! check_sync_host; then
+			log "${YELLOW}⚠️  ${SYNC_HOST} is not reachable: skipping rsync.${NC}"
+			return 0
+		fi
+		prefix="${SYNC_HOST}:"
+	fi
 	rsync -ah -v --stats --info=progress2 "${PROJECT_DIR}/${FINAL_APK}" "${prefix}${SYNC_DIR}/${STAMPED_APK}"
 	rsync -ah -v --stats --info=progress2 "${PROJECT_DIR}/${FINAL_APK}" "${prefix}${SYNC_DIR}/${FINAL_APK}"
 	# rsync -ah -v --stats --info=progress2 "${PROJECT_DIR}/${FINAL_DEBUG_APK}" "${prefix}${SYNC_DIR}/${FINAL_DEBUG_APK}"
