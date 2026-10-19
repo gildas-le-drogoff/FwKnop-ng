@@ -20,6 +20,23 @@ import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
 
 @Composable
+fun TypeSection(kind: ConfigKind, onChange: (ConfigKind) -> Unit) {
+    SectionCard(stringResource(R.string.section_type), kind.iconRes()) {
+        SingleChoiceSelector(
+            ConfigKind.entries,
+            kind,
+            onChange,
+            { stringResource(it.labelRes()) },
+        )
+        Text(
+            text = stringResource(kind.hintRes()),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
 fun GeneralSection(
     nickname: String,
     icon: ConfigIcon,
@@ -152,6 +169,12 @@ private fun SourceIpSectionPreview() {
 @Composable
 private fun SourceModeSectionPreview() {
     FwknopTheme { SourceIpSection(SourceIpDraft(SourceIpMode.SOURCE), {}) }
+}
+
+@AdaptivePreviews
+@Composable
+private fun TypeSectionPreview() {
+    FwknopTheme { TypeSection(ConfigKind.PORT_KNOCK, {}) }
 }
 
 @AdaptivePreviews

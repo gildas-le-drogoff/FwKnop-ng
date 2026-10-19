@@ -27,6 +27,7 @@ fun ConfigEditContent(state: ConfigEditState, onEvent: (ConfigEditEvent) -> Unit
         horizontalArrangement = Arrangement.spacedBy(dimens.sectionSpacing),
         verticalItemSpacing = dimens.sectionSpacing,
     ) {
+        item { TypeSection(draft.kind) { onEvent(ConfigEditEvent.KindChanged(it)) } }
         item {
             GeneralSection(
                 draft.nickname,

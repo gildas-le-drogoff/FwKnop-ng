@@ -21,6 +21,7 @@ data class ConfigEditState(
 @Immutable
 data class SealedQrPrompt(val wrongPassphrase: Boolean = false)
 sealed interface ConfigEditEvent {
+    data class KindChanged(val value: ConfigKind) : ConfigEditEvent
     data class NicknameChanged(val value: String) : ConfigEditEvent
     data class ServerChanged(val value: ServerDraft) : ConfigEditEvent
     data class AccessChanged(val value: AccessDraft) : ConfigEditEvent

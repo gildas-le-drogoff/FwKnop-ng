@@ -67,6 +67,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >The config and its keys will be removed from this device.</string
   >
   <string name="tag_launches_app">Launches app</string>
+  <string name="section_type">Type</string>
   <string name="section_general">General</string>
   <string name="section_appearance">Appearance</string>
   <string name="field_theme">Theme</string>

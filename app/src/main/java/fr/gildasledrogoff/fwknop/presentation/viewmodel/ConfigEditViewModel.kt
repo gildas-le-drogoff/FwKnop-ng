@@ -55,6 +55,7 @@ class ConfigEditViewModel @Inject constructor(
     fun intentSender(id: InteractionId): IntentSender? = interactions.intentSender(id)
     fun onEvent(event: ConfigEditEvent) {
         when (event) {
+            is ConfigEditEvent.KindChanged -> updateDraft { it.copy(kind = event.value) }
             is ConfigEditEvent.NicknameChanged -> updateDraft { it.copy(nickname = event.value) }
             is ConfigEditEvent.IconChanged -> updateDraft { it.copy(icon = event.value) }
             is ConfigEditEvent.ServerChanged -> updateDraft { it.copy(server = event.value) }
