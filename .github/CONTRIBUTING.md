@@ -196,8 +196,11 @@ time, the machine or the build path: timestamps, generated build IDs,
 `BuildConfig` fields filled at build time, stripping of native libraries, etc.
 
 The *Reproducible build* workflow builds the release APK twice from two
-different checkouts and compares them byte for byte. To check locally, build
-twice from two clones and compare:
+different checkouts and compares them byte for byte. After each release it also
+rebuilds the tag and checks it against the signed APK published on GitHub with
+[apksigcopier](https://github.com/obfusk/apksigcopier), as F-Droid does: F-Droid
+distributes that signed APK only if, signature aside, it is identical to its own
+build. To check locally, build twice from two clones and compare:
 
 ```sh
 ./gradlew clean assembleRelease
@@ -205,7 +208,15 @@ sha256sum app/build/outputs/apk/release/*.apk
 ```
 
 Without `keystore.properties` the release APK is **unsigned**, which is
-expected: F-Droid signs it with its own key.
+expected. To check a published release, build its tag from a fresh `git clone`
+(not a `git worktree`: AGP records the commit from the `.git` directory) and
+run:
+
+```sh
+gh release download vX.Y.Z --pattern 'FwKnop-ng-*.apk'
+apksigcopier compare FwKnop-ng-X.Y.Z.apk \
+  --unsigned app/build/outputs/apk/release/app-release-unsigned.apk
+```
 
 ## Screenshots, store texts and website
 
