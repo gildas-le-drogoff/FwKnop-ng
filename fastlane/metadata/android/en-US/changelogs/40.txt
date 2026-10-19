@@ -1,0 +1,5 @@
+• Wake-on-LAN: wake a machine on the local network or through a router, also from an NFC tag
+• Classic port knocking: knockd-style sequence of TCP/UDP ports
+• More robust public IP resolution: parallel STUN probes, cross-checked OpenDNS answers, queried third parties listed in the diagnostics
+• Any configuration can be written to an NFC tag; blank tags are recognized
+• Live theme preview in the settings
