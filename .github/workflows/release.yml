@@ -1,7 +1,7 @@
 name: Release
 
 # Pushing a v<versionName> tag publishes a permanent release named after the tag,
-# with fwknop-<versionName>.apk built from the tagged commit. F-Droid downloads
+# with FwKnop-ng-<versionName>.apk built from the tagged commit. F-Droid downloads
 # that APK (Binaries: in its metadata) and checks it against its own build of the
 # same tag, so a published release is never replaced or deleted.
 
@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # The tag must name the version being built: F-Droid maps v<versionName> to
-      # releases/download/v<versionName>/fwknop-<versionName>.apk.
+      # releases/download/v<versionName>/FwKnop-ng-<versionName>.apk.
       - name: Read version and check it matches the tag
         id: version
         run: |
@@ -100,7 +100,7 @@ jobs:
       - name: Collect artifacts and generate checksums
         run: |
           cd app/build/outputs/apk/release
-          mv app-release*.apk "fwknop-${{ steps.version.outputs.name }}.apk"
+          mv app-release*.apk "FwKnop-ng-${{ steps.version.outputs.name }}.apk"
           sha256sum -- *.apk > SHA256SUMS
           cat SHA256SUMS
 
