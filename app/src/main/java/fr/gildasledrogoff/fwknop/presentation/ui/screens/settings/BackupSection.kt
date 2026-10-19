@@ -38,6 +38,21 @@ fun BackupSection(state: BackupState, onEvent: (BackupEvent) -> Unit) {
                 enabled = !state.busy,
             ) { Text(stringResource(R.string.action_backup_import)) }
         }
+        Text(
+            text = stringResource(R.string.hint_fwknoprc),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        ButtonRow {
+            OutlinedButton(
+                onClick = { onEvent(BackupEvent.ExportFwknopRcRequested) },
+                enabled = !state.busy,
+            ) { Text(stringResource(R.string.action_fwknoprc_export)) }
+            OutlinedButton(
+                onClick = { onEvent(BackupEvent.ImportFwknopRcRequested) },
+                enabled = !state.busy,
+            ) { Text(stringResource(R.string.action_fwknoprc_import)) }
+        }
         if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
     }
 }

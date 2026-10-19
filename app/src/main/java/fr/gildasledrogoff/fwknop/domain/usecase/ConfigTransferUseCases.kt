@@ -82,3 +82,45 @@ class DuplicateConfigUseCase @Inject constructor(
             is DomainResult.Success -> add(found.data, nickname)
         }
 }
+
+data class FwknopRcImport(val configs: List<SpaConfig>, val rejected: List<String>)
+
+class ParseFwknopRcUseCase @Inject constructor(private val validate: ValidateConfigUseCase) {
+    operator fun invoke(text: String): FwknopRcImport {
+        val configs = mutableListOf<SpaConfig>()
+        val rejected = mutableListOf<String>()
+        parseFwknopRc(text).forEach { stanza ->
+            when (val result = validate(stanza.draft)) {
+                is DomainResult.Success -> configs += result.data
+                is DomainResult.Failure -> rejected += stanza.name
+            }
+        }
+        return FwknopRcImport(configs, rejected)
+    }
+}
+
+class ExportFwknopRcUseCase @Inject constructor(private val configs: ConfigRepository) {
+    suspend operator fun invoke(): DomainResult<FwknopRcExport, BackupError> =
+        configs.getAll().mapError { BackupError.Config(it) }.map { all ->
+            val spa = all.filter { it.kind == ConfigKind.FWKNOP }
+            FwknopRcExport(
+                text = spa.joinToString("\n", prefix = FWKNOPRC_HEADER) { it.toDraft().toFwknopRc() },
+                configCount = spa.size,
+            )
+        }
+
+    private companion object {
+        const val FWKNOPRC_HEADER = "# ~/.fwknoprc exported by FwKnop-ng: it holds the keys in clear.\n\n"
+    }
+}
+
+class FwknopRcExport(val text: String, val configCount: Int)
+
+data class FwknopServerBlocks(val nickname: String, val client: String, val server: String)
+
+class GetFwknopServerBlocksUseCase @Inject constructor(private val configs: ConfigRepository) {
+    suspend operator fun invoke(nickname: Nickname): DomainResult<FwknopServerBlocks, ConfigError> =
+        configs.getConfig(nickname).map { it.toDraft().toServerBlocks() }
+}
+
+fun ConfigDraft.toServerBlocks() = FwknopServerBlocks(nickname, toFwknopRc(), toAccessConf())

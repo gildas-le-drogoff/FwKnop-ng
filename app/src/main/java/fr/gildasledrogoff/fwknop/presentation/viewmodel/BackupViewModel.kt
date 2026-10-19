@@ -34,6 +34,8 @@ class BackupViewModel @Inject constructor(
     private val restoreBackup: RestoreBackupUseCase,
     private val addConfig: AddConfigUseCase,
     private val observeConfigs: ObserveConfigsUseCase,
+    private val exportFwknopRc: ExportFwknopRcUseCase,
+    private val readFwknopRc: ParseFwknopRcUseCase,
     private val documents: DocumentFiles,
     private val dispatchers: DispatcherProvider,
     private val clock: Clock,
@@ -60,6 +62,7 @@ class BackupViewModel @Inject constructor(
     private var pendingRestore: Backup? = null
     private val pendingImports = ArrayDeque<SpaConfig>()
     private var importedCount = 0
+    private var rejectedStanzas: List<String> = emptyList()
 
     init {
         if (pendingUri != null) proceed()
@@ -74,6 +77,8 @@ class BackupViewModel @Inject constructor(
             }
 
             BackupEvent.ImportRequested -> start(BackupMode.IMPORT)
+            BackupEvent.ExportFwknopRcRequested -> start(BackupMode.EXPORT_FWKNOPRC)
+            BackupEvent.ImportFwknopRcRequested -> start(BackupMode.IMPORT_FWKNOPRC)
             BackupEvent.RestoreConfirmed -> onRestoreConfirmed()
             is BackupEvent.ImportRenamed -> onImportRenamed(event.nickname)
             is BackupEvent.DocumentPicked -> onDocumentPicked(event.uri)
@@ -97,7 +102,8 @@ class BackupViewModel @Inject constructor(
                 "fwknop-${pendingNickname.orEmpty().toFileNamePart()}-$date.$EXTENSION"
             )
 
-            BackupMode.IMPORT -> BackupEffect.PickImportSource
+            BackupMode.EXPORT_FWKNOPRC -> BackupEffect.PickExportTarget(FWKNOPRC_FILE)
+            BackupMode.IMPORT, BackupMode.IMPORT_FWKNOPRC -> BackupEffect.PickImportSource
         }
         send(effect)
     }
@@ -114,6 +120,8 @@ class BackupViewModel @Inject constructor(
             BackupMode.EXPORT_ALL -> send(BackupEffect.Authenticate(AuthPurpose.EXPORT_BACKUP))
             BackupMode.EXPORT_CONFIG -> send(BackupEffect.Authenticate(AuthPurpose.EXPORT_CONFIG))
             BackupMode.IMPORT -> _state.update { it.copy(dialog = BackupDialog.Passphrase(BackupMode.IMPORT)) }
+            BackupMode.EXPORT_FWKNOPRC -> send(BackupEffect.Authenticate(AuthPurpose.EXPORT_BACKUP))
+            BackupMode.IMPORT_FWKNOPRC -> pendingUri?.let(::importFwknopRc)
             null -> finish()
         }
     }
@@ -122,6 +130,7 @@ class BackupViewModel @Inject constructor(
         val mode = pendingMode
         if (mode == null || !mode.isExport || pendingUri == null) return
         when {
+            result.allowsSensitiveAction && mode == BackupMode.EXPORT_FWKNOPRC -> writeFwknopRc(pendingUri ?: return)
             result.allowsSensitiveAction ->
                 _state.update { it.copy(dialog = BackupDialog.Passphrase(mode)) }
 
@@ -149,6 +158,7 @@ class BackupViewModel @Inject constructor(
                 }
 
                 BackupMode.IMPORT -> open(uri, passphrase)
+                BackupMode.EXPORT_FWKNOPRC, BackupMode.IMPORT_FWKNOPRC -> passphrase.wipe()
             }
             _state.update { it.copy(busy = false) }
         }
@@ -200,6 +210,50 @@ class BackupViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    private fun writeFwknopRc(uri: Uri) {
+        if (_state.value.busy) return
+        _state.update { it.copy(busy = true) }
+        viewModelScope.launch {
+            when (val result = exportFwknopRc()) {
+                is DomainResult.Failure -> abandon(result.error.toUiError())
+                is DomainResult.Success -> {
+                    val bytes = result.data.text.toByteArray(Charsets.UTF_8)
+                    val written = withContext(dispatchers.io) { documents.write(uri, bytes) }
+                    if (written) {
+                        finish()
+                        send(BackupEffect.Done(R.plurals.configs_exported, result.data.configCount))
+                    } else {
+                        abandon(UiError.Message(R.string.error_backup_write))
+                    }
+                }
+            }
+            _state.update { it.copy(busy = false) }
+        }
+    }
+
+    private fun importFwknopRc(uri: Uri) {
+        if (_state.value.busy) return
+        _state.update { it.copy(busy = true) }
+        viewModelScope.launch {
+            val file = withContext(dispatchers.io) { documents.read(uri, MAX_FILE_BYTES) }
+            finish()
+            val parsed = file?.let { readFwknopRc(it.toString(Charsets.UTF_8)) }
+            when {
+                parsed == null -> _state.update { it.copy(error = UiError.Message(R.string.error_backup_read)) }
+                parsed.configs.isEmpty() ->
+                    _state.update { it.copy(error = UiError.Message(R.string.error_fwknoprc_empty)) }
+
+                else -> {
+                    rejectedStanzas = parsed.rejected
+                    pendingImports.addAll(parsed.configs)
+                    importedCount = 0
+                    importNext()
+                }
+            }
+            _state.update { it.copy(busy = false) }
         }
     }
 
@@ -295,6 +349,11 @@ class BackupViewModel @Inject constructor(
         closeDialog()
         send(BackupEffect.Done(R.plurals.configs_imported, importedCount))
         importedCount = 0
+        if (rejectedStanzas.isNotEmpty()) {
+            val rejected = rejectedStanzas.joinToString(", ")
+            _state.update { it.copy(error = UiError.Detailed(R.string.error_fwknoprc_rejected, rejected)) }
+        }
+        rejectedStanzas = emptyList()
     }
 
     private fun onDialogDismissed() {
@@ -342,6 +401,7 @@ class BackupViewModel @Inject constructor(
         private const val KEY_MODE = "backup_mode"
         private const val KEY_URI = "backup_uri"
         private const val KEY_NICKNAME = "backup_nickname"
+        private const val FWKNOPRC_FILE = "fwknoprc"
         private fun String.toFileNamePart(): String =
             replace(Regex("[^A-Za-z0-9._-]+"), "_").trim('_').ifEmpty { "config" }
     }

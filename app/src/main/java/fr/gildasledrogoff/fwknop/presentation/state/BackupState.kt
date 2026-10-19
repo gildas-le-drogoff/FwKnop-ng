@@ -9,9 +9,9 @@ import androidx.annotation.PluralsRes
 import androidx.compose.runtime.Immutable
 
 enum class BackupMode {
-    EXPORT_ALL, EXPORT_CONFIG, IMPORT;
+    EXPORT_ALL, EXPORT_CONFIG, IMPORT, EXPORT_FWKNOPRC, IMPORT_FWKNOPRC;
 
-    val isExport: Boolean get() = this != IMPORT
+    val isExport: Boolean get() = this == EXPORT_ALL || this == EXPORT_CONFIG || this == EXPORT_FWKNOPRC
 }
 
 @Immutable
@@ -34,6 +34,8 @@ sealed interface BackupEvent {
     data object ExportAllRequested : BackupEvent
     data class ExportConfigRequested(val nickname: String) : BackupEvent
     data object ImportRequested : BackupEvent
+    data object ExportFwknopRcRequested : BackupEvent
+    data object ImportFwknopRcRequested : BackupEvent
     data object RestoreConfirmed : BackupEvent
     data class ImportRenamed(val nickname: String) : BackupEvent
     data class DocumentPicked(val uri: Uri?) : BackupEvent

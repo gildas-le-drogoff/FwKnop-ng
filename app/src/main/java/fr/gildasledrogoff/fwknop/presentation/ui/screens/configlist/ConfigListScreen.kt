@@ -60,6 +60,7 @@ fun ConfigListScreen(
     nfcEraseViewModel: NfcEraseViewModel = hiltViewModel(),
     securityViewModel: SecuritySettingsViewModel = hiltViewModel(),
     wakeViewModel: WakeOnLanViewModel = hiltViewModel(),
+    fwknopExportViewModel: FwknopExportViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val knockState by knockViewModel.state.collectAsStateWithLifecycle()
@@ -81,6 +82,7 @@ fun ConfigListScreen(
         nfcEraseViewModel.offer(NfcEraseReason.FWKNOP)
     }
     NfcKnockReader(state.nfcKnockEnabled, knockViewModel, nfcEraseViewModel)
+    FwknopExportHost(fwknopExportViewModel)
     WakeOnLanHost(wakeViewModel) { woken = it }
     BackupHost(backupViewModel, snackbarHostState)
     lastSent?.let { SentSnackbar(it, snackbarHostState) { lastSent = null } }
@@ -102,6 +104,7 @@ fun ConfigListScreen(
         onExportFile = { backupViewModel.onEvent(BackupEvent.ExportConfigRequested(it)) },
         onDelete = { viewModel.onEvent(ConfigListEvent.DeleteConfig(it)) },
         onWake = { wakeViewModel.onEvent(WakeOnLanEvent.Wake(it)) },
+        onFwknopExport = { fwknopExportViewModel.onEvent(FwknopExportEvent.Requested(it)) },
     )
     ConfigListScaffold(
         state = state,

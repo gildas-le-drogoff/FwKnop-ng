@@ -1123,6 +1123,24 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >Les knocks ne seront plus enregistrés et l\'historique existant sera
     supprimé.</string
   >
+  <string name="action_fwknop_export">Client et serveur fwknop</string>
+  <string name="fwknop_blocks_title">Config fwknop de %1$s</string>
+  <string name="fwknop_blocks_body"
+    >Les deux stanzas contiennent les clés en clair : ne les collez que là où elles
+    servent, et gardez-les privées.</string
+  >
+  <string name="fwknop_block_server">Serveur · access.conf</string>
+  <string name="fwknop_block_client">Client · ~/.fwknoprc</string>
+  <string name="fwknop_block_copied">Copié</string>
+  <string name="fwknop_block_server_hint"
+    >À ajouter dans /etc/fwknop/access.conf sur le serveur, puis redémarrez
+    fwknopd.</string
+  >
+  <string name="fwknop_block_client_hint"
+    >Facultatif : à ajouter dans ~/.fwknoprc sur un ordinateur pour toquer depuis
+    celui-ci aussi.</string
+  >
+  <string name="action_copy">Copier</string>
   <string name="field_icon">Icône</string>
   <string name="hint_icon">Affichée sur la carte de la config et sur son raccourci d\'écran d\'accueil.</string>
   <string name="action_choose_icon">choisir l\'icône</string>
@@ -1167,6 +1185,19 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="icon_speaker">Enceinte</string>
   <string name="icon_heating">Chauffage</string>
   <string name="icon_doorbell">Sonnette</string>
+  <string name="hint_fwknoprc"
+    >Le format du client fwknop : importez toutes les stanzas d\'un ~/.fwknoprc
+    d\'un coup, ou exportez-y vos configs. Le fichier exporté contient les clés en
+    clair.</string
+  >
+  <string name="action_fwknoprc_export">Exporter .fwknoprc</string>
+  <string name="action_fwknoprc_import">Importer .fwknoprc</string>
+  <string name="error_fwknoprc_empty"
+    >Aucune stanza utilisable dans ce fichier : chacune doit avoir SPA_SERVER.</string
+  >
+  <string name="error_fwknoprc_rejected"
+    >Ces stanzas n\'ont pas été importées, vérifiez-les dans le fichier : %1$s</string
+  >
   <string name="field_doh">DNS chiffré (DNS over HTTPS)</string>
   <string name="field_doh_hint"
     >Résout le nom du serveur en HTTPS avant le knock : le réseau ne le voit pas.

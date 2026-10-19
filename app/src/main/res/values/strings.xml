@@ -1003,6 +1003,22 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >Knocks will no longer be recorded and the existing history will be
     deleted.</string
   >
+  <string name="action_fwknop_export">fwknop client and server</string>
+  <string name="fwknop_blocks_title">fwknop config of %1$s</string>
+  <string name="fwknop_blocks_body"
+    >Both stanzas hold the keys in clear: only paste them where they are needed,
+    and keep them private.</string
+  >
+  <string name="fwknop_block_server">Server · access.conf</string>
+  <string name="fwknop_block_client">Client · ~/.fwknoprc</string>
+  <string name="fwknop_block_copied">Copied</string>
+  <string name="fwknop_block_server_hint"
+    >Append to /etc/fwknop/access.conf on the server, then restart fwknopd.</string
+  >
+  <string name="fwknop_block_client_hint"
+    >Optional: append to ~/.fwknoprc on a computer to knock from it too.</string
+  >
+  <string name="action_copy">Copy</string>
   <string name="field_icon">Icon</string>
   <string name="hint_icon">Shown on the config card and on its home screen shortcut.</string>
   <string name="action_choose_icon">choose the icon</string>
@@ -1047,6 +1063,18 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="icon_speaker">Speaker</string>
   <string name="icon_heating">Heating</string>
   <string name="icon_doorbell">Doorbell</string>
+  <string name="hint_fwknoprc"
+    >The fwknop client format: import every stanza of a ~/.fwknoprc at once, or
+    export your configs to it. The exported file holds the keys in clear.</string
+  >
+  <string name="action_fwknoprc_export">Export .fwknoprc</string>
+  <string name="action_fwknoprc_import">Import .fwknoprc</string>
+  <string name="error_fwknoprc_empty"
+    >No usable stanza in this file: each needs SPA_SERVER.</string
+  >
+  <string name="error_fwknoprc_rejected"
+    >These stanzas were not imported, check them in the file: %1$s</string
+  >
   <string name="field_doh">Encrypted DNS (DNS over HTTPS)</string>
   <string name="field_doh_hint"
     >Resolves the server name over HTTPS before knocking, so the network does not

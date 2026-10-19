@@ -43,6 +43,7 @@ data class ConfigCardActions(
     val onDelete: (String) -> Unit,
     val onDiagnose: (String) -> Unit = {},
     val onWake: (String) -> Unit = {},
+    val onFwknopExport: (String) -> Unit = {},
 )
 
 enum class KnockVisual { IDLE, SENDING, SENT }
@@ -323,6 +324,12 @@ private fun ConfigCardMenu(nickname: String, kind: ConfigKind, actions: ConfigCa
                 R.string.action_export_file,
                 R.drawable.ic_download_rounded
             ) { close(); actions.onExportFile(nickname) }
+            if (kind == ConfigKind.FWKNOP) {
+                MenuItem(
+                    R.string.action_fwknop_export,
+                    R.drawable.ic_code_rounded
+                ) { close(); actions.onFwknopExport(nickname) }
+            }
             if (nfcAvailable) {
                 MenuItem(
                     R.string.action_write_nfc,
