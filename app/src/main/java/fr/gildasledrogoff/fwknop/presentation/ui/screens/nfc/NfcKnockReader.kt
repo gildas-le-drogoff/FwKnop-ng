@@ -29,9 +29,6 @@ fun NfcKnockReader(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val knockOnTag by rememberUpdatedState(enabled)
-    // Reader mode stays on while busy and busy-time tags are ignored: Android reports a tag only
-    // once while it stays in the field, so toggling reader mode would read a resting tag again
-    // (a second knock, or a just-erased tag offered for erasing again) and drop its connection.
     NfcReaderMode(enabled = enabled || erase != NfcEraseState.Idle) { tag ->
         when (eraseViewModel.state.value) {
             is NfcEraseState.Waiting -> eraseViewModel.onTagDiscovered(tag)

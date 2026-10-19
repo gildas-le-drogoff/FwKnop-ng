@@ -4,7 +4,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <resources>
   <string name="app_name" translatable="false">FwKnop-ng</string>
-  <!-- Titles -->
   <string name="title_new_fwknop">New fwknop config</string>
   <string name="title_new_port_knock">New port knocking config</string>
   <string name="title_new_wake_on_lan">New Wake-on-LAN config</string>
@@ -12,7 +11,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="title_help">Help</string>
   <string name="title_nfc_write">Write NFC tag</string>
   <string name="title_qr_export">Export QR code</string>
-  <!-- Common actions -->
   <string name="ok">OK</string>
   <string name="cancel">Cancel</string>
   <string name="knock">Knock</string>
@@ -59,7 +57,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="action_show_secret">Show secret</string>
   <string name="action_hide_secret">Hide secret</string>
   <string name="action_close_port">Stop re-knocking</string>
-  <!-- Config list -->
   <string name="empty_title">No configs yet</string>
   <string name="empty_body"
     >Create a config with your fwknopd server address and keys, then tap Knock
@@ -70,7 +67,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >The config and its keys will be removed from this device.</string
   >
   <string name="tag_launches_app">Launches app</string>
-  <!-- Config sections and fields -->
   <string name="section_general">General</string>
   <string name="section_appearance">Appearance</string>
   <string name="field_theme">Theme</string>
@@ -189,7 +185,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="app_ssh_uri">SSH URI</string>
   <string name="app_openvpn">OpenVPN for Android</string>
   <string name="app_wireguard">WireGuard</string>
-  <!-- Settings -->
   <string name="field_ip_lookup_url"
     >HTTPS address used to find our public IP</string
   >
@@ -222,7 +217,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >One tag can open several machines: you choose which one when it is scanned.
     Turn off to leave this config alone on the tag.</string
   >
-  <!-- Knock -->
   <string name="knock_key_prompt_title">Key for %1$s</string>
   <string name="knock_ip_prompt_title">Source IP for %1$s</string>
   <string name="knock_sending_title">Knocking %1$s</string>
@@ -236,14 +230,12 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="port_check_reachable">%1$s: port reachable</string>
   <string name="port_check_closed">%1$s: still closed (%2$s)</string>
   <string name="knock_choose_title">Which machine to open?</string>
-  <!-- Notifications -->
   <string name="notification_channel">Firewall timeouts</string>
   <string name="notification_title">FwKnop-ng: %1$s</string>
   <string name="notification_port_open">Port open, closing in</string>
   <string name="notification_keep_open"
     >Port kept open, next knock before</string
   >
-  <!-- NFC -->
   <string name="nfc_waiting_title">Tap a tag</string>
   <string name="nfc_waiting_body"
     >Hold an NFC tag against the back of the device to store “%1$s”. Only a
@@ -346,7 +338,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >The tag can be written, but won\'t knock until the app lock is enabled. It
     holds no secret and only works with this app unlocked.</string
   >
-  <!-- QR export -->
   <string name="qr_export_warning"
     >This QR code contains the whole config, keys included. Share it only
     through a trusted channel.</string
@@ -412,14 +403,12 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   >
   <string name="error_backup_read">Could not read the backup file.</string>
   <string name="error_backup_write">Could not write the backup file.</string>
-  <!-- Authentication -->
   <string name="auth_title_unlock">Unlock FwKnop-ng</string>
   <string name="auth_title_qr">Show keys as a QR code</string>
   <string name="auth_title_lock">Change the app lock</string>
   <string name="auth_title_rotate">Rotate encryption keys</string>
   <string name="auth_subtitle">Confirm it\'s you</string>
   <string name="auth_use_credential">Use PIN, pattern or password</string>
-  <!-- App lock -->
   <string name="lock_title">FwKnop-ng is locked</string>
   <string name="lock_body"
     >Your configs and keys are encrypted. Unlock with your fingerprint, face or
@@ -544,7 +533,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     <item quantity="one">%1$d config imported.</item>
     <item quantity="other">%1$d configs imported.</item>
   </plurals>
-  <!-- Errors -->
   <string name="error_title">Error</string>
   <string name="error_config_not_found">This config no longer exists.</string>
   <string name="error_nickname_blank">You must choose a nickname.</string>
@@ -884,7 +872,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="diagnostic_failure"
     >The knock stopped at the step marked as failed.</string
   >
-  <!-- Accessibility (TalkBack) -->
   <string name="a11y_loading_configs">Loading configurations</string>
   <string name="a11y_edit_config">edit</string>
   <string name="a11y_tag_protocol">Protocol %1$s</string>
@@ -901,7 +888,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="a11y_qr_generating">Generating the QR code</string>
   <string name="a11y_remove_network">Remove %1$s</string>
   <string name="a11y_add_network">Add this network</string>
-  <!-- Automatic knock on leaving a trusted Wi-Fi network -->
   <string name="section_auto_knock">Automatic knock (advanced)</string>
   <string name="field_auto_knock"
     >Knock when leaving a trusted Wi-Fi network</string

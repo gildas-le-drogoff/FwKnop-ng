@@ -4,7 +4,6 @@ SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
 SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <resources>
-  <!-- Titles -->
   <string name="title_new_fwknop">Nouvelle configuration fwknop</string>
   <string name="title_new_port_knock"
     >Nouvelle configuration port knocking</string
@@ -16,7 +15,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="title_help">Aide</string>
   <string name="title_nfc_write">Écriture sur un tag NFC</string>
   <string name="title_qr_export">Export du code QR</string>
-  <!-- Common actions -->
   <string name="ok">OK</string>
   <string name="cancel">Annuler</string>
   <string name="knock">Knock</string>
@@ -69,7 +67,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="action_show_secret">Afficher le secret</string>
   <string name="action_hide_secret">Masquer le secret</string>
   <string name="action_close_port">Arrêter les re-knocks</string>
-  <!-- Config list -->
   <string name="empty_title">Aucune configuration</string>
   <string name="empty_body"
     >Créez une configuration avec l\'adresse de votre serveur fwknopd et vos
@@ -80,7 +77,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >La configuration et ses clés seront supprimées de cet appareil.</string
   >
   <string name="tag_launches_app">Lance une appli</string>
-  <!-- Config sections and fields -->
   <string name="section_general">Général</string>
   <string name="section_appearance">Apparence</string>
   <string name="field_theme">Thème</string>
@@ -200,7 +196,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="app_ssh_uri">URI SSH</string>
   <string name="app_openvpn">OpenVPN for Android</string>
   <string name="app_wireguard">WireGuard</string>
-  <!-- Settings -->
   <string name="field_ip_lookup_url"
     >Adresse HTTPS utilisée pour trouver notre IP publique</string
   >
@@ -234,7 +229,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     à la lecture. Désactivez pour ne laisser que cette configuration sur le
     tag.</string
   >
-  <!-- Knock -->
   <string name="knock_key_prompt_title">Clé pour %1$s</string>
   <string name="knock_ip_prompt_title">IP source pour %1$s</string>
   <string name="knock_sending_title">Knock en cours vers %1$s</string>
@@ -249,14 +243,12 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="port_check_reachable">%1$s\u00A0: port joignable</string>
   <string name="port_check_closed">%1$s\u00A0: toujours fermé (%2$s)</string>
   <string name="knock_choose_title">Quelle machine ouvrir\u00A0?</string>
-  <!-- Notifications -->
   <string name="notification_channel">Délais du pare-feu</string>
   <string name="notification_title">FwKnop-ng\u00A0: %1$s</string>
   <string name="notification_port_open">Port ouvert, fermeture dans</string>
   <string name="notification_keep_open"
     >Port maintenu ouvert, prochain knock avant</string
   >
-  <!-- NFC -->
   <string name="nfc_waiting_title">Présentez un tag</string>
   <string name="nfc_waiting_body"
     >Approchez un tag NFC du dos de l\'appareil pour y enregistrer
@@ -369,7 +361,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     pas activé. Il ne contient aucun secret et ne sert qu\'avec cette
     application déverrouillée.</string
   >
-  <!-- QR export -->
   <string name="qr_export_warning"
     >Ce code QR contient toute la configuration, clés incluses. Ne le partagez
     que par un canal de confiance.</string
@@ -445,7 +436,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="error_backup_write"
     >Impossible d\'écrire le fichier de sauvegarde.</string
   >
-  <!-- Authentification -->
   <string name="auth_title_unlock">Déverrouiller FwKnop-ng</string>
   <string name="auth_title_qr">Afficher les clés en QR code</string>
   <string name="auth_title_lock">Modifier le verrouillage</string>
@@ -454,7 +444,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="auth_use_credential"
     >Utiliser le code, schéma ou mot de passe</string
   >
-  <!-- Verrouillage -->
   <string name="lock_title">FwKnop-ng est verrouillé</string>
   <string name="lock_body"
     >Vos configurations et clés sont chiffrées. Déverrouillez avec votre
@@ -606,7 +595,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     <item quantity="many">%1$d configurations importées.</item>
     <item quantity="other">%1$d configurations importées.</item>
   </plurals>
-  <!-- Errors -->
   <string name="error_title">Erreur</string>
   <string name="error_config_not_found"
     >Cette configuration n\'existe plus.</string
@@ -984,7 +972,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="diagnostic_failure"
     >Le knock s\'est arrêté à l\'étape en échec.</string
   >
-  <!-- Accessibilité (TalkBack) -->
   <string name="a11y_loading_configs">Chargement des configurations</string>
   <string name="a11y_edit_config">modifier</string>
   <string name="a11y_tag_protocol">Protocole %1$s</string>
@@ -1001,7 +988,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="a11y_qr_generating">Génération du code QR</string>
   <string name="a11y_remove_network">Retirer %1$s</string>
   <string name="a11y_add_network">Ajouter ce réseau</string>
-  <!-- Knock automatique en quittant un Wi-Fi de confiance -->
   <string name="section_auto_knock">Knock automatique (avancé)</string>
   <string name="field_auto_knock"
     >Knock en quittant un Wi-Fi de confiance</string

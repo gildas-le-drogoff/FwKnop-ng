@@ -10,9 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   xmlns:tools="http://schemas.android.com/tools"
 >
   <uses-permission android:name="android.permission.INTERNET" />
-  <!-- Detects an active VPN and finds the physical network underneath it. -->
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-  <!-- Android 17+: required to reach fwknopd servers on the local network (otherwise EPERM). -->
   <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
   <uses-permission android:name="android.permission.CAMERA" />
   <uses-permission android:name="android.permission.NFC" />
@@ -21,8 +19,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <uses-permission
     android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"
   />
-  <!-- Optional automatic knock (off by default): Android only discloses the Wi-Fi network name
-         to apps allowed to use the location, in the background with "Allow all the time". -->
   <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -40,7 +36,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     android:required="false"
   />
   <uses-feature android:name="android.hardware.nfc" android:required="false" />
-  <!-- Package visibility (API 30+): apps we detect, bind to or launch. -->
   <queries>
     <package android:name="org.sufficientlysecure.keychain" />
     <package android:name="de.blinkt.openvpn" />
@@ -73,7 +68,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
-    <!-- zxing-android-embedded declares sensorLandscape; follow the device orientation instead. -->
     <activity
       android:name="com.journeyapps.barcodescanner.CaptureActivity"
       tools:remove="android:screenOrientation"

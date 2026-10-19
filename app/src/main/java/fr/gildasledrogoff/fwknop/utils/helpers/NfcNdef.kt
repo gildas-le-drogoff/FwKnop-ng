@@ -43,7 +43,6 @@ object FwknopNdef {
 
     fun read(tag: Tag): FwknopTagContent {
         val ndef = Ndef.get(tag)
-        // An erased tag keeps a single TNF_EMPTY record: it holds nothing.
         val all = ndef?.cachedNdefMessage?.records.orEmpty().filterNot { it.tnf == NdefRecord.TNF_EMPTY }
         val records = all.filter(::isFwknopRecord)
         val digests = records.mapNotNull(::digest)

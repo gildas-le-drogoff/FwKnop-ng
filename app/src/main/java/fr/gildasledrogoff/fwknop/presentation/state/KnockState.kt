@@ -64,7 +64,6 @@ sealed interface KnockEffect {
 
     data class PortChecked(val nickname: String, val check: PortCheck) : KnockEffect
 
-    /** An NFC tag picked a Wake-on-LAN config: sent by the Wake-on-LAN flow, not as a knock. */
     data class Wake(val nickname: String) : KnockEffect
     data class LaunchApp(val app: ExternalApp, val nickname: String) : KnockEffect
     data class LaunchInteraction(val id: InteractionId) : KnockEffect

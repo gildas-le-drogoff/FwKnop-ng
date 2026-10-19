@@ -14,7 +14,6 @@
  * limitations under the License.
  */package org.openintents.openpgp;
 
-// Method order fixes the binder transaction codes (1, 2): it must match OpenKeychain's service.
 interface IOpenPgpService2 {
     ParcelFileDescriptor createOutputPipe(in int pipeId);
 

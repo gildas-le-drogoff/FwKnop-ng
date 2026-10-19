@@ -33,10 +33,8 @@ val dynamicColorSupported: Boolean
 @Immutable
 data class Appearance(val mode: ThemeMode, val dynamicColor: Boolean)
 
-/** Overrides the saved appearance while set; `null` restores it. */
 val LocalAppearancePreview = staticCompositionLocalOf<(Appearance?) -> Unit> { {} }
 
-/** Shows [appearance] app-wide while this is composed, without persisting it. */
 @Composable
 fun PreviewAppearance(appearance: Appearance) {
     val setPreview = LocalAppearancePreview.current
