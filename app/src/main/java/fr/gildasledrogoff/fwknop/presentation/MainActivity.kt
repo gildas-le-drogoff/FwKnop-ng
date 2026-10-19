@@ -12,15 +12,18 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import fr.gildasledrogoff.fwknop.domain.model.ThemeMode
 import fr.gildasledrogoff.fwknop.domain.model.VaultState
 import fr.gildasledrogoff.fwknop.domain.usecase.ObserveSettingsUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ObserveVaultStatusUseCase
@@ -28,7 +31,9 @@ import fr.gildasledrogoff.fwknop.presentation.service.AutoLock
 import fr.gildasledrogoff.fwknop.presentation.ui.navigation.FwknopNavHost
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.lock.LockGate
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.lock.LockScreenContent
+import fr.gildasledrogoff.fwknop.presentation.ui.theme.Appearance
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
+import fr.gildasledrogoff.fwknop.presentation.ui.theme.LocalAppearancePreview
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.isDark
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.LockGateViewModel
 import fr.gildasledrogoff.fwknop.utils.helpers.RuntimePermissions
@@ -59,15 +64,19 @@ class MainActivity : FragmentActivity() {
         val appearance = observeSettings().map { Appearance(it.themeMode, it.dynamicColor) }
             .distinctUntilChanged()
         setContent {
-            val current by appearance.collectAsStateWithLifecycle(initialValue = null)
-            current?.let { (mode, dynamicColor) ->
+            val saved by appearance.collectAsStateWithLifecycle(initialValue = null)
+            var preview by remember { mutableStateOf<Appearance?>(null) }
+            val setPreview = remember { { value: Appearance? -> preview = value } }
+            (preview ?: saved)?.let { (mode, dynamicColor) ->
                 val dark = mode.isDark()
                 SystemBarsStyle(dark)
-                FwknopTheme(darkTheme = dark, dynamicColor = dynamicColor) {
-                    LockGate(
-                        gate,
-                        locked = { state, actions -> LockScreenContent(state, actions) }) {
-                        FwknopNavHost()
+                CompositionLocalProvider(LocalAppearancePreview provides setPreview) {
+                    FwknopTheme(darkTheme = dark, dynamicColor = dynamicColor) {
+                        LockGate(
+                            gate,
+                            locked = { state, actions -> LockScreenContent(state, actions) }) {
+                            FwknopNavHost()
+                        }
                     }
                 }
             }
@@ -115,7 +124,6 @@ class MainActivity : FragmentActivity() {
         overridePendingTransition(0, 0)
     }
 
-    private data class Appearance(val mode: ThemeMode, val dynamicColor: Boolean)
     private companion object {
         val LIGHT_SCRIM = Color.argb(0xE6, 0xFF, 0xFF, 0xFF)
         val DARK_SCRIM = Color.argb(0x80, 0x1B, 0x1B, 0x1B)

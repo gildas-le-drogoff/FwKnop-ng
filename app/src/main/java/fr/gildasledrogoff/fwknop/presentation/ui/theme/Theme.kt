@@ -10,7 +10,10 @@ import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -26,6 +29,20 @@ object DimensTheme {
 val LocalDarkTheme = staticCompositionLocalOf { false }
 val dynamicColorSupported: Boolean
     get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
+@Immutable
+data class Appearance(val mode: ThemeMode, val dynamicColor: Boolean)
+
+/** Overrides the saved appearance while set; `null` restores it. */
+val LocalAppearancePreview = staticCompositionLocalOf<(Appearance?) -> Unit> { {} }
+
+/** Shows [appearance] app-wide while this is composed, without persisting it. */
+@Composable
+fun PreviewAppearance(appearance: Appearance) {
+    val setPreview = LocalAppearancePreview.current
+    SideEffect { setPreview(appearance) }
+    DisposableEffect(setPreview) { onDispose { setPreview(null) } }
+}
 
 @Composable
 @ReadOnlyComposable

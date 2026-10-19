@@ -15,28 +15,23 @@ OUT="${1:-${ROOT}/_site}"
 REPO_URL="https://github.com/gildas-le-drogoff/FwKnop-ng"
 
 escape() { sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'; }
-linkify() { sed -E 's#(https://[^ <]+[^ <.,;:])#<a href="\1">\1</a>#g'; }
 
-# full_description.txt -> HTML: blank-line separated paragraphs, "• " lines as a list.
+# full_description.txt is already an HTML fragment (the same subset F-Droid
+# renders: <b>, <ul>, <li>, <a>, …), so it must not be escaped. Plain lines
+# become paragraphs; block-level list markup is emitted as-is.
 description_html() {
-	local in_list=false line
+	local line
 	while IFS= read -r line || [ -n "$line" ]; do
-		if [[ $line == "• "* ]]; then
-			$in_list || {
-				echo "<ul>"
-				in_list=true
-			}
-			echo "<li>${line#• }</li>"
-		else
-			$in_list && {
-				echo "</ul>"
-				in_list=false
-			}
-			[ -n "$line" ] && echo "<p>${line}</p>"
-		fi
-	done < <(escape < "$1" | linkify)
-	$in_list && echo "</ul>"
-	return 0
+		case "$line" in
+		"") ;;
+		"<ul>" | "</ul>" | "<ol>" | "</ol>" | "<li>"* | "</li>" | "<p>"* | "</p>")
+			printf '%s\n' "$line"
+			;;
+		*)
+			printf '<p>%s</p>\n' "$line"
+			;;
+		esac
+	done < "$1"
 }
 
 # $1 fastlane locale, $2 html lang, $3 output subdir ("" = root), $4 asset prefix,

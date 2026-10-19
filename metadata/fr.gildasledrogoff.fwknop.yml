@@ -3,7 +3,7 @@ Categories:
   - Security
 License: AGPL-3.0-or-later
 AuthorName: Gildas Le Drogoff
-AuthorWebSite: https://github.com/gildas-le-drogoff/FwKnop-ng/
+AuthorWebSite: https://gildas.le-drogoff.fr/
 WebSite: https://github.com/gildas-le-drogoff/FwKnop-ng/
 SourceCode: https://github.com/gildas-le-drogoff/FwKnop-ng
 IssueTracker: https://github.com/gildas-le-drogoff/FwKnop-ng/issues
@@ -18,17 +18,16 @@ Binaries:
   https://github.com/gildas-le-drogoff/FwKnop-ng/releases/download/v%v/FwKnop-ng-%v.apk
 
 Builds:
-  - versionName: 2.1.0
-    versionCode: 38
-    commit: 7293d0ae66a3be8f6e161775f7f5defcea86f0a4
+  - versionName: 2.1.2
+    versionCode: 40
+    commit: 74d5b3adc245b527a275ab8b01d2622a685140e2
     subdir: app
     gradle:
       - yes
 
-AllowedAPKSigningKeys:
-  7066ac35e46752fd523b945724c9b9e5184d4793fba407933e83c1f776d0beec
+AllowedAPKSigningKeys: 7066ac35e46752fd523b945724c9b9e5184d4793fba407933e83c1f776d0beec
 
 AutoUpdateMode: Version
-UpdateCheckMode: Tags
-CurrentVersion: 2.1.0
-CurrentVersionCode: 38
+UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
+CurrentVersion: 2.1.2
+CurrentVersionCode: 40

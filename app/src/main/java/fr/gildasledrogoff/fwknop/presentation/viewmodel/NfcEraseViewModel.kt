@@ -30,6 +30,9 @@ class NfcEraseViewModel @Inject constructor(
     private val _state = MutableStateFlow<NfcEraseState>(NfcEraseState.Idle)
     val state: StateFlow<NfcEraseState> = _state.asStateFlow()
     private val erasing = AtomicBoolean(false)
+
+    // Latest handle Android gave us: it only reports a tag again once it has left the field.
+    @Volatile
     private var readTag: Tag? = null
     fun onTagRead(tag: Tag) {
         readTag = tag
@@ -51,6 +54,7 @@ class NfcEraseViewModel @Inject constructor(
     }
 
     fun onTagDiscovered(tag: Tag) {
+        readTag = tag
         val waiting = _state.value as? NfcEraseState.Waiting ?: return
         if (!erasing.compareAndSet(false, true)) return
         viewModelScope.launch {
@@ -62,6 +66,11 @@ class NfcEraseViewModel @Inject constructor(
                 }
             } finally {
                 erasing.set(false)
+            }
+            // The tag was re-detected while this attempt ran on a stale handle: retry with it.
+            val latest = readTag
+            if (result == NfcWriteResult.LOST && latest != null && latest !== tag) {
+                return@launch onTagDiscovered(latest)
             }
             _state.value = when (result) {
                 NfcWriteResult.WRITTEN -> NfcEraseState.Erased

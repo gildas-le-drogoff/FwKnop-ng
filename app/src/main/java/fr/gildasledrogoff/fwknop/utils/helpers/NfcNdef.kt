@@ -13,6 +13,7 @@ import java.io.IOException
 import javax.inject.Inject
 
 sealed interface FwknopTagContent {
+    data object Empty : FwknopTagContent
     data object Foreign : FwknopTagContent
     data object Legacy : FwknopTagContent
     data object Unsupported : FwknopTagContent
@@ -42,13 +43,16 @@ object FwknopNdef {
 
     fun read(tag: Tag): FwknopTagContent {
         val ndef = Ndef.get(tag)
-        val records = ndef?.cachedNdefMessage?.records.orEmpty().filter(::isFwknopRecord)
+        // An erased tag keeps a single TNF_EMPTY record: it holds nothing.
+        val all = ndef?.cachedNdefMessage?.records.orEmpty().filterNot { it.tnf == NdefRecord.TNF_EMPTY }
+        val records = all.filter(::isFwknopRecord)
         val digests = records.mapNotNull(::digest)
         val rewritable = ndef?.isWritable ?: (NdefFormatable.get(tag) != null)
         return when {
             digests.isNotEmpty() -> FwknopTagContent.Found(digests)
             !rewritable -> FwknopTagContent.Unsupported
             records.isNotEmpty() && records.all(::isLegacyRecord) -> FwknopTagContent.Legacy
+            all.isEmpty() -> FwknopTagContent.Empty
             else -> FwknopTagContent.Foreign
         }
     }

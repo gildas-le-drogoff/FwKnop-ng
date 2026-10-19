@@ -76,7 +76,7 @@ fun ConfigListScreen(
         lastSent = it
         justSent = it
         haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-    }, onPortChecked = { portChecked = it }) {
+    }, onPortChecked = { portChecked = it }, onWake = { wakeViewModel.onEvent(WakeOnLanEvent.Wake(it)) }) {
         knockViewModel.onEvent(KnockEvent.Cancel)
         nfcEraseViewModel.offer(NfcEraseReason.FWKNOP)
     }

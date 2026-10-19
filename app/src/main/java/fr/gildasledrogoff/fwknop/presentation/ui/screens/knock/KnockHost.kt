@@ -21,6 +21,7 @@ fun KnockHost(
     onSent: (KnockEffect.Sent) -> Unit,
     onPortChecked: (KnockEffect.PortChecked) -> Unit = {},
     onAborted: () -> Unit = {},
+    onWake: (nickname: String) -> Unit = {},
     onEraseTag: (() -> Unit)? = null,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -40,6 +41,7 @@ fun KnockHost(
 
             is KnockEffect.Sent -> onSent(effect)
             is KnockEffect.PortChecked -> onPortChecked(effect)
+            is KnockEffect.Wake -> onWake(effect.nickname)
             KnockEffect.Aborted -> onAborted()
         }
     }

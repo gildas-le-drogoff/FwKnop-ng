@@ -322,7 +322,7 @@ private fun ConfigCardMenu(nickname: String, kind: ConfigKind, actions: ConfigCa
                 R.string.action_export_file,
                 R.drawable.ic_download_rounded
             ) { close(); actions.onExportFile(nickname) }
-            if (knocks && nfcAvailable) {
+            if (nfcAvailable) {
                 MenuItem(
                     R.string.action_write_nfc,
                     R.drawable.ic_nfc_rounded

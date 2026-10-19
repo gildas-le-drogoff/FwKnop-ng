@@ -126,6 +126,11 @@ class KnockViewModel @Inject constructor(
     }
 
     private fun start(config: SpaConfig) {
+        if (config.kind == ConfigKind.WAKE_ON_LAN) {
+            _state.value = KnockState.Idle
+            viewModelScope.launch { _effects.send(KnockEffect.Wake(config.nickname.value)) }
+            return
+        }
         request = KnockRequest(config)
         pendingPrompts.clear()
         pendingPrompts.addAll(requiredPrompts(config))

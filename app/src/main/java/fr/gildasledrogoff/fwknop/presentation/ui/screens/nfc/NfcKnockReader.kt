@@ -24,16 +24,28 @@ fun NfcKnockReader(
     knockViewModel: KnockViewModel,
     eraseViewModel: NfcEraseViewModel
 ) {
-    val knock by knockViewModel.state.collectAsStateWithLifecycle()
     val erase by eraseViewModel.state.collectAsStateWithLifecycle()
     var unsupported by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val idle = knock == KnockState.Idle && erase == NfcEraseState.Idle && !unsupported
-    NfcReaderMode(enabled = erase is NfcEraseState.Waiting || enabled && idle) { tag ->
-        if (eraseViewModel.state.value is NfcEraseState.Waiting) {
-            eraseViewModel.onTagDiscovered(tag)
-        } else {
-            scope.launch { if (onTagRead(tag, knockViewModel, eraseViewModel)) unsupported = true }
+    val knockOnTag by rememberUpdatedState(enabled)
+    // Reader mode stays on while busy and busy-time tags are ignored: Android reports a tag only
+    // once while it stays in the field, so toggling reader mode would read a resting tag again
+    // (a second knock, or a just-erased tag offered for erasing again) and drop its connection.
+    NfcReaderMode(enabled = enabled || erase != NfcEraseState.Idle) { tag ->
+        when (eraseViewModel.state.value) {
+            is NfcEraseState.Waiting -> eraseViewModel.onTagDiscovered(tag)
+            is NfcEraseState.Confirm -> eraseViewModel.onTagRead(tag)
+            else -> scope.launch {
+                if (!knockOnTag || unsupported) return@launch
+                when (onTagRead(tag, knockViewModel, eraseViewModel)) {
+                    FwknopTagContent.Unsupported -> unsupported = true
+                    FwknopTagContent.Empty ->
+                        Toast.makeText(context, R.string.nfc_read_blank, Toast.LENGTH_LONG).show()
+
+                    else -> Unit
+                }
+            }
         }
     }
     NfcEraseContent(erase, eraseViewModel)
@@ -46,18 +58,19 @@ private fun onTagRead(
     tag: Tag,
     knockViewModel: KnockViewModel,
     eraseViewModel: NfcEraseViewModel
-): Boolean {
+): FwknopTagContent? {
     if (knockViewModel.state.value != KnockState.Idle || eraseViewModel.state.value != NfcEraseState.Idle) {
-        return false
+        return null
     }
     eraseViewModel.onTagRead(tag)
-    when (val content = FwknopNdef.read(tag)) {
+    val content = FwknopNdef.read(tag)
+    when (content) {
         is FwknopTagContent.Found -> knockViewModel.onEvent(KnockEvent.KnockFromNfc(content.digests))
         FwknopTagContent.Legacy -> eraseViewModel.offer(NfcEraseReason.LEGACY)
         FwknopTagContent.Foreign -> eraseViewModel.offer(NfcEraseReason.FOREIGN)
-        FwknopTagContent.Unsupported -> return true
+        FwknopTagContent.Empty, FwknopTagContent.Unsupported -> Unit
     }
-    return false
+    return content
 }
 
 @Composable

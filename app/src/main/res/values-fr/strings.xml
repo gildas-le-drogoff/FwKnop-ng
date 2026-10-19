@@ -324,7 +324,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   >
   <string name="nfc_foreign_title">Tag non reconnu</string>
   <string name="nfc_foreign_body"
-    >Ce tag est vierge ou sans configuration fwknop — il sert peut-être à autre
+    >Ce tag ne contient aucune configuration fwknop — il sert peut-être à autre
     chose (badge, carte de transport…). L\'effacer supprime définitivement tout
     son contenu\u00A0: n\'effacez qu\'un tag qui vous appartient.</string
   >
@@ -334,6 +334,10 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     verrouillé…). Il n\'a pas été modifié.</string
   >
   <string name="nfc_erased">Tag effacé</string>
+  <string name="nfc_read_blank"
+    >Tag vierge\u00A0: écrivez-y une configuration depuis le menu ⋮ d\'une
+    machine, Écrire sur un tag NFC.</string
+  >
   <string name="nfc_disabled_title">NFC désactivé</string>
   <string name="nfc_disabled_body"
     >Activez le NFC dans les paramètres du système pour écrire ce tag. Les tags

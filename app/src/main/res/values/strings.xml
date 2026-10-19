@@ -306,15 +306,19 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   >
   <string name="nfc_foreign_title">Unrecognized tag</string>
   <string name="nfc_foreign_body"
-    >This tag is blank or holds no fwknop config — it may serve another purpose
-    (badge, transit card…). Erasing it deletes all its content for good: only
-    erase a tag you own.</string
+    >This tag holds no fwknop config — it may serve another purpose (badge,
+    transit card…). Erasing it deletes all its content for good: only erase a
+    tag you own.</string
   >
   <string name="nfc_read_unsupported"
     >This NFC tag holds no fwknop config and cannot be rewritten by the app
     (payment or transit card, locked tag…). It was left untouched.</string
   >
   <string name="nfc_erased">Tag erased</string>
+  <string name="nfc_read_blank"
+    >Blank tag: write a config to it from a machine\'s ⋮ menu, Write to NFC
+    tag.</string
+  >
   <string name="nfc_disabled_title">NFC is off</string>
   <string name="nfc_disabled_body"
     >Turn NFC on in the system settings to write this tag. Tags are only read

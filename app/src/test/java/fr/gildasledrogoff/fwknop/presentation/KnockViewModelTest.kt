@@ -281,6 +281,20 @@ class KnockViewModelTest {
         assertThat(transport.sent).hasSize(1)
     }
     @Test
+    fun `nfc tag of a wake-on-lan config hands it to the wake flow instead of knocking`() = runTest {
+        settings.state.value = AppSettings(nfcKnockEnabled = true)
+        val pc = sampleConfig("pc").copy(wakeOnLan = WakeOnLan(MacAddress.parse("aa:bb:cc:dd:ee:ff")!!, null, 9))
+        val vm = viewModel(pc)
+        vm.effects.test {
+            vm.scan("pc")
+            assertThat(awaitItem()).isEqualTo(KnockEffect.Authenticate)
+            vm.onEvent(KnockEvent.ConfigChosen("pc"))
+            assertThat(awaitItem()).isEqualTo(KnockEffect.Wake("pc"))
+        }
+        assertThat(vm.state.value).isEqualTo(KnockState.Idle)
+        assertThat(transport.sent).isEmpty()
+    }
+    @Test
     fun `cancelling the config choice aborts`() = runTest {
         settings.state.value = AppSettings(nfcKnockEnabled = true)
         val vm = viewModel(sampleConfig("office"), sampleConfig("home"))

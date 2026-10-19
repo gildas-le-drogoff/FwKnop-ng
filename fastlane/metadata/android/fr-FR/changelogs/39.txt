@@ -1,0 +1,7 @@
+• Knock automatique en quittant un Wi-Fi de confiance (avancé, désactivé par défaut)
+• Test d'une configuration, étape par étape
+• Vérification optionnelle des ports ouverts après le knock
+• Délai réglable avant l'ouverture de SSH, OpenVPN ou WireGuard
+• Maintien ouvert : nouveau knock automatique après un changement de réseau
+• Historique local des knocks (conservé 30 jours par défaut)
+• Meilleure prise en charge de TalkBack et des grandes polices

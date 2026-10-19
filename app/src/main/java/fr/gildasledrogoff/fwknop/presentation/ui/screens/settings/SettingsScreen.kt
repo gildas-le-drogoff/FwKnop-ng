@@ -28,8 +28,10 @@ import fr.gildasledrogoff.fwknop.domain.model.VpnRouting
 import fr.gildasledrogoff.fwknop.presentation.state.*
 import fr.gildasledrogoff.fwknop.presentation.ui.components.*
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.backup.BackupHost
+import fr.gildasledrogoff.fwknop.presentation.ui.theme.Appearance
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.DimensTheme
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.FwknopTheme
+import fr.gildasledrogoff.fwknop.presentation.ui.theme.PreviewAppearance
 import fr.gildasledrogoff.fwknop.presentation.ui.theme.dynamicColorSupported
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.BackupViewModel
 import fr.gildasledrogoff.fwknop.presentation.viewmodel.SecuritySettingsViewModel
@@ -48,6 +50,8 @@ fun SettingsScreen(
     val backup by backupViewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     CollectEffects(viewModel.effects) { if (it == SettingsEffect.Saved) onBack() }
+    // Leaving without saving disposes the preview, which restores the saved theme.
+    if (!state.isLoading) PreviewAppearance(Appearance(state.form.themeMode, state.form.dynamicColor))
     SecurityHost(securityViewModel, snackbarHostState)
     BackupHost(backupViewModel, snackbarHostState) { viewModel.onEvent(SettingsEvent.Reload) }
     SettingsScaffold(state, snackbarHostState, onBack) {

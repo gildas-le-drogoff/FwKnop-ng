@@ -1,0 +1,7 @@
+• Automatic knock when leaving a trusted Wi-Fi network (advanced, off by default)
+• Configuration test, step by step
+• Optional check of the opened ports after the knock
+• Adjustable delay before opening SSH, OpenVPN or WireGuard
+• Keep open: automatic re-knock after a network change
+• Local knock history (kept 30 days by default)
+• Accessibility: better TalkBack and large font support
