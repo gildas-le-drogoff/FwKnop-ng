@@ -1003,10 +1003,30 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >Knocks will no longer be recorded and the existing history will be
     deleted.</string
   >
+  <string name="tile_label">Knock</string>
+  <string name="tile_choose_favorite">Pick a favorite config in the app</string>
+  <string name="widget_label">Knock</string>
+  <string name="widget_description"
+    >One button per config, with the last knock and how long the port stays open</string
+  >
+  <string name="widget_empty">No config yet: open FwKnop-ng to add one.</string>
+  <string name="quick_open_until">Open until %1$s</string>
+  <string name="quick_last_sent">Sent %1$s</string>
+  <string name="quick_last_failed">Failed %1$s</string>
+  <string name="quick_knock_failed"
+    >Knock failed: %1$s Tap to knock from the app.</string
+  >
+  <string name="notification_knocking">Sending the knock…</string>
   <string name="notification_keep_open_details"
     >Port kept open: re-knocked automatically before %1$s. Extend re-knocks right away.</string
   >
   <string name="action_extend_port">Extend</string>
+  <string name="shortcut_knock">Knock %1$s</string>
+  <string name="shortcut_config_deleted">This config no longer exists</string>
+  <string name="action_set_favorite">Set as favorite</string>
+  <string name="action_unset_favorite">Remove from favorites</string>
+  <string name="a11y_favorite">favorite</string>
+  <string name="action_pin_shortcut">Add to home screen</string>
   <string name="action_fwknop_export">fwknop client and server</string>
   <string name="fwknop_blocks_title">fwknop config of %1$s</string>
   <string name="fwknop_blocks_body"

@@ -17,7 +17,7 @@ class ScheduleKnockTimerUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(outcome: KnockOutcome): KnockTimerOutcome {
         if (!settings.settings.first().notificationsEnabled) return KnockTimerOutcome.NONE
-        val plan = planFor(outcome.request) ?: return KnockTimerOutcome.NONE
+        val plan = outcome.request.timerPlan() ?: return KnockTimerOutcome.NONE
         return when {
             !scheduler.canNotify() ->
                 if (plan is KnockTimerPlan.KeepOpen) KnockTimerOutcome.NOTIFICATIONS_BLOCKED else KnockTimerOutcome.NONE
@@ -35,19 +35,19 @@ class ScheduleKnockTimerUseCase @Inject constructor(
         scheduler.schedule(KnockTimerPlan.Countdown(request.config.nickname, keepOpen.seconds))
         return KnockTimerOutcome.KEEP_OPEN_UNAVAILABLE
     }
+}
 
-    private fun planFor(request: KnockRequest): KnockTimerPlan? {
-        val access = request.config.access.portAccess ?: return null
-        val seconds = access.timeoutSeconds ?: return null
+fun KnockRequest.timerPlan(): KnockTimerPlan? {
+    val access = config.access.portAccess ?: return null
+    val seconds = access.timeoutSeconds ?: return null
 
-        val unattended =
-            request.config.method != KnockMethod.Spa || request.config.crypto.encryption is Encryption.Rijndael
-        val canReknock = access.keepOpen && unattended
-        return if (canReknock) {
-            KnockTimerPlan.KeepOpen(request, seconds)
-        } else {
-            KnockTimerPlan.Countdown(request.config.nickname, seconds)
-        }
+    val unattended =
+        config.method != KnockMethod.Spa || config.crypto.encryption is Encryption.Rijndael
+    val canReknock = access.keepOpen && unattended
+    return if (canReknock) {
+        KnockTimerPlan.KeepOpen(this, seconds)
+    } else {
+        KnockTimerPlan.Countdown(config.nickname, seconds)
     }
 }
 

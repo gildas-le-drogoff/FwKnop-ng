@@ -248,3 +248,22 @@ class FakeKnockHistoryRepository : KnockHistoryRepository {
     }
     override suspend fun clear() = recorded.clear()
 }
+class FakeQuickAccessRepository(initial: QuickAccessCatalog = QuickAccessCatalog()) : QuickAccessRepository {
+    val state = MutableStateFlow(initial)
+    var clears = 0
+        private set
+    override val catalog: Flow<QuickAccessCatalog> = state
+    override suspend fun syncEntries(entries: List<QuickAccessEntry>) {
+        state.value = state.value.copy(entries = entries)
+    }
+    override suspend fun setFavorite(nickname: String?) {
+        state.value = state.value.copy(favorite = nickname)
+    }
+    override suspend fun recordKnock(nickname: String, sent: Boolean, atMillis: Long) {
+        state.value = state.value.copy(lastKnocks = state.value.lastKnocks + (nickname to LastKnock(atMillis, sent)))
+    }
+    override suspend fun clear() {
+        clears++
+        state.value = QuickAccessCatalog()
+    }
+}

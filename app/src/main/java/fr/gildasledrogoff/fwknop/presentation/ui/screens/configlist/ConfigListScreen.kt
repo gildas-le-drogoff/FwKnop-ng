@@ -63,6 +63,7 @@ fun ConfigListScreen(
     fwknopExportViewModel: FwknopExportViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val pendingKnock by viewModel.pendingKnock.collectAsStateWithLifecycle()
     val knockState by knockViewModel.state.collectAsStateWithLifecycle()
     val wakeState by wakeViewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -83,6 +84,11 @@ fun ConfigListScreen(
     }
     NfcKnockReader(state.nfcKnockEnabled, knockViewModel, nfcEraseViewModel)
     FwknopExportHost(fwknopExportViewModel)
+    LaunchedEffect(pendingKnock) {
+        if (pendingKnock != null) {
+            viewModel.consumePendingKnock()?.let { knockViewModel.onEvent(KnockEvent.Knock(it)) }
+        }
+    }
     WakeOnLanHost(wakeViewModel) { woken = it }
     BackupHost(backupViewModel, snackbarHostState)
     lastSent?.let { SentSnackbar(it, snackbarHostState) { lastSent = null } }
@@ -104,6 +110,12 @@ fun ConfigListScreen(
         onExportFile = { backupViewModel.onEvent(BackupEvent.ExportConfigRequested(it)) },
         onDelete = { viewModel.onEvent(ConfigListEvent.DeleteConfig(it)) },
         onWake = { wakeViewModel.onEvent(WakeOnLanEvent.Wake(it)) },
+        onToggleFavorite = { viewModel.onEvent(ConfigListEvent.ToggleFavorite(it)) },
+        onPinShortcut = if (viewModel.canPinShortcuts) {
+            { viewModel.onEvent(ConfigListEvent.PinShortcut(it)) }
+        } else {
+            null
+        },
         onFwknopExport = { fwknopExportViewModel.onEvent(FwknopExportEvent.Requested(it)) },
     )
     ConfigListScaffold(

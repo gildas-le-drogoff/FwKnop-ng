@@ -16,6 +16,7 @@ data class ConfigSummary(
     val accessDetail: String,
     val launchesApp: Boolean,
     val kind: ConfigKind = ConfigKind.FWKNOP,
+    val favorite: Boolean = false,
     val icon: ConfigIcon = ConfigIcon.APP,
 )
 
@@ -32,6 +33,8 @@ data class ConfigListState(
 sealed interface ConfigListEvent {
     data class DeleteConfig(val nickname: String) : ConfigListEvent
     data class DuplicateConfig(val source: String, val nickname: String) : ConfigListEvent
+    data class ToggleFavorite(val nickname: String) : ConfigListEvent
+    data class PinShortcut(val nickname: String) : ConfigListEvent
     data object DismissLockSuggestion : ConfigListEvent
     data object DismissError : ConfigListEvent
 }

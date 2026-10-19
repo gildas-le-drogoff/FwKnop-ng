@@ -148,6 +148,7 @@ dependencies {
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.profileinstaller)
     baselineProfile(project(":baselineprofile"))
 

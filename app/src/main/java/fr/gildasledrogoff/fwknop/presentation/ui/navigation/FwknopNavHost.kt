@@ -10,6 +10,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,9 +26,15 @@ import fr.gildasledrogoff.fwknop.presentation.ui.screens.history.KnockHistoryScr
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.nfc.NfcWriteScreen
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.qrexport.QrExportScreen
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.settings.SettingsScreen
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
-fun FwknopNavHost(navController: NavHostController = rememberNavController()) {
+fun FwknopNavHost(
+    pendingKnock: StateFlow<String?>,
+    navController: NavHostController = rememberNavController(),
+) {
+    val knock by pendingKnock.collectAsStateWithLifecycle()
+    LaunchedEffect(knock) { if (knock != null) navController.popBackStack(ConfigListRoute, inclusive = false) }
     NavHost(
         navController = navController,
         startDestination = ConfigListRoute,

@@ -54,5 +54,5 @@ interface VaultModule {
     fun bindNfcTagRepository(impl: NfcTagRepositoryImpl): NfcTagRepository
 
     @Binds
-    fun bindKnockHistoryRepository(impl: KnockHistoryRepositoryImpl): KnockHistoryRepository
+    fun bindKnockHistoryRepository(impl: RecordingKnockHistory): KnockHistoryRepository
 }

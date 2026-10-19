@@ -27,6 +27,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import fr.gildasledrogoff.fwknop.domain.model.VaultState
 import fr.gildasledrogoff.fwknop.domain.usecase.ObserveSettingsUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ObserveVaultStatusUseCase
+import fr.gildasledrogoff.fwknop.presentation.quickaccess.KnockShortcuts
+import fr.gildasledrogoff.fwknop.presentation.quickaccess.PendingKnocks
+import fr.gildasledrogoff.fwknop.presentation.quickaccess.QuickKnockIntents
 import fr.gildasledrogoff.fwknop.presentation.service.AutoLock
 import fr.gildasledrogoff.fwknop.presentation.ui.navigation.FwknopNavHost
 import fr.gildasledrogoff.fwknop.presentation.ui.screens.lock.LockGate
@@ -55,12 +58,19 @@ class MainActivity : FragmentActivity() {
 
     @Inject
     lateinit var observeSettings: ObserveSettingsUseCase
+
+    @Inject
+    lateinit var pendingKnocks: PendingKnocks
+
+    @Inject
+    lateinit var shortcuts: KnockShortcuts
     private val gate: LockGateViewModel by viewModels()
     private var sawUnlocked = false
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         autoLock.lockIfExpired()
+        if (savedInstanceState == null) offerKnock(intent)
         val appearance = observeSettings().map { Appearance(it.themeMode, it.dynamicColor) }
             .distinctUntilChanged()
         setContent {
@@ -75,7 +85,7 @@ class MainActivity : FragmentActivity() {
                         LockGate(
                             gate,
                             locked = { state, actions -> LockScreenContent(state, actions) }) {
-                            FwknopNavHost()
+                            FwknopNavHost(pendingKnock = pendingKnocks.nickname)
                         }
                     }
                 }
@@ -84,6 +94,17 @@ class MainActivity : FragmentActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) { observeVault().collect { onVaultState(it.state) } }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        offerKnock(intent)
+    }
+
+    private fun offerKnock(intent: Intent?) {
+        val nickname = QuickKnockIntents.nicknameOf(intent) ?: return
+        shortcuts.reportUsed(nickname)
+        pendingKnocks.offer(nickname)
     }
 
     override fun onStart() {

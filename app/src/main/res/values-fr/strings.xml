@@ -1123,11 +1123,31 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >Les knocks ne seront plus enregistrés et l\'historique existant sera
     supprimé.</string
   >
+  <string name="tile_label">Knock</string>
+  <string name="tile_choose_favorite">Choisissez une config favorite dans l\'appli</string>
+  <string name="widget_label">Knock</string>
+  <string name="widget_description"
+    >Un bouton par config, avec le dernier knock et le temps d\'ouverture restant</string
+  >
+  <string name="widget_empty">Aucune config : ouvrez FwKnop-ng pour en ajouter une.</string>
+  <string name="quick_open_until">Ouvert jusqu\'à %1$s</string>
+  <string name="quick_last_sent">Envoyé %1$s</string>
+  <string name="quick_last_failed">Échec %1$s</string>
+  <string name="quick_knock_failed"
+    >Échec du knock : %1$s Touchez pour le lancer depuis l\'appli.</string
+  >
+  <string name="notification_knocking">Envoi du knock…</string>
   <string name="notification_keep_open_details"
     >Port maintenu ouvert : nouveau knock automatique avant %1$s. « Prolonger » le
     renvoie tout de suite.</string
   >
   <string name="action_extend_port">Prolonger</string>
+  <string name="shortcut_knock">Knock %1$s</string>
+  <string name="shortcut_config_deleted">Cette config n\'existe plus</string>
+  <string name="action_set_favorite">Définir comme favorite</string>
+  <string name="action_unset_favorite">Retirer des favoris</string>
+  <string name="a11y_favorite">favorite</string>
+  <string name="action_pin_shortcut">Ajouter à l\'écran d\'accueil</string>
   <string name="action_fwknop_export">Client et serveur fwknop</string>
   <string name="fwknop_blocks_title">Config fwknop de %1$s</string>
   <string name="fwknop_blocks_body"

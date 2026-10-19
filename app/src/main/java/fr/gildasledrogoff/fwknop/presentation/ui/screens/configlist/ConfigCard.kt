@@ -43,6 +43,8 @@ data class ConfigCardActions(
     val onDelete: (String) -> Unit,
     val onDiagnose: (String) -> Unit = {},
     val onWake: (String) -> Unit = {},
+    val onToggleFavorite: (String) -> Unit = {},
+    val onPinShortcut: ((String) -> Unit)? = null,
     val onFwknopExport: (String) -> Unit = {},
 )
 
@@ -119,14 +121,28 @@ private fun ConfigCardHeader(
                 .weight(1f)
                 .padding(horizontal = DimensTheme.dimens.itemSpacing),
         ) {
-            Text(
-                text = summary.nickname,
-                style = MaterialTheme.typography.titleLarge,
-                maxLines = scaledMaxLines(1),
-                overflow = TextOverflow.Ellipsis,
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = summary.nickname,
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = scaledMaxLines(1),
+                    overflow = TextOverflow.Ellipsis,
 
-                modifier = Modifier.semantics { heading() },
-            )
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .semantics { heading() },
+                )
+                if (summary.favorite) {
+                    FwknopIcon(
+                        R.drawable.ic_star_rounded_fill,
+                        stringResource(R.string.a11y_favorite),
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .size(18.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
             Text(
                 text = summary.endpoint,
                 style = MaterialTheme.typography.bodyMedium,
@@ -135,7 +151,7 @@ private fun ConfigCardHeader(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        ConfigCardMenu(summary.nickname, summary.kind, actions)
+        ConfigCardMenu(summary, actions)
     }
 }
 
@@ -291,7 +307,9 @@ private fun Modifier.knockRipples(status: KnockVisual, color: Color): Modifier {
 }
 
 @Composable
-private fun ConfigCardMenu(nickname: String, kind: ConfigKind, actions: ConfigCardActions) {
+private fun ConfigCardMenu(summary: ConfigSummary, actions: ConfigCardActions) {
+    val nickname = summary.nickname
+    val kind = summary.kind
     var expanded by remember { mutableStateOf(false) }
     val nfcAvailable = rememberNfcAvailable()
 
@@ -329,6 +347,16 @@ private fun ConfigCardMenu(nickname: String, kind: ConfigKind, actions: ConfigCa
                     R.string.action_fwknop_export,
                     R.drawable.ic_code_rounded
                 ) { close(); actions.onFwknopExport(nickname) }
+            }
+            MenuItem(
+                if (summary.favorite) R.string.action_unset_favorite else R.string.action_set_favorite,
+                R.drawable.ic_star_rounded_fill
+            ) { close(); actions.onToggleFavorite(nickname) }
+            actions.onPinShortcut?.let { pin ->
+                MenuItem(
+                    R.string.action_pin_shortcut,
+                    R.drawable.ic_open_in_new_rounded
+                ) { close(); pin(nickname) }
             }
             if (nfcAvailable) {
                 MenuItem(

@@ -4,6 +4,7 @@
 
 package fr.gildasledrogoff.fwknop.presentation.service
 
+import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -11,6 +12,7 @@ import android.content.pm.ServiceInfo
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -19,9 +21,16 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
+import fr.gildasledrogoff.fwknop.domain.model.KnockOutcome
 import fr.gildasledrogoff.fwknop.domain.model.KnockRequest
+import fr.gildasledrogoff.fwknop.domain.model.KnockTimerPlan
+import fr.gildasledrogoff.fwknop.domain.model.Nickname
+import fr.gildasledrogoff.fwknop.domain.usecase.AutoKnockUseCase
+import fr.gildasledrogoff.fwknop.domain.usecase.PlanUnattendedTimerUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.SendKnockUseCase
+import fr.gildasledrogoff.fwknop.presentation.quickaccess.OpenPortTracker
 import fr.gildasledrogoff.fwknop.utils.helpers.DebugLog
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -37,8 +46,19 @@ class KeepOpenService : LifecycleService() {
 
     @Inject
     lateinit var sendKnock: SendKnockUseCase
+
+    @Inject
+    lateinit var unattendedKnock: AutoKnockUseCase
+
+    @Inject
+    lateinit var planTimer: PlanUnattendedTimerUseCase
+
+    @Inject
+    lateinit var openPorts: OpenPortTracker
     private val jobs = mutableMapOf<Int, Job>()
     private val schedules = mutableMapOf<Int, ReknockSchedule>()
+    private val foregroundNotifications = linkedMapOf<Int, Notification>()
+    private val quickKnocks = linkedMapOf<String, Job>()
     private var networkSettle: Job? = null
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
     override fun onCreate() {
@@ -48,6 +68,10 @@ class KeepOpenService : LifecycleService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+        if (intent?.action == ACTION_QUICK_KNOCK) {
+            intent.getStringExtra(EXTRA_NICKNAME)?.let(::quickKnock) ?: stopSessionIfIdle()
+            return START_NOT_STICKY
+        }
         val sessionId = intent?.getIntExtra(EXTRA_SESSION, 0) ?: 0
         val request = sessions.get(sessionId)
         when {
@@ -59,15 +83,43 @@ class KeepOpenService : LifecycleService() {
         return START_NOT_STICKY
     }
 
-    private fun startSession(sessionId: Int, request: KnockRequest, seconds: Int) {
-        val notification =
-            notifications.keepOpen(request.config.nickname.value, seconds, actions(sessionId))
-        val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-        } else {
-            0
+    private fun quickKnock(nickname: String) {
+        ServiceCompat.startForeground(this, QUICK_KNOCK_ID, notifications.knocking(nickname), foregroundType())
+        if (quickKnocks[nickname]?.isActive == true) return
+        val job = lifecycleScope.launch(start = CoroutineStart.LAZY) {
+            when (val result = unattendedKnock(Nickname(nickname))) {
+                is DomainResult.Success -> onQuickKnockSent(result.data)
+                is DomainResult.Failure -> {
+                    DebugLog.event("quick knock failed: ${result.error::class.simpleName}")
+                    notifications.quickKnockFailed(nickname, result.error)
+                }
+            }
+            quickKnocks.remove(nickname)
+            stopSessionIfIdle()
         }
-        ServiceCompat.startForeground(this, sessionId, notification, type)
+        quickKnocks[nickname] = job
+        job.start()
+    }
+
+    private suspend fun onQuickKnockSent(outcome: KnockOutcome) {
+        val nickname = outcome.request.config.nickname.value
+        when (val plan = planTimer(outcome.request)) {
+            is KnockTimerPlan.KeepOpen -> startSession(sessions.put(plan.request), plan.request, plan.seconds)
+            is KnockTimerPlan.Countdown -> {
+                notifications.showCountdown(nickname, plan.seconds)
+                openPorts.opened(nickname, plan.seconds, keptOpen = false)
+            }
+
+            null -> notifications.quickKnockSent(nickname)
+        }
+    }
+
+    private fun startSession(sessionId: Int, request: KnockRequest, seconds: Int) {
+        val nickname = request.config.nickname.value
+        val notification = notifications.keepOpen(nickname, seconds, actions(sessionId))
+        foregroundNotifications[sessionId] = notification
+        ServiceCompat.startForeground(this, sessionId, notification, foregroundType())
+        openPorts.opened(nickname, seconds, keptOpen = true)
         jobs[sessionId]?.cancel()
         val schedule = ReknockSchedule(
             intervalMs = (seconds - REKNOCK_MARGIN_S).coerceAtLeast(MIN_INTERVAL_S) * MILLIS,
@@ -93,10 +145,10 @@ class KeepOpenService : LifecycleService() {
                 }
 
                 is DomainResult.Success -> {
-                    notifications.notify(
-                        sessionId,
-                        notifications.keepOpen(nickname, seconds, actions(sessionId))
-                    )
+                    val notification = notifications.keepOpen(nickname, seconds, actions(sessionId))
+                    foregroundNotifications[sessionId] = notification
+                    notifications.notify(sessionId, notification)
+                    openPorts.opened(nickname, seconds, keptOpen = true)
                     true
                 }
             }
@@ -149,15 +201,31 @@ class KeepOpenService : LifecycleService() {
     private fun stopSession(sessionId: Int) {
         jobs.remove(sessionId)?.cancel()
         schedules.remove(sessionId)
-        sessions.remove(sessionId)
-        notifications.cancel(sessionId)
+        foregroundNotifications.remove(sessionId)
+        sessions.remove(sessionId)?.let { openPorts.closed(it.config.nickname.value) }
         stopSessionIfIdle()
+        notifications.cancel(sessionId)
     }
 
     private fun stopSessionIfIdle() {
-        if (jobs.isNotEmpty()) return
-        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
-        stopSelf()
+        val knocking = quickKnocks.keys.lastOrNull()
+        val session = foregroundNotifications.entries.lastOrNull()
+        when {
+            knocking != null -> ServiceCompat.startForeground(
+                this, QUICK_KNOCK_ID, notifications.knocking(knocking), foregroundType(),
+            )
+
+            session != null -> {
+                ServiceCompat.startForeground(this, session.key, session.value, foregroundType())
+                notifications.cancel(QUICK_KNOCK_ID)
+            }
+
+            else -> {
+                ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+                notifications.cancel(QUICK_KNOCK_ID)
+                stopSelf()
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -167,9 +235,11 @@ class KeepOpenService : LifecycleService() {
             )
         }
         networkCallback = null
-        jobs.keys.forEach(sessions::remove)
+        jobs.keys.forEach { id -> sessions.remove(id)?.let { openPorts.closed(it.config.nickname.value) } }
         jobs.clear()
         schedules.clear()
+        foregroundNotifications.clear()
+        quickKnocks.clear()
         super.onDestroy()
     }
 
@@ -186,11 +256,21 @@ class KeepOpenService : LifecycleService() {
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 
+    private fun foregroundType(): Int =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+        } else {
+            0
+        }
+
     companion object {
         private const val ACTION_STOP = "fr.gildasledrogoff.fwknop.action.STOP_KEEP_OPEN"
         private const val ACTION_EXTEND = "fr.gildasledrogoff.fwknop.action.EXTEND_KEEP_OPEN"
+        private const val ACTION_QUICK_KNOCK = "fr.gildasledrogoff.fwknop.action.QUICK_KNOCK"
         private const val EXTRA_SESSION = "session"
         private const val EXTRA_SECONDS = "seconds"
+        private const val EXTRA_NICKNAME = "nickname"
+        private const val QUICK_KNOCK_ID = 0x0B0C
         private const val REKNOCK_MARGIN_S = 10L
         private const val MIN_INTERVAL_S = 5L
         private const val MILLIS = 1_000L
@@ -200,6 +280,12 @@ class KeepOpenService : LifecycleService() {
             Intent(context, KeepOpenService::class.java)
                 .putExtra(EXTRA_SESSION, sessionId)
                 .putExtra(EXTRA_SECONDS, seconds)
+
+        fun quickKnockIntent(context: Context, nickname: String): Intent =
+            Intent(context, KeepOpenService::class.java)
+                .setAction(ACTION_QUICK_KNOCK)
+                .putExtra(EXTRA_NICKNAME, nickname)
+                .setData(Uri.fromParts("fwknop", nickname, null))
     }
 }
 

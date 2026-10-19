@@ -7,6 +7,7 @@ package fr.gildasledrogoff.fwknop.domain.usecase
 import fr.gildasledrogoff.fwknop.domain.error.VaultError
 import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.model.VaultStatus
+import fr.gildasledrogoff.fwknop.domain.repository.QuickAccessRepository
 import fr.gildasledrogoff.fwknop.domain.repository.VaultRepository
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -34,8 +35,14 @@ class CanEnableAppLockUseCase @Inject constructor(private val vault: VaultReposi
     operator fun invoke(): Boolean = vault.isDeviceSecure()
 }
 
-class ResetVaultUseCase @Inject constructor(private val vault: VaultRepository) {
-    suspend operator fun invoke(): DomainResult<Unit, VaultError> = vault.reset()
+class ResetVaultUseCase @Inject constructor(
+    private val vault: VaultRepository,
+    private val quickAccess: QuickAccessRepository,
+) {
+    suspend operator fun invoke(): DomainResult<Unit, VaultError> {
+        quickAccess.clear()
+        return vault.reset()
+    }
 }
 
 class RotateVaultKeysUseCase @Inject constructor(private val vault: VaultRepository) {

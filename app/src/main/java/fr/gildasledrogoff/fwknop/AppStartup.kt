@@ -7,6 +7,7 @@ package fr.gildasledrogoff.fwknop
 import androidx.lifecycle.ProcessLifecycleOwner
 import fr.gildasledrogoff.fwknop.di.ApplicationScope
 import fr.gildasledrogoff.fwknop.domain.usecase.KnockHistoryPurger
+import fr.gildasledrogoff.fwknop.presentation.quickaccess.QuickAccessSync
 import fr.gildasledrogoff.fwknop.presentation.service.AutoKnockController
 import fr.gildasledrogoff.fwknop.presentation.service.AutoLock
 import fr.gildasledrogoff.fwknop.utils.dispatcher.DispatcherProvider
@@ -22,11 +23,13 @@ class AppStartup @Inject constructor(
     private val autoLock: AutoLock,
     private val knockHistoryPurger: KnockHistoryPurger,
     private val autoKnock: AutoKnockController,
+    private val quickAccess: QuickAccessSync,
 ) {
     fun run() {
         scope.launch(dispatchers.io) { qrShareCache.clear() }
         autoLock.register(ProcessLifecycleOwner.get().lifecycle)
         knockHistoryPurger.start(scope)
         autoKnock.register()
+        quickAccess.register()
     }
 }

@@ -10,6 +10,7 @@ import fr.gildasledrogoff.fwknop.domain.model.DomainResult
 import fr.gildasledrogoff.fwknop.domain.usecase.ObserveVaultStatusUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.ResetVaultUseCase
 import fr.gildasledrogoff.fwknop.domain.usecase.UnlockVaultUseCase
+import fr.gildasledrogoff.fwknop.fakes.FakeQuickAccessRepository
 import fr.gildasledrogoff.fwknop.fakes.FakeVaultRepository
 import fr.gildasledrogoff.fwknop.presentation.state.AuthResult
 import fr.gildasledrogoff.fwknop.presentation.state.LockGateEffect
@@ -32,7 +33,7 @@ class LockGateViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
     private fun gate(vault: FakeVaultRepository) =
-        LockGateViewModel(ObserveVaultStatusUseCase(vault), UnlockVaultUseCase(vault), ResetVaultUseCase(vault))
+        LockGateViewModel(ObserveVaultStatusUseCase(vault), UnlockVaultUseCase(vault), ResetVaultUseCase(vault, FakeQuickAccessRepository()))
     @Test
     fun `without the lock the vault opens without prompting`() = runTest {
         val vault = FakeVaultRepository(lockEnabled = false)

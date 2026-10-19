@@ -68,6 +68,11 @@ SPDX-License-Identifier: AGPL-3.0-or-later
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
+    <activity-alias
+      android:name=".presentation.KnockShortcut"
+      android:exported="false"
+      android:targetActivity=".presentation.MainActivity"
+    />
     <activity
       android:name="com.journeyapps.barcodescanner.CaptureActivity"
       tools:remove="android:screenOrientation"
@@ -79,7 +84,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >
       <property
         android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-        android:value="Keeps a firewall port open by re-sending fwknop SPA packets before the rule expires."
+        android:value="Sends an fwknop SPA packet asked from the Quick Settings tile or the home screen widget, then keeps the firewall port open by re-sending it before the rule expires."
       />
     </service>
     <service
@@ -92,6 +97,30 @@ SPDX-License-Identifier: AGPL-3.0-or-later
         android:value="Optional, off by default: sends an fwknop SPA packet when the device leaves a Wi-Fi network the user marked as trusted."
       />
     </service>
+    <service
+      android:name=".presentation.quickaccess.KnockTileService"
+      android:exported="true"
+      android:icon="@drawable/ic_shield_rounded_fill"
+      android:label="@string/tile_label"
+      android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+    >
+      <intent-filter>
+        <action android:name="android.service.quicksettings.action.QS_TILE" />
+      </intent-filter>
+    </service>
+    <receiver
+      android:name=".presentation.widget.KnockWidgetReceiver"
+      android:exported="true"
+      android:label="@string/widget_label"
+    >
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      </intent-filter>
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/knock_widget_info"
+      />
+    </receiver>
     <receiver
       android:name=".presentation.service.AutoKnockBootReceiver"
       android:exported="false"

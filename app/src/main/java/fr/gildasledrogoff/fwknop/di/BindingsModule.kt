@@ -70,5 +70,8 @@ interface BindingsModule {
     fun bindNetworkPath(impl: AndroidNetworkPath): NetworkPath
 
     @Binds
+    fun bindQuickAccessRepository(impl: QuickAccessRepositoryImpl): QuickAccessRepository
+
+    @Binds
     fun bindRuntimePermissions(impl: AndroidRuntimePermissions): RuntimePermissions
 }

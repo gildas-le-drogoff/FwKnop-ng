@@ -10,6 +10,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.gildasledrogoff.fwknop.domain.model.KnockRequest
 import fr.gildasledrogoff.fwknop.domain.model.KnockTimerPlan
 import fr.gildasledrogoff.fwknop.domain.repository.KnockTimerScheduler
+import fr.gildasledrogoff.fwknop.presentation.quickaccess.OpenPortTracker
 import fr.gildasledrogoff.fwknop.utils.helpers.DebugLog
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -34,11 +35,13 @@ class KnockTimerSchedulerImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val notifications: KnockNotifications,
     private val sessions: KeepOpenSessionStore,
+    private val openPorts: OpenPortTracker,
 ) : KnockTimerScheduler {
     override fun canNotify(): Boolean = notifications.canNotify()
     override fun schedule(plan: KnockTimerPlan): Boolean = when (plan) {
         is KnockTimerPlan.Countdown -> {
             notifications.showCountdown(plan.nickname.value, plan.seconds)
+            openPorts.opened(plan.nickname.value, plan.seconds, keptOpen = false)
             true
         }
 

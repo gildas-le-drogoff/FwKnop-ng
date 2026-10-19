@@ -18,7 +18,11 @@ import android.text.format.DateFormat
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.gildasledrogoff.fwknop.R
+import fr.gildasledrogoff.fwknop.domain.error.AutoKnockError
 import fr.gildasledrogoff.fwknop.presentation.MainActivity
+import fr.gildasledrogoff.fwknop.presentation.quickaccess.QuickKnockIntents
+import fr.gildasledrogoff.fwknop.presentation.state.UiError
+import fr.gildasledrogoff.fwknop.presentation.state.toUiError
 import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -48,6 +52,52 @@ class KnockNotifications @Inject constructor(@param:ApplicationContext private v
             .addAction(R.drawable.ic_history_rounded, context.getString(R.string.action_extend_port), actions.extend)
             .addAction(R.drawable.ic_lock_rounded, context.getString(R.string.action_close_port), actions.stop)
             .build()
+    }
+
+    fun knocking(nickname: String): Notification {
+        ensureChannel()
+        return NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_shield_rounded_fill)
+            .setContentTitle(context.getString(R.string.notification_title, nickname))
+            .setContentText(context.getString(R.string.notification_knocking))
+            .setProgress(0, 0, true)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+            .build()
+    }
+
+    fun quickKnockSent(nickname: String) {
+        ensureChannel()
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_shield_rounded_fill)
+            .setContentTitle(context.getString(R.string.notification_title, nickname))
+            .setContentText(context.getString(R.string.knock_sent, nickname))
+            .setContentIntent(openApp())
+            .setTimeoutAfter(SENT_VISIBLE_MS)
+            .setAutoCancel(true)
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .build()
+        notify(nickname.hashCode(), notification)
+    }
+
+    fun quickKnockFailed(nickname: String, error: AutoKnockError) {
+        ensureChannel()
+        val reason = when (val ui = error.toUiError()) {
+            is UiError.Message -> context.getString(ui.resId)
+            is UiError.Detailed -> context.getString(ui.resId, ui.detail)
+        }
+        val text = context.getString(R.string.quick_knock_failed, reason)
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_shield_rounded_fill)
+            .setContentTitle(context.getString(R.string.notification_title, nickname))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setContentIntent(knockInApp(nickname))
+            .setCategory(NotificationCompat.CATEGORY_ERROR)
+            .setAutoCancel(true)
+            .build()
+        notify(nickname.hashCode(), notification)
     }
 
     fun keepOpenFailed(nickname: String) {
@@ -84,6 +134,13 @@ class KnockNotifications @Inject constructor(@param:ApplicationContext private v
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 
+    private fun knockInApp(nickname: String): PendingIntent = PendingIntent.getActivity(
+        context,
+        nickname.hashCode(),
+        QuickKnockIntents.app(context, nickname),
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    )
+
     private fun baseBuilder(nickname: String, seconds: Int): NotificationCompat.Builder {
         ensureChannel()
         return NotificationCompat.Builder(context, CHANNEL_ID)
@@ -108,5 +165,6 @@ class KnockNotifications @Inject constructor(@param:ApplicationContext private v
     private companion object {
         const val CHANNEL_ID = "knock_countdown"
         const val MILLIS = 1_000L
+        const val SENT_VISIBLE_MS = 10_000L
     }
 }
