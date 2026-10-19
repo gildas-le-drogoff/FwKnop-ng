@@ -4,9 +4,19 @@
 
 An Android client for [fwknop](https://www.cipherdyne.org/fwknop/) (Single Packet Authorization).
 
-FwKnop-ng sends an encrypted, authenticated SPA packet that makes a `fwknopd` server open a firewall port for your IP address — keeping services such as SSH or VPN invisible to everyone else.
+FwKnop-ng sends an encrypted, authenticated SPA packet that makes a `fwknopd` server open a firewall port for your IP address — keeping services such as SSH or VPN invisible to everyone else. It also handles classic port knocking (knockd style) and Wake-on-LAN.
 
-[![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-blue.svg)](COPYING)
+ <p align="center"><a href="https://f-droid.org/packages/fr.gildasledrogoff.fwknop/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on-en.svg" alt="Get it on F-Droid" width=206/></a></p>
+
+
+ [![License: AGPL v3+](https://img.shields.io/badge/License-AGPL%20v3%2B-blue.svg)](COPYING)
+ 
+ GNU Affero General Public License
+
+[![CI](https://github.com/gildas-le-drogoff/FwKnop-ng/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/gildas-le-drogoff/FwKnop-ng/actions/workflows/ci.yml)
+[![REUSE compliance](https://github.com/gildas-le-drogoff/FwKnop-ng/actions/workflows/reuse.yml/badge.svg?branch=main)](https://github.com/gildas-le-drogoff/FwKnop-ng/actions/workflows/reuse.yml)
+[![Release](https://img.shields.io/github/v/release/gildas-le-drogoff/FwKnop-ng)](https://github.com/gildas-le-drogoff/FwKnop-ng/releases/latest)
+[![License: AGPL v3+](https://img.shields.io/badge/License-AGPL%20v3%2B-blue.svg)](COPYING)
 ![Min SDK](https://img.shields.io/badge/minSdk-26-green.svg)
 ![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-purple.svg)
 
@@ -15,6 +25,8 @@ FwKnop-ng sends an encrypted, authenticated SPA packet that makes a `fwknopd` se
 - **SPA encryption**: Rijndael (AES) or GPG (via [OpenKeychain](https://www.openkeychain.org/)), with HMAC authentication (MD5, SHA-1, SHA-256, SHA-384, SHA-512)
 - **Transports**: UDP, TCP and HTTP
 - **Access modes**: access, NAT access, local NAT and client-defined timeouts
+- **Classic port knocking**: knockd-style sequence of TCP/UDP ports with an adjustable delay between knocks (unencrypted)
+- **Wake-on-LAN**: magic packet to the local network broadcast or to a remote address, optional SecureOn password
 - **Source IP resolution**: STUN or a configurable HTTPS lookup URL
 - **Keep-open**: re-sends SPA packets before the firewall rule expires or after a network change
 - **Automatic knock** (off by default): knocks when leaving a trusted Wi-Fi network
@@ -23,7 +35,7 @@ FwKnop-ng sends an encrypted, authenticated SPA packet that makes a `fwknopd` se
 - **Encrypted storage**: configurations protected by Android Keystore, Tink and SQLCipher
 - **App lock**: biometrics or device credential
 - **Backup & sharing**: encrypted backup/restore, QR code import/export
-- **NFC**: trigger a knock by tapping an NFC tag
+- **NFC**: trigger a knock or a Wake-on-LAN by tapping an NFC tag
 - **Languages**: English, French
 
 ## Screenshots
@@ -104,7 +116,7 @@ Main libraries: Jetpack Compose (Material 3), Hilt, Room + SQLCipher, Tink, OkHt
 
 ## Privacy
 
-The app has no analytics or tracking. Besides the SPA packet sent to your `fwknopd` server, the only network requests are the public IP lookups of the "Resolve public IP" source mode:
+The app has no analytics or tracking. Besides the packets sent to your own hosts (SPA packet, knock sequence, Wake-on-LAN magic packet), the only network requests are the public IP lookups of the "Resolve public IP" source mode:
 
 - STUN (`stun.cloudflare.com`, `stun.l.google.com`) — on by default, unencrypted UDP
 - HTTPS lookup URL (default `https://ifconfig.me/ip`, user configurable), never through the system proxy
@@ -124,6 +136,6 @@ To report a security vulnerability, follow the [security policy](.github/SECURIT
 
 ## License
 
-FwKnop-ng is licensed under the [GNU General Public License v2.0 or later](COPYING).
+FwKnop-ng is licensed under the [GNU Affero General Public License v3.0 or later](COPYING).
 
 The vendored OpenPGP API (`org.openintents.openpgp`) is vendored from [open-keychain/openpgp-api](https://github.com/open-keychain/openpgp-api) under the Apache License 2.0; see [its README](app/src/main/java/org/openintents/openpgp/README.md).
