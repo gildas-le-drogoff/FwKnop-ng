@@ -399,10 +399,20 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >Changer la phrase secrète d\'export</string
   >
   <string name="qr_passphrase_title">Phrase secrète d\'export</string>
-  <string name="hint_qr_passphrase"
-    >Au moins %1$d caractères. Choisie une fois, conservée dans le coffre de
-    l\'app et demandée seulement sur l\'appareil qui scanne.</string
-  >
+  <plurals name="hint_qr_passphrase">
+    <item quantity="one"
+      >Au moins %1$d caractère. Choisie une fois, conservée dans le coffre de
+      l\'app et demandée seulement sur l\'appareil qui scanne.</item
+    >
+    <item quantity="many"
+      >Au moins %1$d caractères. Choisie une fois, conservée dans le coffre de
+      l\'app et demandée seulement sur l\'appareil qui scanne.</item
+    >
+    <item quantity="other"
+      >Au moins %1$d caractères. Choisie une fois, conservée dans le coffre de
+      l\'app et demandée seulement sur l\'appareil qui scanne.</item
+    >
+  </plurals>
   <string name="qr_decrypt_title">Code QR chiffré</string>
   <string name="hint_qr_decrypt"
     >La phrase secrète d\'export choisie sur l\'appareil qui a créé ce code
@@ -543,10 +553,20 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="field_backup_passphrase_confirm"
     >Confirmer la phrase secrète</string
   >
-  <string name="hint_backup_passphrase"
-    >Au moins %1$d caractères. Sans elle, le fichier ne peut pas être ouvert :
-    elle ne peut pas être récupérée.</string
-  >
+  <plurals name="hint_backup_passphrase">
+    <item quantity="one"
+      >Au moins %1$d caractère. Sans elle, le fichier ne peut pas être ouvert :
+      elle ne peut pas être récupérée.</item
+    >
+    <item quantity="many"
+      >Au moins %1$d caractères. Sans elle, le fichier ne peut pas être ouvert :
+      elle ne peut pas être récupérée.</item
+    >
+    <item quantity="other"
+      >Au moins %1$d caractères. Sans elle, le fichier ne peut pas être ouvert :
+      elle ne peut pas être récupérée.</item
+    >
+  </plurals>
   <string name="hint_backup_import_passphrase"
     >La phrase secrète choisie lors de l\'export de la sauvegarde.</string
   >

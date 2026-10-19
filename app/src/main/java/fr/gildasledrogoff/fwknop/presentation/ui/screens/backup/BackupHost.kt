@@ -103,7 +103,11 @@ private fun backupPassphraseSpec(dialog: BackupDialog.Passphrase): PassphraseSpe
     return PassphraseSpec(
         title = stringResource(if (exporting) R.string.backup_export_title else R.string.backup_import_title),
         hint = if (exporting) {
-            stringResource(R.string.hint_backup_passphrase, BackupPassphrase.MIN_LENGTH)
+            pluralStringResource(
+                R.plurals.hint_backup_passphrase,
+                BackupPassphrase.MIN_LENGTH,
+                BackupPassphrase.MIN_LENGTH,
+            )
         } else {
             stringResource(R.string.hint_backup_import_passphrase)
         },

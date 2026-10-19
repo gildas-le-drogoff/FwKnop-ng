@@ -4,6 +4,7 @@
 
 package fr.gildasledrogoff.fwknop.data.local.security
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -41,6 +42,7 @@ class PrefsVaultMetadataStore @Inject constructor(
         check(committed) { "vault metadata not persisted" }
     }
 
+    @SuppressLint("UseKtx")
     override fun clear() {
         check(prefs.edit().clear().commit()) { "vault metadata not cleared" }
     }

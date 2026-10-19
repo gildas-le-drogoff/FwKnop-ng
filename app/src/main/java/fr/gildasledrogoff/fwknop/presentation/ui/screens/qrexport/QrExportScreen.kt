@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.style.TextAlign
@@ -73,7 +74,11 @@ fun QrExportScreen(onBack: () -> Unit, viewModel: QrExportViewModel = hiltViewMo
         PassphraseDialog(
             spec = PassphraseSpec(
                 title = stringResource(R.string.qr_passphrase_title),
-                hint = stringResource(R.string.hint_qr_passphrase, BackupPassphrase.MIN_LENGTH),
+                hint = pluralStringResource(
+                    R.plurals.hint_qr_passphrase,
+                    BackupPassphrase.MIN_LENGTH,
+                    BackupPassphrase.MIN_LENGTH,
+                ),
                 confirmLabel = stringResource(R.string.action_save),
                 creating = true,
             ),

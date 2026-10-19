@@ -10,6 +10,6 @@ user at run time and the request goes to the resolved IP literal, not a known ho
 Every other request stays on HTTPS by code (the IP lookup URL is rejected unless https://).
 Trust anchors keep the platform default (system CAs only).
 -->
-<network-security-config>
-  <base-config cleartextTrafficPermitted="true" />
+<network-security-config xmlns:tools="http://schemas.android.com/tools">
+  <base-config cleartextTrafficPermitted="true" tools:ignore="InsecureBaseConfiguration" />
 </network-security-config>

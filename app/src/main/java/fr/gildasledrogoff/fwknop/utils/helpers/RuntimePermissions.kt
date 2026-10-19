@@ -5,6 +5,7 @@
 package fr.gildasledrogoff.fwknop.utils.helpers
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
@@ -56,6 +57,7 @@ interface RuntimePermissions {
     fun onPromptResult(permission: String, granted: Boolean, permanentlyDenied: Boolean)
 
     companion object {
+        @SuppressLint("InlinedApi")
         const val NOTIFICATIONS = Manifest.permission.POST_NOTIFICATIONS
     }
 }

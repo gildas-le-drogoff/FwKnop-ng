@@ -4,6 +4,7 @@
 
 package fr.gildasledrogoff.fwknop.data.local.security
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.core.content.edit
 import com.google.crypto.tink.KeyTemplates
@@ -73,6 +74,7 @@ class AndroidKeysetStore @Inject constructor(
         return manager.keysetHandle
     }
 
+    @SuppressLint("UseKtx")
     override fun delete(alias: String) {
         check(prefs.edit().remove(name(alias)).commit()) { "keyset delete not persisted" }
     }

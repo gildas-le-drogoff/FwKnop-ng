@@ -4,6 +4,7 @@
 
 package fr.gildasledrogoff.fwknop.data.local.security
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import com.google.crypto.tink.Aead
@@ -33,11 +34,13 @@ abstract class PrefsSealedSecretStore(
     override fun read(): ByteArray? =
         prefs.getString(key, null)?.let(Base64.getDecoder()::decode)
 
+    @SuppressLint("UseKtx")
     override fun write(sealed: ByteArray) {
         val encoded = Base64.getEncoder().encodeToString(sealed)
         check(prefs.edit().putString(key, encoded).commit()) { "$key not persisted" }
     }
 
+    @SuppressLint("UseKtx")
     override fun clear() {
         check(prefs.edit().remove(key).commit()) { "$key not cleared" }
     }

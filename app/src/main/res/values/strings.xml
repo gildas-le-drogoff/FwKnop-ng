@@ -374,10 +374,16 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >Change the export passphrase</string
   >
   <string name="qr_passphrase_title">Export passphrase</string>
-  <string name="hint_qr_passphrase"
-    >At least %1$d characters. Set once, kept in the app\'s vault, and asked
-    only on the scanning device.</string
-  >
+  <plurals name="hint_qr_passphrase">
+    <item quantity="one"
+      >At least %1$d character. Set once, kept in the app\'s vault, and asked
+      only on the scanning device.</item
+    >
+    <item quantity="other"
+      >At least %1$d characters. Set once, kept in the app\'s vault, and asked
+      only on the scanning device.</item
+    >
+  </plurals>
   <string name="qr_decrypt_title">Encrypted QR code</string>
   <string name="hint_qr_decrypt"
     >The export passphrase chosen on the device that created this QR
@@ -495,10 +501,16 @@ SPDX-License-Identifier: AGPL-3.0-or-later
   <string name="action_export">Export</string>
   <string name="field_backup_passphrase">Passphrase</string>
   <string name="field_backup_passphrase_confirm">Confirm the passphrase</string>
-  <string name="hint_backup_passphrase"
-    >At least %1$d characters. Without it the file cannot be opened: there is no
-    way to recover it.</string
-  >
+  <plurals name="hint_backup_passphrase">
+    <item quantity="one"
+      >At least %1$d character. Without it the file cannot be opened: there is no
+      way to recover it.</item
+    >
+    <item quantity="other"
+      >At least %1$d characters. Without it the file cannot be opened: there is no
+      way to recover it.</item
+    >
+  </plurals>
   <string name="hint_backup_import_passphrase"
     >The passphrase chosen when the backup was exported.</string
   >

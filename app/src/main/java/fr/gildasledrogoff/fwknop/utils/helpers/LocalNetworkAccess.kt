@@ -5,6 +5,7 @@
 package fr.gildasledrogoff.fwknop.utils.helpers
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -17,6 +18,7 @@ interface LocalNetworkAccess {
     fun needsRequest(): Boolean
 
     companion object {
+        @SuppressLint("InlinedApi")
         const val PERMISSION = Manifest.permission.ACCESS_LOCAL_NETWORK
     }
 }
