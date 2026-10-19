@@ -53,6 +53,7 @@ class KeepOpenService : LifecycleService() {
         when {
             request == null -> stopSessionIfIdle()
             intent?.action == ACTION_STOP -> stopSession(sessionId)
+            intent?.action == ACTION_EXTEND -> schedules[sessionId]?.extend()
             else -> startSession(sessionId, request, intent?.getIntExtra(EXTRA_SECONDS, 0) ?: 0)
         }
         return START_NOT_STICKY
@@ -60,7 +61,7 @@ class KeepOpenService : LifecycleService() {
 
     private fun startSession(sessionId: Int, request: KnockRequest, seconds: Int) {
         val notification =
-            notifications.keepOpen(request.config.nickname.value, seconds, stopIntent(sessionId))
+            notifications.keepOpen(request.config.nickname.value, seconds, actions(sessionId))
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
         } else {
@@ -94,7 +95,7 @@ class KeepOpenService : LifecycleService() {
                 is DomainResult.Success -> {
                     notifications.notify(
                         sessionId,
-                        notifications.keepOpen(nickname, seconds, stopIntent(sessionId))
+                        notifications.keepOpen(nickname, seconds, actions(sessionId))
                     )
                     true
                 }
@@ -172,16 +173,22 @@ class KeepOpenService : LifecycleService() {
         super.onDestroy()
     }
 
-    private fun stopIntent(sessionId: Int): PendingIntent = PendingIntent.getService(
+    private fun actions(sessionId: Int) = KeepOpenActions(
+        stop = sessionIntent(sessionId, ACTION_STOP),
+        extend = sessionIntent(sessionId, ACTION_EXTEND),
+    )
+
+    private fun sessionIntent(sessionId: Int, action: String): PendingIntent = PendingIntent.getService(
         this,
-        sessionId,
-        Intent(this, KeepOpenService::class.java).setAction(ACTION_STOP)
+        sessionId * 2 + if (action == ACTION_EXTEND) 1 else 0,
+        Intent(this, KeepOpenService::class.java).setAction(action)
             .putExtra(EXTRA_SESSION, sessionId),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 
     companion object {
         private const val ACTION_STOP = "fr.gildasledrogoff.fwknop.action.STOP_KEEP_OPEN"
+        private const val ACTION_EXTEND = "fr.gildasledrogoff.fwknop.action.EXTEND_KEEP_OPEN"
         private const val EXTRA_SESSION = "session"
         private const val EXTRA_SECONDS = "seconds"
         private const val REKNOCK_MARGIN_S = 10L

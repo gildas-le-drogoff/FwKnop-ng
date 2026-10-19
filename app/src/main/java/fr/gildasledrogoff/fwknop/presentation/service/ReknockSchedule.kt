@@ -11,9 +11,15 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 
 internal class ReknockSchedule(private val intervalMs: Long, private val retryMs: Long) {
-    private val networkChanges = Channel<Unit>(Channel.CONFLATED)
+    private enum class Trigger { NETWORK, EXTEND }
+
+    private val triggers = Channel<Trigger>(Channel.UNLIMITED)
     fun onNetworkChanged() {
-        networkChanges.trySend(Unit)
+        triggers.trySend(Trigger.NETWORK)
+    }
+
+    fun extend() {
+        triggers.trySend(Trigger.EXTEND)
     }
 
 
@@ -21,7 +27,7 @@ internal class ReknockSchedule(private val intervalMs: Long, private val retryMs
         var attemptsLeft = 0
         while (true) {
             val wait = if (attemptsLeft > 0) retryMs else intervalMs
-            if (withTimeoutOrNull(wait) { networkChanges.receive() } != null) attemptsLeft =
+            if (withTimeoutOrNull(wait) { triggers.receive() } == Trigger.NETWORK) attemptsLeft =
                 NETWORK_ATTEMPTS
             if (knock()) {
                 attemptsLeft = 0

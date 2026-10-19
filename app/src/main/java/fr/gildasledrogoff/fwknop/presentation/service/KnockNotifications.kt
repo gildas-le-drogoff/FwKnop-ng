@@ -13,11 +13,17 @@ import android.os.Build
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import android.content.Intent
+import android.text.format.DateFormat
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.gildasledrogoff.fwknop.R
+import fr.gildasledrogoff.fwknop.presentation.MainActivity
+import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
+
+class KeepOpenActions(val stop: PendingIntent, val extend: PendingIntent)
 
 @Singleton
 class KnockNotifications @Inject constructor(@param:ApplicationContext private val context: Context) {
@@ -30,12 +36,19 @@ class KnockNotifications @Inject constructor(@param:ApplicationContext private v
         notify(nickname.hashCode(), notification)
     }
 
-    fun keepOpen(nickname: String, seconds: Int, stopIntent: PendingIntent): Notification =
-        baseBuilder(nickname, seconds)
-            .setContentText(context.getString(R.string.notification_keep_open))
+    fun keepOpen(nickname: String, seconds: Int, actions: KeepOpenActions): Notification {
+        val until = DateFormat.getTimeFormat(context).format(Date(System.currentTimeMillis() + seconds * MILLIS))
+        val text = context.getString(R.string.notification_keep_open)
+        val details = context.getString(R.string.notification_keep_open_details, until)
+        return baseBuilder(nickname, seconds)
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(details))
+            .setContentIntent(openApp())
             .setOngoing(true)
-            .addAction(0, context.getString(R.string.action_close_port), stopIntent)
+            .addAction(R.drawable.ic_history_rounded, context.getString(R.string.action_extend_port), actions.extend)
+            .addAction(R.drawable.ic_lock_rounded, context.getString(R.string.action_close_port), actions.stop)
             .build()
+    }
 
     fun keepOpenFailed(nickname: String) {
         ensureChannel()
@@ -64,6 +77,13 @@ class KnockNotifications @Inject constructor(@param:ApplicationContext private v
             PackageManager.PERMISSION_GRANTED
 
     fun cancel(id: Int) = manager.cancel(id)
+    private fun openApp(): PendingIntent = PendingIntent.getActivity(
+        context,
+        0,
+        Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    )
+
     private fun baseBuilder(nickname: String, seconds: Int): NotificationCompat.Builder {
         ensureChannel()
         return NotificationCompat.Builder(context, CHANNEL_ID)

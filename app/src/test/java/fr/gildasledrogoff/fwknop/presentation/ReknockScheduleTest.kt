@@ -64,6 +64,24 @@ class ReknockScheduleTest {
         assertThat(times).containsExactly(0L, RETRY, RETRY + INTERVAL).inOrder()
     }
     @Test
+    fun `extending knocks at once and restarts the period`() = runTest {
+        val times = mutableListOf<Long>()
+        val job = launch { schedule.run { times += currentTime; true } }
+        advanceTimeBy(2_000)
+        schedule.extend()
+        runCurrent()
+        advanceTimeBy(INTERVAL + 1)
+        job.cancel()
+        assertThat(times).containsExactly(2_000L, 2_000L + INTERVAL).inOrder()
+    }
+    @Test
+    fun `a failed extension is not retried like a network change`() = runTest {
+        var knocks = 0
+        schedule.extend()
+        schedule.run { knocks++; false }
+        assertThat(knocks).isEqualTo(1)
+    }
+    @Test
     fun `only an actual switch of network or transport is a change`() {
         val detector = NetworkChangeDetector("wifi", setOf(WIFI))
         assertThat(detector.onCapabilitiesChanged("wifi", setOf(WIFI))).isFalse()

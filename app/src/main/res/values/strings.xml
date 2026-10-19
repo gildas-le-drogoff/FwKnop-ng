@@ -1003,6 +1003,10 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     >Knocks will no longer be recorded and the existing history will be
     deleted.</string
   >
+  <string name="notification_keep_open_details"
+    >Port kept open: re-knocked automatically before %1$s. Extend re-knocks right away.</string
+  >
+  <string name="action_extend_port">Extend</string>
   <string name="action_fwknop_export">fwknop client and server</string>
   <string name="fwknop_blocks_title">fwknop config of %1$s</string>
   <string name="fwknop_blocks_body"
