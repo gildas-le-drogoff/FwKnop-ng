@@ -65,7 +65,7 @@ Spanish.
 
 Requirements:
 
-- JDK 21
+- JDK 25
 - Android SDK with platform 37 (`compileSdk = 37`); `minSdk` is 29
 - Android Studio is recommended but not required: everything goes through the
   Gradle wrapper

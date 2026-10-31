@@ -5,6 +5,9 @@
 -dontwarn com.sun.jna.**
 -dontwarn javax.naming.**
 -dontwarn sun.net.spi.nameservice.**
+# JDK 18+ resolver SPI (META-INF/services, multi-release class): absent from Android, never loaded.
+-dontwarn java.net.spi.InetAddressResolverProvider
+-dontwarn org.xbill.DNS.spi.DnsjavaInetAddressResolverProvider
 -dontwarn lombok.**
 -dontwarn org.slf4j.**
 

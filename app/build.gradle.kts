@@ -4,6 +4,7 @@
 
 import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     alias(libs.plugins.android.application)
@@ -28,8 +29,8 @@ android {
         applicationId = "fr.gildasledrogoff.fwknop"
         minSdk = 26
         targetSdk = 37
-        versionCode = 40
-        versionName = "2.1.2"
+        versionCode = 41
+        versionName = "2.2.0"
         testInstrumentationRunner = "fr.gildasledrogoff.fwknop.HiltTestRunner"
     }
 
@@ -57,8 +58,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
     }
 
     buildFeatures {
@@ -76,6 +77,10 @@ android {
             it.jvmArgs(
                 "--add-opens=java.base/java.io=ALL-UNNAMED",
                 "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED",
+                // Robolectric loads native code (System.load) and protobuf-javalite uses sun.misc.Unsafe:
+                // grant both explicitly so the JDK stops warning about them.
+                "--enable-native-access=ALL-UNNAMED",
+                "--sun-misc-unsafe-memory-access=allow",
             )
         }
     }
@@ -108,9 +113,13 @@ android {
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_21
+        jvmTarget = JvmTarget.JVM_25
     }
 }
+
+// runTest, TestScope, advanceUntilIdle...: experimental coroutine test APIs, opted into for test sources only.
+tasks.withType<KotlinCompile>().matching { it.name.contains("UnitTest") || it.name.contains("AndroidTest") }
+    .configureEach { compilerOptions.optIn.add("kotlinx.coroutines.ExperimentalCoroutinesApi") }
 
 room {
     schemaDirectory("$projectDir/schemas")

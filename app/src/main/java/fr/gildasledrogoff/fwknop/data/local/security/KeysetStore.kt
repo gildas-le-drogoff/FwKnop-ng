@@ -10,6 +10,7 @@ import androidx.core.content.edit
 import com.google.crypto.tink.KeyTemplates
 import com.google.crypto.tink.KeysetHandle
 import com.google.crypto.tink.LegacyKeysetSerialization
+import com.google.crypto.tink.RegistryConfiguration
 import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import com.google.crypto.tink.integration.android.AndroidKeystoreKmsClient
@@ -57,7 +58,9 @@ class AndroidKeysetStore @Inject constructor(
     override fun write(alias: String, handle: KeysetHandle) {
         val masterAead = AndroidKeystoreKmsClient().getAead(uri(alias))
         val writer = SharedPrefKeysetWriter(context, name(alias), VaultFiles.PREFS)
-        LegacyKeysetSerialization.serializeEncryptedKeyset(handle, writer, masterAead, ByteArray(0))
+        LegacyKeysetSerialization.serializeEncryptedKeyset(
+            handle, writer, masterAead, ByteArray(0), RegistryConfiguration.get(),
+        )
     }
 
     override fun rotate(alias: String): KeysetHandle {
