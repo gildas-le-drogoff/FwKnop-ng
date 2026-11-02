@@ -24,7 +24,7 @@ coroutines = "1.11.0"
 serialization = "1.11.0"
 okhttp = "5.5.0"
 commons-validator = "1.11.0"
-dnsjava = "3.6.5"
+dnsjava = "3.7.0"
 zxing-android-embedded = "4.3.0"
 zxing-core = "3.5.4"
 # net.zetetic:android-database-sqlcipher is deprecated (stopped at 4.5.4); sqlcipher-android replaces it.
