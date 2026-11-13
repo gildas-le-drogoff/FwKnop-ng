@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 package fr.gildasledrogoff.fwknop.data
+import android.app.Application
 import com.google.common.truth.Truth.assertThat
 import fr.gildasledrogoff.fwknop.data.remote.api.KernelRouteApi
 import fr.gildasledrogoff.fwknop.data.remote.api.NetworkPath
@@ -25,6 +26,7 @@ import okhttp3.OkHttpClient
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.io.IOException
 import java.net.InetAddress
 
@@ -34,6 +36,7 @@ private val STUN_B = SourceIpMethod.Stun("stun.b.example")
 private val HTTPS = SourceIpMethod.Https("ip.example")
 
 @RunWith(RobolectricTestRunner::class)
+@Config(application = Application::class)
 class PublicIpRepositoryTest {
     private val steps = mutableListOf<KnockStep>()
     private var stages: List<SourceIpStage> = emptyList()

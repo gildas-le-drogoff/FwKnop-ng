@@ -8,6 +8,9 @@ set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+export JAVA_HOME="/usr/lib/jvm/java-25-openjdk"
+export PATH="${JAVA_HOME}/bin:${PATH}"
+
 RELEASE_KEYSTORE_PROPS="keystore.properties"
 RELEASE_CERT_SHA256="$(sed -n 's/^AllowedAPKSigningKeys: *//p' "${PROJECT_DIR}/metadata/fr.gildasledrogoff.fwknop.yml")"
 
@@ -27,6 +30,8 @@ STAMPED_APK="${ARTIFACT_BASENAME}_${DATE_TAG}.apk"
 FINAL_DEBUG_APK="${ARTIFACT_BASENAME}_debug.apk"
 SYNC_HOST="mercury"
 SYNC_DIR="/mnt/NUMBER_4/Sync_Gildas_s_Phone/Orion/0_AppDev"
+
+LOCK_ERROR_PATTERN='Lock state .* out of date|Locking is enabled, but|lockfile is out of date|Dependency version enforced by Dependency Locking'
 
 RED=$'\033[0;31m'
 GREEN=$'\033[0;32m'
@@ -100,6 +105,29 @@ check_release_tree() {
 	fi
 }
 
+detect_and_fix_locks() {
+	log "${GREEN}Checking Gradle dependency locks...${NC}"
+	local out
+
+	if out="$(./gradlew assembleDebug --no-configuration-cache --console=plain 2>&1)"; then
+		log "${GREEN}Gradle locks OK.${NC}"
+		return 0
+	fi
+	if printf '%s\n' "$out" | grep -Eq "$LOCK_ERROR_PATTERN"; then
+		log "${YELLOW}⚠️  Gradle lock problem detected: regenerating locks.${NC}"
+		./gradlew :baselineprofile:dependencies --write-locks --no-configuration-cache --console=plain
+		./gradlew dependencies --write-locks --no-configuration-cache --console=plain
+
+		if ! git diff --quiet -- '**/gradle.lockfile' 'gradle.lockfile' 2> /dev/null; then
+			log "${YELLOW}⚠️  Lock files were updated: commit them before releasing.${NC}"
+		fi
+		return 0
+	fi
+
+	printf '%s\n' "$out" >&2
+	die "Gradle build failed (not a lock issue)."
+}
+
 check_apk_signature() {
 	local digest
 	digest="$(apksigner verify --print-certs "$1" 2> /dev/null |
@@ -119,7 +147,9 @@ check_aab_signature() {
 
 build_apks() {
 	log "${GREEN}Build release APK (F-Droid/GitHub) + debug APK...${NC}"
-	./gradlew assembleDebug assembleRelease --console=plain -q
+	./gradlew assembleDebug --console=plain -q
+	./gradlew build --console=plain -q
+	./gradlew assembleRelease --console=plain -q
 }
 
 build_aab() {
@@ -132,14 +162,82 @@ build_aab() {
 		./gradlew bundleRelease --console=plain -q
 }
 
+check_sync_host() {
+	local attempt
+	for attempt in 1 2 3; do
+		ssh -o BatchMode=yes -o ConnectTimeout=5 "$SYNC_HOST" true > /dev/null 2>&1 && return 0
+	done
+	return 1
+}
+
 push_to_phone() {
 	local prefix=""
-	[ "$(hostname -s)" = "$SYNC_HOST" ] || prefix="${SYNC_HOST}:"
+	if [ "$(hostname -s)" != "$SYNC_HOST" ]; then
+		if ! check_sync_host; then
+			log "${YELLOW}⚠️  ${SYNC_HOST} is not reachable: skipping rsync.${NC}"
+			return 0
+		fi
+		prefix="${SYNC_HOST}:"
+	fi
 	rsync -ah -v --stats --info=progress2 "${PROJECT_DIR}/${FINAL_APK}" "${prefix}${SYNC_DIR}/${STAMPED_APK}"
 	rsync -ah -v --stats --info=progress2 "${PROJECT_DIR}/${FINAL_APK}" "${prefix}${SYNC_DIR}/${FINAL_APK}"
 	# rsync -ah -v --stats --info=progress2 "${PROJECT_DIR}/${FINAL_DEBUG_APK}" "${prefix}${SYNC_DIR}/${FINAL_DEBUG_APK}"
 }
 
+adb_install() {
+	log "${RED}⚠️  ${SYNC_HOST} ADB install release${NC}"
+
+	command -v adb > /dev/null 2>&1 || {
+		log "${RED}❌ adb not found in PATH${NC}"
+		return 1
+	}
+
+	local apk="app/build/outputs/apk/release/app-release.apk"
+	[ -f "$apk" ] || {
+		log "${RED}❌ APK not found: $apk${NC}"
+		return 1
+	}
+
+	local list
+	list=$(adb devices | tr -d '\r' | awk 'NR>1 && $2=="device" {print $1}')
+
+	[ -z "$list" ] && {
+		log "${RED}❌ No device connected${NC}"
+		return 1
+	}
+
+	local devices=""
+	while IFS= read -r serial; do
+		[ -z "$serial" ] && continue
+		case "$serial" in
+		*_tcp)
+			local base="${serial#adb-}"
+			base="${base%%-*}"
+			if printf '%s\n' "$list" | grep -qx "$base"; then
+				log "🔁 Skipping ${serial} (USB ${base} present)"
+				continue
+			fi
+			;;
+		esac
+		devices="${devices}${serial}
+"
+	done <<< "$list"
+
+	devices=$(printf '%s' "$devices" | sed '/^$/d')
+	[ -z "$devices" ] && {
+		log "${RED}❌ No device connected${NC}"
+		return 1
+	}
+
+	local rc=0
+	while IFS= read -r serial; do
+		[ -z "$serial" ] && continue
+		log "➡️  Installing on ${serial}"
+		adb -s "$serial" install -r "$apk" || rc=1
+	done <<< "$devices"
+
+	return $rc
+}
 main() {
 	cd "$PROJECT_DIR"
 	[ -n "$VERSION_NAME" ] && [ -n "$VERSION_CODE" ] || die "versionName/versionCode not found in app/build.gradle.kts."
@@ -150,7 +248,9 @@ main() {
 	setup_upload_keystore
 	check_release_tree
 
-	log "${GREEN}Format code...${NC}"
+	detect_and_fix_locks
+
+	# log "${GREEN}Format code...${NC}"
 	# ktlint -F ./app/src 2> /dev/null || true
 
 	build_apks
@@ -172,6 +272,8 @@ main() {
 	log "${GREEN}✅ AAB (Google Play)    -> ${PURPLE}${PROJECT_DIR}/${RELEASE_AAB}${NC}"
 	log "${GREEN}✅ APK (debug)          -> ${PURPLE}${PROJECT_DIR}/${FINAL_DEBUG_APK}${NC}"
 	log "${RED}__________________________${NC}"
+
+	adb_install || echo "ADB install might have failed."
 
 	[ "${1:-}" = "--no-push" ] || push_to_phone
 }

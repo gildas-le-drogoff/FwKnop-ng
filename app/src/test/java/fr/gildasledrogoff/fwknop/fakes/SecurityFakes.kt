@@ -6,6 +6,7 @@ package fr.gildasledrogoff.fwknop.fakes
 import com.google.crypto.tink.InsecureSecretKeyAccess
 import com.google.crypto.tink.KeyTemplates
 import com.google.crypto.tink.KeysetHandle
+import com.google.crypto.tink.RegistryConfiguration
 import com.google.crypto.tink.TinkProtoKeysetFormat
 import com.google.crypto.tink.aead.AeadConfig
 import fr.gildasledrogoff.fwknop.data.local.database.DatabaseFileStore
@@ -14,7 +15,7 @@ import java.io.IOException
 import java.security.GeneralSecurityException
 fun newKeyset(): KeysetHandle {
     AeadConfig.register()
-    return KeysetHandle.generateNew(KeyTemplates.get("AES256_GCM"))
+    return KeysetHandle.generateNew(KeyTemplates.get("AES256_GCM").toParameters(), RegistryConfiguration.get())
 }
 class FakeMasterKeyStore : MasterKeyStore {
     val keys = mutableMapOf<String, MasterKeyPolicy>()
@@ -36,20 +37,20 @@ class FakeKeysetStore(private val keys: FakeMasterKeyStore) : KeysetStore {
     override fun create(alias: String): KeysetHandle = newKeyset().also { write(alias, it) }
     override fun read(alias: String): KeysetHandle {
         val bytes = stored[alias] ?: throw VaultUnrecoverableException("keyset missing")
-        return TinkProtoKeysetFormat.parseKeyset(bytes, InsecureSecretKeyAccess.get())
+        return TinkProtoKeysetFormat.parseKeyset(bytes, InsecureSecretKeyAccess.get(), RegistryConfiguration.get())
     }
     override fun write(alias: String, handle: KeysetHandle) {
         if (failWrite) throw IOException("disk full")
         if (!keys.exists(alias)) throw GeneralSecurityException("no master key")
         val written = if (corruptWrites) newKeyset() else handle
-        stored[alias] = TinkProtoKeysetFormat.serializeKeyset(written, InsecureSecretKeyAccess.get())
+        stored[alias] = TinkProtoKeysetFormat.serializeKeyset(written, InsecureSecretKeyAccess.get(), RegistryConfiguration.get())
     }
     override fun rotate(alias: String): KeysetHandle {
         val current = read(alias)
         val rotated = KeysetHandle.newBuilder(current)
             .addEntry(KeysetHandle.generateEntryFromParametersName("AES256_GCM").withRandomId().makePrimary())
             .build()
-        stored[alias] = TinkProtoKeysetFormat.serializeKeyset(rotated, InsecureSecretKeyAccess.get())
+        stored[alias] = TinkProtoKeysetFormat.serializeKeyset(rotated, InsecureSecretKeyAccess.get(), RegistryConfiguration.get())
         return rotated
     }
     override fun prune(alias: String): KeysetHandle {
@@ -57,7 +58,7 @@ class FakeKeysetStore(private val keys: FakeMasterKeyStore) : KeysetStore {
         val pruned = KeysetHandle.newBuilder(current).apply {
             (size() - 1 downTo 0).filterNot { getAt(it).isPrimary }.forEach(::deleteAt)
         }.build()
-        stored[alias] = TinkProtoKeysetFormat.serializeKeyset(pruned, InsecureSecretKeyAccess.get())
+        stored[alias] = TinkProtoKeysetFormat.serializeKeyset(pruned, InsecureSecretKeyAccess.get(), RegistryConfiguration.get())
         return pruned
     }
     override fun delete(alias: String) {

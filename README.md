@@ -1,12 +1,26 @@
-# FwKnop-ng
+<p align="center">
+ <a href="https://f-droid.org/packages/fr.gildasledrogoff.fwknop/">
+ <img src="fastlane/metadata/android/en-US/images/icon.png" width="96" alt="FwKnop-ng icon">
+ </a>
+</p>
 
-<img src="fastlane/metadata/android/en-US/images/icon.png" alt="FwKnop-ng icon" width="96" align="right" />
+<h2 align="center"><b>FwKnop-ng</b></h2>
 
-An Android client for [fwknop](https://www.cipherdyne.org/fwknop/) (Single Packet Authorization).
+<p align="center">
+ An Android client for <a href="https://www.cipherdyne.org/fwknop/">fwknop</a> (Single Packet Authorization).
+</p>
 
-FwKnop-ng sends an encrypted, authenticated SPA packet that makes a `fwknopd` server open a firewall port for your IP address — keeping services such as SSH or VPN invisible to everyone else.
+<p align="center">
+ <a href="https://f-droid.org/packages/fr.gildasledrogoff.fwknop/">
+ <img src="https://fdroid.gitlab.io/artwork/badge/get-it-on-en.svg" alt="Get it on F-Droid" width="206">
+ </a>
+</p>
 
-[![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-blue.svg)](COPYING)
+---
+
+**FwKnop-ng** sends an encrypted, authenticated SPA packet that makes a `fwknopd` server open a firewall port for your IP address — keeping services such as SSH or VPN invisible to everyone else.
+
+[![License: AGPL v3+](https://img.shields.io/badge/License-AGPL%20v3%2B-blue.svg)](COPYING)
 ![Min SDK](https://img.shields.io/badge/minSdk-26-green.svg)
 ![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-purple.svg)
 
@@ -30,20 +44,21 @@ FwKnop-ng sends an encrypted, authenticated SPA packet that makes a `fwknopd` se
 
 | Knock | Config types | Edit | Test |
 |:-:|:-:|:-:|:-:|
-| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_knock.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_config_types.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_config_edit.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_diagnostic.png" width="160" /> |
+| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_knock.png" width="160" alt="Knock screen" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_config_types.png" width="160" alt="Config types screen" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_config_edit.png" width="160" alt="Edit configuration screen" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_diagnostic.png" width="160" alt="Diagnostic screen" /> |
 | **History** | **QR export** | **Settings** | **Help** |
-| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5_history.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6_qr_export.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/7_settings.png" width="160" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/8_help.png" width="160" /> |
+| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5_history.png" width="160" alt="History screen" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6_qr_export.png" width="160" alt="QR export screen" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/7_settings.png" width="160" alt="Settings screen" /> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/8_help.png" width="160" alt="Help screen" /> |
 
 ## Installation
 
-- **F-Droid**: build metadata is available in [`metadata/`](metadata/fr.gildasledrogoff.fwknop.yml)
-- **GitHub**: download the APK from the [releases page](https://github.com/gildas-le-drogoff/FwKnop-ng/releases)
-- **From source**: see below
+- **F-Droid** — build metadata is available in [`metadata/fr.gildasledrogoff.fwknop.yml`](metadata/fr.gildasledrogoff.fwknop.yml)
+- **GitHub** — download the APK from the [releases page](https://github.com/gildas-le-drogoff/FwKnop-ng/releases)
+- **From source** — see below
 
-Requires Android 8.0 (API 26) or later.
+Requires **Android 8.0 (API 26)** or later.
 
-> [!WARNING]
-> Configurations are bound to the device's Android Keystore. Removing the screen lock or performing a factory reset makes them unrecoverable. Keep your fwknop keys elsewhere, or use the encrypted backup.
+<blockquote>
+ <p><strong>⚠️ Warning:</strong> Configurations are bound to the device's Android Keystore. Removing the screen lock or performing a factory reset makes them <strong>unrecoverable</strong>. Keep your fwknop keys elsewhere, or use the encrypted backup.</p>
+</blockquote>
 
 ## Building
 
@@ -75,7 +90,7 @@ keyPassword=...
 ### Tests
 
 ```sh
-./gradlew test                 # unit tests
+./gradlew test # unit tests
 ./gradlew connectedAndroidTest # instrumented tests
 ```
 
@@ -93,10 +108,10 @@ The app module follows a clean-architecture layout; a separate `baselineprofile`
 
 ```
 app/src/main/java/fr/gildasledrogoff/fwknop/
-├── domain/        # models, repository interfaces, use cases, errors
-├── data/          # SPA encoding, transports, Room/SQLCipher, Keystore vault, backup, Wi-Fi state
-├── presentation/  # Jetpack Compose UI, navigation, keep-open and automatic knock services
-├── di/            # Hilt modules
+├── domain/ # models, repository interfaces, use cases, errors
+├── data/ # SPA encoding, transports, Room/SQLCipher, Keystore vault, backup, Wi-Fi state
+├── presentation/ # Jetpack Compose UI, navigation, keep-open and automatic knock services
+├── di/ # Hilt modules
 └── utils/
 ```
 
@@ -124,6 +139,6 @@ To report a security vulnerability, follow the [security policy](.github/SECURIT
 
 ## License
 
-FwKnop-ng is licensed under the [GNU General Public License v2.0 or later](COPYING).
+FwKnop-ng is licensed under the [GNU Affero General Public License v3.0 or later](COPYING).
 
 The vendored OpenPGP API (`org.openintents.openpgp`) is vendored from [open-keychain/openpgp-api](https://github.com/open-keychain/openpgp-api) under the Apache License 2.0; see [its README](app/src/main/java/org/openintents/openpgp/README.md).

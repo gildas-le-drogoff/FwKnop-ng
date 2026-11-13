@@ -61,7 +61,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     android:localeConfig="@xml/locales_config"
     android:networkSecurityConfig="@xml/network_security_config"
     android:theme="@style/Theme.Fwknop"
-    tools:targetApi="31"
+    tools:targetApi="33"
   >
     <activity
       android:name=".presentation.MainActivity"
