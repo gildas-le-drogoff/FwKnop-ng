@@ -1,7 +1,7 @@
 name: Release
 
 # Pushing a v<versionName> tag publishes a permanent release named after the tag,
-# with fwknop-<versionName>.apk built from the tagged commit. F-Droid downloads
+# with FwKnop-ng-<versionName>.apk built from the tagged commit. F-Droid downloads
 # that APK (Binaries: in its metadata) and checks it against its own build of the
 # same tag, so a published release is never replaced or deleted.
 
@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # The tag must name the version being built: F-Droid maps v<versionName> to
-      # releases/download/v<versionName>/fwknop-<versionName>.apk.
+      # releases/download/v<versionName>/FwKnop-ng-<versionName>.apk.
       - name: Read version and check it matches the tag
         id: version
         run: |
@@ -53,11 +53,11 @@ jobs:
             exit 1
           fi
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+      - name: Set up JDK
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
-          java-version: '21'
+          java-version-file: .github/.java-version
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
@@ -68,7 +68,7 @@ jobs:
           packages: platform-tools
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
           dependency-graph: disabled  # avoids classpath artifacts
           cache-read-only: true  # reuse CI's cache without churning it
@@ -100,7 +100,7 @@ jobs:
       - name: Collect artifacts and generate checksums
         run: |
           cd app/build/outputs/apk/release
-          mv app-release*.apk "fwknop-${{ steps.version.outputs.name }}.apk"
+          mv app-release*.apk "FwKnop-ng-${{ steps.version.outputs.name }}.apk"
           sha256sum -- *.apk > SHA256SUMS
           cat SHA256SUMS
 

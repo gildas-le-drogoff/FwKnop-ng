@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+root = true
+
+[*.{kt,kts}]
+ktlint_code_style = ktlint_official
+# Long URLs and generated tables would otherwise need awkward wrapping.
+max_line_length = off
+# The codebase uses wildcard imports throughout (Compose, Hilt, test fakes).
+ktlint_standard_no-wildcard-imports = disabled
+# Compose UI functions are PascalCase by convention.
+ktlint_function_naming_ignore_when_annotated_with = Composable
+# Several files intentionally group related declarations (fakes, themes, UI helpers).
+ktlint_standard_filename = disabled

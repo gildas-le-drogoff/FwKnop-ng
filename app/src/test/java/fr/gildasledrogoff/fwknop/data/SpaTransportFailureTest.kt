@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 package fr.gildasledrogoff.fwknop.data
+import android.app.Application
 import android.system.ErrnoException
 import android.system.OsConstants
 import com.google.common.truth.Truth.assertThat
@@ -24,11 +25,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLog
 import java.io.IOException
 import java.net.ConnectException
 
 @RunWith(RobolectricTestRunner::class)
+@Config(application = Application::class)
 class SpaTransportFailureTest {
     @get:Rule
     val loopback = LoopbackServer()

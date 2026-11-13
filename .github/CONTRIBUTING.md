@@ -65,7 +65,7 @@ Spanish.
 
 Requirements:
 
-- JDK 21
+- JDK 25
 - Android SDK with platform 37 (`compileSdk = 37`); `minSdk` is 29
 - Android Studio is recommended but not required: everything goes through the
   Gradle wrapper
@@ -196,8 +196,11 @@ time, the machine or the build path: timestamps, generated build IDs,
 `BuildConfig` fields filled at build time, stripping of native libraries, etc.
 
 The *Reproducible build* workflow builds the release APK twice from two
-different checkouts and compares them byte for byte. To check locally, build
-twice from two clones and compare:
+different checkouts and compares them byte for byte. After each release it also
+rebuilds the tag and checks it against the signed APK published on GitHub with
+[apksigcopier](https://github.com/obfusk/apksigcopier), as F-Droid does: F-Droid
+distributes that signed APK only if, signature aside, it is identical to its own
+build. To check locally, build twice from two clones and compare:
 
 ```sh
 ./gradlew clean assembleRelease
@@ -205,7 +208,15 @@ sha256sum app/build/outputs/apk/release/*.apk
 ```
 
 Without `keystore.properties` the release APK is **unsigned**, which is
-expected: F-Droid signs it with its own key.
+expected. To check a published release, build its tag from a fresh `git clone`
+(not a `git worktree`: AGP records the commit from the `.git` directory) and
+run:
+
+```sh
+gh release download vX.Y.Z --pattern 'FwKnop-ng-*.apk'
+apksigcopier compare FwKnop-ng-X.Y.Z.apk \
+  --unsigned app/build/outputs/apk/release/app-release-unsigned.apk
+```
 
 ## Screenshots, store texts and website
 
@@ -236,7 +247,7 @@ For reference, a release consists of:
    these tags.
 
 Pushing the tag runs the *Release* workflow, which publishes the signed
-`fwknop-<versionName>.apk`, its checksums and build provenance attestations on
+`FwKnop-ng-<versionName>.apk`, its checksums and build provenance attestations on
 the [releases page](https://github.com/gildas-le-drogoff/FwKnop-ng/releases)
 under the same tag. F-Droid verifies its own build against that APK, so a
 published release is never replaced or deleted.
