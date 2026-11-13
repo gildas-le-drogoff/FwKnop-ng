@@ -26,7 +26,7 @@ Builds:
       - yes
   - versionName: 2.2.0
     versionCode: 41
-    commit: 6de834c1fff9ec3fc93725952a3bde516de90674
+    commit: c3eb791b9690aa8c693ac0d75b7b623d54555424
     subdir: app
     gradle:
       - yes
