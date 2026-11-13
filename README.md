@@ -124,6 +124,6 @@ To report a security vulnerability, follow the [security policy](.github/SECURIT
 
 ## License
 
-FwKnop-ng is licensed under the [GNU General Public License v2.0 or later](COPYING).
+FwKnop-ng is licensed under the [GNU Affero General Public License v3.0 or later](COPYING).
 
 The vendored OpenPGP API (`org.openintents.openpgp`) is vendored from [open-keychain/openpgp-api](https://github.com/open-keychain/openpgp-api) under the Apache License 2.0; see [its README](app/src/main/java/org/openintents/openpgp/README.md).

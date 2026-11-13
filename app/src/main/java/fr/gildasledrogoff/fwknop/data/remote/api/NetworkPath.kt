@@ -88,9 +88,9 @@ fun NetworkPath.routeOf(session: NetworkSession): NetworkPath.Route =
 
 @Singleton
 class AndroidNetworkPath @Inject constructor(
-    @param:ApplicationContext context: Context,
+    @ApplicationContext context: Context,
     private val settingsRepository: SettingsRepository,
-    @param:ApplicationScope scope: CoroutineScope,
+    @ApplicationScope scope: CoroutineScope,
 ) : NetworkPath {
     private val connectivity = context.getSystemService(ConnectivityManager::class.java)
     private val routing = settingsRepository.settings.map { it.vpnRouting }

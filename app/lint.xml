@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+SPDX-FileCopyrightText: 2026 Gildas Le Drogoff and FwKnop-ng contributors
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<lint>
+  <issue id="GradleDependency">
+    <ignore regexp="androidx\.work:work-runtime-ktx" />
+  </issue>
+</lint>

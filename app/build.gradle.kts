@@ -2,8 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -15,10 +16,11 @@ plugins {
     alias(libs.plugins.baselineprofile)
 }
 
-val keystoreProperties = Properties().apply {
-    val file = rootProject.file("keystore.properties")
-    if (file.exists()) file.inputStream().use { load(it) }
-}
+val keystoreProperties =
+    Properties().apply {
+        val file = rootProject.file("keystore.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
+    }
 
 android {
     namespace = "fr.gildasledrogoff.fwknop"
@@ -28,8 +30,8 @@ android {
         applicationId = "fr.gildasledrogoff.fwknop"
         minSdk = 26
         targetSdk = 37
-        versionCode = 40
-        versionName = "2.1.2"
+        versionCode = 41
+        versionName = "2.2.0"
         testInstrumentationRunner = "fr.gildasledrogoff.fwknop.HiltTestRunner"
     }
 
@@ -50,12 +52,15 @@ android {
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.findByName("release")
+            // x86/x86_64 would only serve emulators (debug keeps them): drops 4.3 MiB of SQLCipher binaries.
+            //noinspection ChromeOsAbiSupport
+            ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
         }
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
     }
 
     buildFeatures {
@@ -73,6 +78,10 @@ android {
             it.jvmArgs(
                 "--add-opens=java.base/java.io=ALL-UNNAMED",
                 "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED",
+                // Robolectric loads native code (System.load) and protobuf-javalite uses sun.misc.Unsafe:
+                // grant both explicitly so the JDK stops warning about them.
+                "--enable-native-access=ALL-UNNAMED",
+                "--sun-misc-unsafe-memory-access=allow",
             )
         }
     }
@@ -89,22 +98,32 @@ android {
     }
 
     packaging {
-        resources.excludes += listOf(
-            "META-INF/DEPENDENCIES.txt",
-            "META-INF/LICENSE.txt",
-            "META-INF/NOTICE.txt",
-            "META-INF/{AL2.0,LGPL2.1}",
-            // dnsjava JDK 18+ resolver SPI: no such service on Android.
-            "META-INF/services/java.net.spi.InetAddressResolverProvider",
-        )
+        // AGP strips native libraries only when an NDK is installed: never strip, so the APK bytes
+        // do not depend on the build machine (F-Droid compares its build with the published APK).
+        jniLibs.keepDebugSymbols += "**/*.so"
+        resources.excludes +=
+            listOf(
+                "META-INF/DEPENDENCIES.txt",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE.txt",
+                "META-INF/{AL2.0,LGPL2.1}",
+                // dnsjava JDK 18+ resolver SPI: no such service on Android.
+                "META-INF/services/java.net.spi.InetAddressResolverProvider",
+            )
     }
 }
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_21
+        jvmTarget = JvmTarget.JVM_25
     }
 }
+
+// runTest, TestScope, advanceUntilIdle...: experimental coroutine test APIs, opted into for test sources only.
+tasks
+    .withType<KotlinCompile>()
+    .matching { it.name.contains("UnitTest") || it.name.contains("AndroidTest") }
+    .configureEach { compilerOptions.optIn.add("kotlinx.coroutines.ExperimentalCoroutinesApi") }
 
 room {
     schemaDirectory("$projectDir/schemas")
@@ -114,6 +133,9 @@ baselineProfile {
     // Generated on demand (./gradlew :app:generateBaselineProfile), then committed under src/release.
     automaticGenerationDuringBuild = false
     dexLayoutOptimization = true
+    // The plugin also provides nonMinifiedRelease: release-shaped (release ABIs, release signing when the
+    // keystore is present) but without R8/resource shrinking. Use it for fast manual testing:
+    // ./gradlew :app:installNonMinifiedRelease
 }
 
 androidComponents {
@@ -121,8 +143,8 @@ androidComponents {
     // keystore, sign them with the debug key so the macrobenchmarks can install them.
     onVariants(selector().all()) { variant ->
         val benchmarkType = variant.buildType == "benchmarkRelease" || variant.buildType == "nonMinifiedRelease"
-        if (benchmarkType && keystoreProperties.isEmpty()) {
-            variant.signingConfig.setConfig(android.signingConfigs.getByName("debug"))
+        if (benchmarkType && keystoreProperties.isEmpty) {
+            variant.signingConfig.from(android.signingConfigs.getByName("debug"))
         }
     }
 }
@@ -142,6 +164,8 @@ dependencies {
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.profileinstaller)
     baselineProfile(project(":baselineprofile"))
 
@@ -194,3 +218,9 @@ dependencies {
     androidTestImplementation(libs.room.testing)
     kspAndroidTest(libs.hilt.compiler)
 }
+
+val ktlintConfigOverride =
+    mapOf<String, Any>(
+        "ktlint_standard_no-wildcard-imports" to "disabled",
+        "ktlint_standard_filename" to "disabled",
+    )

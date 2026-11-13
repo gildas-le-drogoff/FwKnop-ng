@@ -40,7 +40,7 @@ class SplitDnsShadowNetwork : ShadowNetwork() {
     @Implementation
     protected fun getAllByName(host: String): Array<InetAddress> = when {
         host != VPN_ONLY_NAME -> InetAddress.getAllByName(host)
-        netId == ConnectivityManager.TYPE_VPN -> arrayOf(InetAddress.getByName(TAILNET_SERVER))
+        netId == LEGACY_TYPE_VPN -> arrayOf(InetAddress.getByName(TAILNET_SERVER))
         else -> throw UnknownHostException(host)
     }
 }
@@ -53,15 +53,15 @@ class AndroidNetworkPathTest {
     private val context = RuntimeEnvironment.getApplication()
     private val connectivity = shadowOf(context.getSystemService(ConnectivityManager::class.java))
 
-    private val wifi = ShadowNetwork.newInstance(ConnectivityManager.TYPE_WIFI)
-    private val vpn = ShadowNetwork.newInstance(ConnectivityManager.TYPE_VPN)
+    private val wifi = ShadowNetwork.newInstance(LEGACY_TYPE_WIFI)
+    private val vpn = ShadowNetwork.newInstance(LEGACY_TYPE_VPN)
     private val settings = FakeSettingsRepository()
     private val path = AndroidNetworkPath(context, settings, CoroutineScope(Dispatchers.Unconfined))
 
     @Before
     fun connectWifi() {
         connectivity.clearAllNetworks()
-        val info = info(ConnectivityManager.TYPE_WIFI)
+        val info = info(LEGACY_TYPE_WIFI)
         connectivity.addNetwork(wifi, info)
         connectivity.setActiveNetworkInfo(info)
         connectivity.setNetworkCapabilities(
@@ -135,7 +135,7 @@ class AndroidNetworkPathTest {
     }
 
     private fun connectVpn(routes: List<Pair<String, Int>>?) {
-        val info = info(ConnectivityManager.TYPE_VPN)
+        val info = info(LEGACY_TYPE_VPN)
         connectivity.addNetwork(vpn, info)
         connectivity.setActiveNetworkInfo(info)
         connectivity.setNetworkCapabilities(vpn, capabilities(NetworkCapabilities.TRANSPORT_VPN))
@@ -172,3 +172,9 @@ class AndroidNetworkPathTest {
 private const val VPN_ONLY_NAME = "nas.tailnet.ts.net"
 private const val TAILNET_SERVER = "100.101.102.103"
 private const val PUBLIC_SERVER = "203.0.113.7"
+
+@Suppress("DEPRECATION")
+private const val LEGACY_TYPE_WIFI = ConnectivityManager.TYPE_WIFI
+
+@Suppress("DEPRECATION")
+private const val LEGACY_TYPE_VPN = ConnectivityManager.TYPE_VPN
