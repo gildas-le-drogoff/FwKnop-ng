@@ -24,9 +24,9 @@ Builds:
     subdir: app
     gradle:
       - yes
-  - versionName: 2.2.0
+  - versionName: 2.1.3
     versionCode: 41
-    commit: 6de834c1fff9ec3fc93725952a3bde516de90674
+    commit: c3eb791b9690aa8c693ac0d75b7b623d54555424
     subdir: app
     gradle:
       - yes
@@ -35,5 +35,5 @@ AllowedAPKSigningKeys: 7066ac35e46752fd523b945724c9b9e5184d4793fba407933e83c1f77
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
-CurrentVersion: 2.1.2
+CurrentVersion: 2.1.3
 CurrentVersionCode: 41

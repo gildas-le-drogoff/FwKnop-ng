@@ -30,8 +30,8 @@ android {
         applicationId = "fr.gildasledrogoff.fwknop"
         minSdk = 26
         targetSdk = 37
-        versionCode = 40
-        versionName = "2.1.2"
+        versionCode = 41
+        versionName = "2.1.3"
         testInstrumentationRunner = "fr.gildasledrogoff.fwknop.HiltTestRunner"
     }
 
