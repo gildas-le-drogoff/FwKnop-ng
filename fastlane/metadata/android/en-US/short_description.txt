@@ -1,1 +1,1 @@
-Port knocking client for FwKnop (Single Packet Authorization)
+Classic port knocking and SPA (Fwknop) client + Wake-on-LAN

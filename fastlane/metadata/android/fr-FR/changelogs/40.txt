@@ -1,0 +1,6 @@
+• Configurations Wake-on-LAN
+• Port knocking classique (séquence de ports et délai entre les paquets)
+• Résolution de l'IP publique plus robuste (sondes STUN en parallèle, DNS recoupé)
+• Toute configuration peut être écrite sur un tag NFC
+• Lecture et effacement NFC plus fiables, tags vierges détectés
+• Aperçu en direct du thème dans les réglages

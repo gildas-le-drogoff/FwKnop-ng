@@ -7,7 +7,7 @@ AuthorWebSite: https://gildas.le-drogoff.fr/
 WebSite: https://github.com/gildas-le-drogoff/FwKnop-ng/
 SourceCode: https://github.com/gildas-le-drogoff/FwKnop-ng
 IssueTracker: https://github.com/gildas-le-drogoff/FwKnop-ng/issues
-Changelog:
+Changelog: 
   https://github.com/gildas-le-drogoff/FwKnop-ng/tree/HEAD/fastlane/metadata/android/en-US/changelogs
 
 AutoName: FwKnop-ng
@@ -24,15 +24,15 @@ Builds:
     subdir: app
     gradle:
       - yes
+
   - versionName: 2.1.3
     versionCode: 41
     commit: b97a621f48e3996cbb9b959dc9856a928d847f5e
     subdir: app
-    gradle:
-      - yes
+
   - versionName: 2.1.4
     versionCode: 42
-    commit: b97a621f48e3996cbb9b959dc9856a928d847f5e
+    commit: 925b6f4385c53ae4e67bf460faeb5898d9ccbf7b
     subdir: app
     sudo:
       - apt-get update

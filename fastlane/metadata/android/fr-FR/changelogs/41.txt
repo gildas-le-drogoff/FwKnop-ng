@@ -1,0 +1,4 @@
+• APK plus léger : bibliothèques natives x86 et x86_64 retirées des versions release
+• L'APK ne dépend plus de la machine de compilation (builds reproductibles)
+• Chiffrement des jeux de clés mis à jour pour la dernière version de Tink
+• Mise à jour du plugin Android Gradle, de Gradle et des bibliothèques

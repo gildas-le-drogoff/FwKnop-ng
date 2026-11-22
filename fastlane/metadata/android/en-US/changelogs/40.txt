@@ -1,0 +1,6 @@
+• Wake-on-LAN configurations
+• Classic port knocking (port sequence and delay between packets)
+• More robust public IP resolution (parallel STUN probes, cross-checked DNS)
+• Any configuration can be written to an NFC tag
+• More reliable NFC reading and erasing, blank tags detected
+• Live theme preview in settings
