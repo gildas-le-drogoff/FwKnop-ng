@@ -32,7 +32,7 @@ Builds:
 
   - versionName: 2.1.4
     versionCode: 42
-    commit: eeedb262b3ae8c7579d5031d547f1cbef35ab99c
+    commit: 925b6f4385c53ae4e67bf460faeb5898d9ccbf7b
     subdir: app
     sudo:
       - apt-get update
