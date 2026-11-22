@@ -22,7 +22,6 @@ VERSION_NAME="$(sed -n 's/^ *versionName = "\(.*\)"/\1/p' "${PROJECT_DIR}/app/bu
 VERSION_CODE="$(sed -n 's/^ *versionCode = \([0-9]*\)/\1/p' "${PROJECT_DIR}/app/build.gradle.kts")"
 
 RELEASE_APK="FwKnop-ng-${VERSION_NAME}.apk"
-RELEASE_AAB="FwKnop-ng-${VERSION_NAME}.aab"
 ARTIFACT_BASENAME="0_Fwknop_ng_Android"
 DATE_TAG="$(date +%F_%H)"
 FINAL_APK="${ARTIFACT_BASENAME}.apk"
@@ -136,30 +135,11 @@ check_apk_signature() {
 		die "APK signed with ${digest:-nothing}, expected ${RELEASE_CERT_SHA256} (AllowedAPKSigningKeys)."
 }
 
-check_aab_signature() {
-	local expected actual
-	expected="$(keytool -J-Duser.language=en -list -keystore "$UPLOAD_KEYSTORE_FILE" -alias "$UPLOAD_KEY_ALIAS" \
-		-storepass "$(prop "$UPLOAD_KEYSTORE_PROPS" storePassword)" | sed -n 's/.*(SHA-256): //p')"
-	actual="$(keytool -J-Duser.language=en -printcert -jarfile "$1" | sed -n 's/^[[:space:]]*SHA256: //p' | head -n1)"
-	[ -n "$expected" ] && [ "$actual" = "$expected" ] ||
-		die "AAB signed with ${actual:-nothing}, expected the Play upload key ${expected}."
-}
-
 build_apks() {
 	log "${GREEN}Build release APK (F-Droid/GitHub) + debug APK...${NC}"
 	./gradlew assembleDebug --console=plain -q
 	./gradlew build --console=plain -q
 	./gradlew assembleRelease --console=plain -q
-}
-
-build_aab() {
-	log "${GREEN}Build release AAB (Google Play)...${NC}"
-	env \
-		"ORG_GRADLE_PROJECT_android.injected.signing.store.file=${PROJECT_DIR}/$(prop "$UPLOAD_KEYSTORE_PROPS" storeFile)" \
-		"ORG_GRADLE_PROJECT_android.injected.signing.store.password=$(prop "$UPLOAD_KEYSTORE_PROPS" storePassword)" \
-		"ORG_GRADLE_PROJECT_android.injected.signing.key.alias=$(prop "$UPLOAD_KEYSTORE_PROPS" keyAlias)" \
-		"ORG_GRADLE_PROJECT_android.injected.signing.key.password=$(prop "$UPLOAD_KEYSTORE_PROPS" keyPassword)" \
-		./gradlew bundleRelease --console=plain -q
 }
 
 check_sync_host() {
@@ -262,14 +242,7 @@ main() {
 	cp "$apk" "$FINAL_APK"
 	cp "$debug_apk" "$FINAL_DEBUG_APK"
 
-	build_aab
-	local aab="app/build/outputs/bundle/release/app-release.aab"
-	[ -f "$aab" ] || die "Release AAB build failed or not found."
-	check_aab_signature "$aab"
-	cp "$aab" "$RELEASE_AAB"
-
 	log "${GREEN}✅ APK (F-Droid/GitHub) -> ${PURPLE}${PROJECT_DIR}/${RELEASE_APK}${NC}"
-	log "${GREEN}✅ AAB (Google Play)    -> ${PURPLE}${PROJECT_DIR}/${RELEASE_AAB}${NC}"
 	log "${GREEN}✅ APK (debug)          -> ${PURPLE}${PROJECT_DIR}/${FINAL_DEBUG_APK}${NC}"
 	log "${RED}__________________________${NC}"
 

@@ -22,17 +22,41 @@ val keystoreProperties =
         if (file.exists()) file.inputStream().use { load(it) }
     }
 
+fun gitOutput(vararg args: String): String =
+    runCatching {
+        providers
+            .exec {
+                commandLine("git", *args)
+                workingDir = rootProject.projectDir
+                isIgnoreExitValue = true
+            }.standardOutput.asText
+            .get()
+            .trim()
+    }.getOrDefault("").ifEmpty { "unknown" }
+
+val gitHash = gitOutput("rev-parse", "--short", "HEAD")
+val gitDate = gitOutput("log", "-1", "--format=%cs")
+
 android {
     namespace = "fr.gildasledrogoff.fwknop"
-    compileSdk = 37
+    compileSdk {
+        version =
+            release(37) {
+                minorApiLevel = 2
+            }
+    }
 
     defaultConfig {
         applicationId = "fr.gildasledrogoff.fwknop"
         minSdk = 26
         targetSdk = 37
-        versionCode = 41
-        versionName = "2.1.3"
+        versionCode = 42
+        versionName = "2.1.4"
         testInstrumentationRunner = "fr.gildasledrogoff.fwknop.HiltTestRunner"
+        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
+        buildConfigField("String", "GIT_DATE", "\"$gitDate\"")
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -47,15 +71,32 @@ android {
     }
 
     buildTypes {
+        debug {
+            isMinifyEnabled = false
+            enableAndroidTestCoverage = true
+            ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
+            buildConfigField("Boolean", "IS_DEBUG", "true")
+        }
         release {
+
+            isDebuggable = false
+            isJniDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            ndk { abiFilters += listOf("arm64-v8a") }
+            vcsInfo { include = false }
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
             signingConfig = signingConfigs.findByName("release")
-            // x86/x86_64 would only serve emulators (debug keeps them): drops 4.3 MiB of SQLCipher binaries.
-            //noinspection ChromeOsAbiSupport
-            ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
+
+            buildConfigField("Boolean", "IS_DEBUG", "false")
         }
+    }
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     compileOptions {
@@ -84,6 +125,7 @@ android {
                 "--sun-misc-unsafe-memory-access=allow",
             )
         }
+        unitTests.isIncludeAndroidResources = true
     }
 
     dependenciesInfo {
@@ -100,7 +142,14 @@ android {
     packaging {
         // AGP strips native libraries only when an NDK is installed: never strip, so the APK bytes
         // do not depend on the build machine (F-Droid compares its build with the published APK).
-        jniLibs.keepDebugSymbols += "**/*.so"
+        jniLibs {
+            keepDebugSymbols += "**/*.so"
+            // Compress native libs in the APK (smaller download; extracted at install).
+            useLegacyPackaging = true
+        }
+        dex {
+            useLegacyPackaging = true
+        }
         resources.excludes +=
             listOf(
                 "META-INF/DEPENDENCIES.txt",
@@ -110,6 +159,12 @@ android {
                 // dnsjava JDK 18+ resolver SPI: no such service on Android.
                 "META-INF/services/java.net.spi.InetAddressResolverProvider",
             )
+    }
+    @Suppress("UnstableApiUsage")
+    bundle {
+        storeArchive {
+            enable = true
+        }
     }
 }
 
