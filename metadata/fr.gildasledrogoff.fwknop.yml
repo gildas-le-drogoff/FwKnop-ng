@@ -18,6 +18,18 @@ Binaries:
   https://github.com/gildas-le-drogoff/FwKnop-ng/releases/download/v%v/FwKnop-ng-%v.apk
 
 Builds:
+  - versionName: 2.1.2
+    versionCode: 40
+    commit: 22c739eb7429ebcb03122c3eae052e5a3b162513
+    subdir: app
+    gradle:
+      - yes
+  - versionName: 2.1.3
+    versionCode: 41
+    commit: b97a621f48e3996cbb9b959dc9856a928d847f5e
+    subdir: app
+    gradle:
+      - yes
   - versionName: 2.1.4
     versionCode: 42
     commit: b97a621f48e3996cbb9b959dc9856a928d847f5e

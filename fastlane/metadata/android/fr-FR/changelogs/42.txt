@@ -1,0 +1,6 @@
+• Les champs secrets (clés Rijndael/HMAC) utilisent le champ de saisie sécurisé de Compose
+• Bibliothèques natives compressées : téléchargement plus léger
+• Les versions release ciblent désormais uniquement arm64-v8a
+• Améliorations de la compilation reproductible et nouveau script de vérification
+• Mise à jour du plugin Android Gradle, de Gradle et des bibliothèques
+• Interne : tests d'interface ajoutés, API Compose dépréciées remplacées

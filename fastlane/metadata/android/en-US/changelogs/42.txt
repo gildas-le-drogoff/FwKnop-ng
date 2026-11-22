@@ -1,0 +1,6 @@
+• Secret fields (Rijndael/HMAC keys) now use Compose's secure text field
+• Native libraries compressed: smaller download
+• Release builds now target arm64-v8a only
+• Reproducible build improvements and a new verification script
+• Updated Android Gradle Plugin, Gradle and libraries
+• Internal: UI tests added, deprecated Compose APIs replaced
