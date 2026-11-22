@@ -54,7 +54,7 @@
 - **GitHub** — download the APK from the [releases page](https://github.com/gildas-le-drogoff/FwKnop-ng/releases)
 - **From source** — see below
 
-Requires **Android 8.0 (API 26)** or later.
+Requires **Android 10.0 (API 29)** or later.
 
 <blockquote>
  <p><strong>⚠️ Warning:</strong> Configurations are bound to the device's Android Keystore. Removing the screen lock or performing a factory reset makes them <strong>unrecoverable</strong>. Keep your fwknop keys elsewhere, or use the encrypted backup.</p>

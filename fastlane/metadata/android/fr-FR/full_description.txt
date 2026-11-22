@@ -1,8 +1,11 @@
-FwKnop-ng est un client Android pour <a href="https://www.cipherdyne.org/fwknop/">fwknop</a> (Single Packet Authorization). Il envoie un paquet SPA chiffré et authentifié qui fait ouvrir à un serveur fwknopd un port du pare-feu pour votre adresse IP.
+FwKnop-ng est un client Android pour ouvrir des ports de pare-feu et réveiller des machines à distance. Il prend en charge <a href="https://www.cipherdyne.org/fwknop/">fwknop</a> (Single Packet Authorization), le port knocking classique et Wake-on-LAN.
+
+Avec fwknop, il envoie un paquet SPA chiffré et authentifié qui fait ouvrir à un serveur fwknopd un port du pare-feu pour votre adresse IP. Avec le port knocking classique, il envoie une séquence de ports configurable avec un délai entre les paquets. Avec Wake-on-LAN, il réveille une machine de votre réseau.
 
 <b>Fonctionnalités</b>
 
 <ul>
+<li>Trois modes : SPA fwknop, port knocking classique et Wake-on-LAN</li>
 <li>Chiffrement Rijndael (AES) et GPG (via OpenKeychain), authentification HMAC</li>
 <li>Configurations stockées chiffrées (Android Keystore, Tink, SQLCipher)</li>
 <li>Verrouillage optionnel de l'application (biométrie ou code de l'appareil)</li>

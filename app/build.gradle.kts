@@ -48,7 +48,7 @@ android {
 
     defaultConfig {
         applicationId = "fr.gildasledrogoff.fwknop"
-        minSdk = 26
+        minSdk = 29
         targetSdk = 37
         versionCode = 42
         versionName = "2.1.4"

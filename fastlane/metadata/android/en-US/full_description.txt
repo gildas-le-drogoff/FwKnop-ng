@@ -1,8 +1,11 @@
-FwKnop-ng is an Android client for <a href="https://www.cipherdyne.org/fwknop/">fwknop</a> (Single Packet Authorization). It sends an encrypted, authenticated SPA packet that makes a fwknopd server open a firewall port for your IP address.
+FwKnop-ng is an Android client to open firewall ports and wake machines remotely. It supports <a href="https://www.cipherdyne.org/fwknop/">fwknop</a> (Single Packet Authorization), classic port knocking and Wake-on-LAN.
+
+With fwknop, it sends an encrypted, authenticated SPA packet that makes a fwknopd server open a firewall port for your IP address. With classic port knocking, it sends a configurable sequence of ports with a delay between packets. With Wake-on-LAN, it wakes up a machine on your network.
 
 <b>Features</b>
 
 <ul>
+<li>Three modes: fwknop SPA, classic port knocking and Wake-on-LAN</li>
 <li>Rijndael (AES) and GPG (via OpenKeychain) encryption, HMAC authentication</li>
 <li>Configurations stored encrypted (Android Keystore, Tink, SQLCipher)</li>
 <li>Optional app lock (biometrics or device credential)</li>

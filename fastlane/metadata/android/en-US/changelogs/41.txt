@@ -1,0 +1,4 @@
+• Smaller APK: x86 and x86_64 native libraries removed from release builds
+• The APK no longer depends on the build machine (reproducible builds)
+• Keyset encryption updated for the latest Tink
+• Updated Android Gradle Plugin, Gradle and libraries

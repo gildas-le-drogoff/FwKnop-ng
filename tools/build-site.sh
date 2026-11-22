@@ -121,9 +121,9 @@ EOF
 
 render en-US en "" "" "fr/" "Version française" \
 	"Download the APK" "Source code" "Screenshots" "Screenshot" \
-	"Coming soon on F-Droid."
+	"Available on F-Droid."
 render fr-FR fr "fr/" "../" "../" "English version" \
 	"Télécharger l'APK" "Code source" "Captures d'écran" "Capture d'écran" \
-	"Bientôt disponible sur F-Droid."
+	"Disponible sur F-Droid."
 
 echo "Site built in ${OUT}"
