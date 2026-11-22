@@ -249,8 +249,10 @@ For reference, a release consists of:
 Pushing the tag runs the *Release* workflow, which publishes the signed
 `FwKnop-ng-<versionName>.apk`, its checksums and build provenance attestations on
 the [releases page](https://github.com/gildas-le-drogoff/FwKnop-ng/releases)
-under the same tag. F-Droid verifies its own build against that APK, so a
-published release is never replaced or deleted.
+under the same tag. F-Droid verifies its own build against that APK. If the
+release already exists, re-running the workflow replaces its assets; builds are
+reproducible, so the APK stays equivalent as long as the tag points to the same
+commit.
 
 ## Code of conduct
 

@@ -3,7 +3,9 @@ name: Release
 # Pushing a v<versionName> tag publishes a permanent release named after the tag,
 # with FwKnop-ng-<versionName>.apk built from the tagged commit. F-Droid downloads
 # that APK (Binaries: in its metadata) and checks it against its own build of the
-# same tag, so a published release is never replaced or deleted.
+# same tag. Builds are reproducible, so re-running the workflow on the same commit
+# replaces the assets of an existing release with an equivalent APK; the
+# verify-release job of reproducible.yml then re-checks it against a build from source.
 
 on:
   push:
@@ -44,13 +46,16 @@ jobs:
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "code=$CODE" >> "$GITHUB_OUTPUT"
 
-      - name: Refuse to replace an existing release
+      - name: Detect an existing release
+        id: existing
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
-            echo "::error::Release $GITHUB_REF_NAME already exists; F-Droid relies on it staying unchanged."
-            exit 1
+            echo "::notice::Release $GITHUB_REF_NAME already exists; its assets will be replaced."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set up JDK
@@ -137,14 +142,25 @@ jobs:
           VERSION: ${{ steps.version.outputs.name }}
           CODE: ${{ steps.version.outputs.code }}
           CERT: ${{ steps.signature.outputs.cert }}
+          EXISTS: ${{ steps.existing.outputs.exists }}
         run: |
           CHANGELOG="fastlane/metadata/android/en-US/changelogs/${CODE}.txt"
           if [ -f "$CHANGELOG" ]; then NOTES="$(cat "$CHANGELOG")"; else NOTES="$(git log -1 --format=%B)"; fi
-          gh release create "$GITHUB_REF_NAME" \
-            --verify-tag \
-            --title "FwKnop-ng ${VERSION}" \
-            --notes "${NOTES}
+          NOTES="${NOTES}
 
-          Signing certificate SHA-256: \`${CERT}\`" \
-            app/build/outputs/apk/release/*.apk \
-            app/build/outputs/apk/release/SHA256SUMS
+          Signing certificate SHA-256: \`${CERT}\`"
+          if [ "$EXISTS" = true ]; then
+            gh release upload "$GITHUB_REF_NAME" --clobber \
+              app/build/outputs/apk/release/*.apk \
+              app/build/outputs/apk/release/SHA256SUMS
+            gh release edit "$GITHUB_REF_NAME" \
+              --title "FwKnop-ng ${VERSION}" \
+              --notes "${NOTES}"
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              --verify-tag \
+              --title "FwKnop-ng ${VERSION}" \
+              --notes "${NOTES}" \
+              app/build/outputs/apk/release/*.apk \
+              app/build/outputs/apk/release/SHA256SUMS
+          fi
