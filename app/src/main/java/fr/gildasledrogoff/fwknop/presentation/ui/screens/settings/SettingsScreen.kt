@@ -199,11 +199,17 @@ private fun ExternalAppDelayField(seconds: Int, onChange: (Int) -> Unit) {
                 color = MaterialTheme.colorScheme.primary
             )
         }
+        val sliderState = remember(range) {
+            SliderState(
+                value = seconds.toFloat(),
+                steps = range.last - range.first - 1,
+                trackRange = range.first.toFloat()..range.last.toFloat(),
+            )
+        }
+        sliderState.value = seconds.toFloat()
         Slider(
-            value = seconds.toFloat(),
+            state = sliderState,
             onValueChange = { onChange(it.roundToInt()) },
-            valueRange = range.first.toFloat()..range.last.toFloat(),
-            steps = range.last - range.first - 1,
             modifier = Modifier.semantics { stateDescription = value },
         )
         Text(

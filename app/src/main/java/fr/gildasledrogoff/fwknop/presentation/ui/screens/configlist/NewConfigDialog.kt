@@ -30,12 +30,11 @@ fun NewConfigDialog(onChoose: (ConfigKind) -> Unit, onCancel: () -> Unit) {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 ConfigKind.entries.forEach { kind ->
                     ListItem(
-                        headlineContent = { Text(stringResource(kind.labelRes())) },
                         supportingContent = { Text(stringResource(kind.hintRes())) },
                         leadingContent = { FwknopIcon(kind.iconRes(), null) },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         modifier = Modifier.clickable(role = Role.Button) { onChoose(kind) },
-                    )
+                    ) { Text(stringResource(kind.labelRes())) }
                 }
             }
         },

@@ -46,11 +46,10 @@ fun ChooseConfigDialog(
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 nicknames.forEach { nickname ->
                     ListItem(
-                        headlineContent = { Text(nickname) },
                         leadingContent = { FwknopIcon(R.drawable.ic_dns_rounded, null) },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         modifier = Modifier.clickable(role = Role.Button) { onChoose(nickname) },
-                    )
+                    ) { Text(nickname) }
                 }
             }
         },
